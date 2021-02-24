@@ -296,7 +296,7 @@ describe('native chrome cases', () => {
             delete window.xprops.onClick;
 
             const sessionToken = uniqueID();
-            
+
 
             const gqlMock = getGraphQLApiMock({
                 extraHandler: expect('firebaseGQLCall', ({ data }) => {
@@ -505,7 +505,7 @@ describe('native chrome cases', () => {
             delete window.xprops.onClick;
 
             const sessionToken = uniqueID();
-            
+
 
             const gqlMock = getGraphQLApiMock({
                 extraHandler: expect('firebaseGQLCall', ({ data }) => {
@@ -516,7 +516,7 @@ describe('native chrome cases', () => {
                     if (!data.variables.sessionUID) {
                         throw new Error(`Expected sessionUID to be passed`);
                     }
-                    
+
                     return {
                         data: {
                             firebase: {
@@ -602,7 +602,7 @@ describe('native chrome cases', () => {
             delete window.xprops.onClick;
 
             const sessionToken = uniqueID();
-            
+
 
             const gqlMock = getGraphQLApiMock({
                 extraHandler: expect('firebaseGQLCall', ({ data }) => {
@@ -613,7 +613,7 @@ describe('native chrome cases', () => {
                     if (!data.variables.sessionUID) {
                         throw new Error(`Expected sessionUID to be passed`);
                     }
-                    
+
                     return {
                         data: {
                             firebase: {
@@ -695,7 +695,7 @@ describe('native chrome cases', () => {
             delete window.xprops.onClick;
 
             const sessionToken = uniqueID();
-            
+
 
             const gqlMock = getGraphQLApiMock({
                 extraHandler: expect('firebaseGQLCall', ({ data }) => {
@@ -706,7 +706,7 @@ describe('native chrome cases', () => {
                     if (!data.variables.sessionUID) {
                         throw new Error(`Expected sessionUID to be passed`);
                     }
-                    
+
                     return {
                         data: {
                             firebase: {
@@ -773,7 +773,7 @@ describe('native chrome cases', () => {
                     throw new Error(`Expected payerID to be ${ payerID }, got ${ data.payerID }`);
                 }
             }));
-            
+
             createButtonHTML();
 
             await mockSetupButton({
@@ -801,7 +801,7 @@ describe('native chrome cases', () => {
             delete window.xprops.onClick;
 
             const sessionToken = uniqueID();
-            
+
 
             const gqlMock = getGraphQLApiMock({
                 extraHandler: expect('firebaseGQLCall', ({ data }) => {
@@ -812,7 +812,7 @@ describe('native chrome cases', () => {
                     if (!data.variables.sessionUID) {
                         throw new Error(`Expected sessionUID to be passed`);
                     }
-                    
+
                     return {
                         data: {
                             firebase: {
@@ -897,7 +897,7 @@ describe('native chrome cases', () => {
             delete window.xprops.onClick;
 
             const sessionToken = uniqueID();
-            
+
 
             const gqlMock = getGraphQLApiMock({
                 extraHandler: expect('firebaseGQLCall', ({ data }) => {
@@ -1117,7 +1117,7 @@ describe('native chrome cases', () => {
             delete window.xprops.onClick;
 
             const sessionToken = uniqueID();
-            
+
 
             const gqlMock = getGraphQLApiMock({
                 extraHandler: expect('firebaseGQLCall', ({ data }) => {
@@ -1145,7 +1145,7 @@ describe('native chrome cases', () => {
             let sessionUID;
 
             const mockWindow = getMockWindowOpen({
-                expectedUrl:   'https://www.paypal.com/smart/checkout/venmo',
+                expectedUrl:   'https://www.paypal.com/smart/checkout/venmo/v2',
                 appSwitch:     true,
                 expectedQuery: [ 'sessionUID', 'pageUrl' ],
                 onOpen:        ({ query }) => {
@@ -1225,7 +1225,7 @@ describe('native chrome cases', () => {
             delete window.xprops.onClick;
 
             const sessionToken = uniqueID();
-            
+
 
             const gqlMock = getGraphQLApiMock({
                 extraHandler: expect('firebaseGQLCall', ({ data }) => {
@@ -1301,7 +1301,7 @@ describe('native chrome cases', () => {
             }), 50);
 
             window.xprops.onCancel = avoid('onCancel');
-            
+
             window.xprops.onApprove = expectError('onApprove', () => {
                 return ZalgoPromise.delay(50).then(() => {
                     mockWindow.expectClose();
@@ -1347,7 +1347,7 @@ describe('native chrome cases', () => {
             delete window.xprops.onClick;
 
             const sessionToken = uniqueID();
-            
+
 
             const gqlMock = getGraphQLApiMock({
                 extraHandler: expect('firebaseGQLCall', ({ data }) => {
@@ -1684,7 +1684,7 @@ describe('native ios cases', () => {
             delete window.xprops.onClick;
 
             const sessionToken = uniqueID();
-            
+
 
             const gqlMock = getGraphQLApiMock({
                 extraHandler: expect('firebaseGQLCall', ({ data }) => {
@@ -1902,7 +1902,7 @@ describe('native ios cases', () => {
                         if (res.redirect !== true) {
                             throw new Error(`Expected redirect to be true`);
                         }
-                        
+
                         if (!res.redirectUrl) {
                             throw new Error(`Expected native redirect url`);
                         }
