@@ -245,7 +245,7 @@ const defaultMiddleware = (req : ExpressRequest, res : ExpressResponse, next) =>
     res.locals.nonce = nonce;
 
     res.header('content-security-policy', `style-src self 'nonce-${ nonce }'; script-src self 'nonce-${ nonce }';`);
-    
+
     next();
 };
 
@@ -305,7 +305,7 @@ app.use('/smart/checkout/venmo/popup', defaultMiddleware, venmoPopupMiddleware);
 app.use('/smart/checkout/native/fallback', defaultMiddleware, nativeFallbackMiddleware);
 app.use('/smart/checkout/venmo/fallback', defaultMiddleware, venmoFallbackMiddleware);
 app.use('/smart/checkout/native', defaultMiddleware, nativeFallbackMiddleware);
-app.use('/smart/checkout/venmo', defaultMiddleware, venmoFallbackMiddleware);
+app.use('/smart/checkout/venmo/v2', defaultMiddleware, venmoFallbackMiddleware);
 
 app.listen(PORT, () => {
     // eslint-disable-next-line no-console
