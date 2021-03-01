@@ -824,7 +824,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         const closePopup = (event) => {
             getLogger().info(`native_closing_popup_${ event }`).track({
                 [FPTI_KEY.STATE]:       FPTI_STATE.BUTTON,
-                [FPTI_KEY.TRANSITION]:  event ? FPTI_TRANSITION.NATIVE_CLOSING_POPUP.concat(`_${ event }`) : FPTI_TRANSITION.NATIVE_CLOSING_POPUP
+                [FPTI_KEY.TRANSITION]:  event ? ` ${ FPTI_TRANSITION.NATIVE_CLOSING_POPUP }_${ event }` : FPTI_TRANSITION.NATIVE_CLOSING_POPUP
             }).flush();
 
             nativeWin.close();
@@ -914,7 +914,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         const closePopup = (event) => {
             getLogger().info(`native_closing_popup_${ event }`).track({
                 [FPTI_KEY.STATE]:       FPTI_STATE.BUTTON,
-                [FPTI_KEY.TRANSITION]:  event ? FPTI_TRANSITION.NATIVE_CLOSING_POPUP.concat(`_${ event }`) : FPTI_TRANSITION.NATIVE_CLOSING_POPUP
+                [FPTI_KEY.TRANSITION]:  event ? `${ FPTI_TRANSITION.NATIVE_CLOSING_POPUP }_${ event }` : FPTI_TRANSITION.NATIVE_CLOSING_POPUP
             }).flush();
             closeListener.cancel();
             popupWin.close();
