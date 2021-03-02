@@ -274,7 +274,7 @@ export function setupNativePopup({ parentDomain, env, sessionID, buttonSessionID
                     if (!didRedirect) {
                         sendToParent(MESSAGE.DETECT_APP_SWITCH);
                     }
-                }, 500);
+                }, 900);
                 clean.register(() => clearTimeout(timer));
             }
         });
