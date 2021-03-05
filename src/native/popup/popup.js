@@ -88,13 +88,12 @@ export function setupNativePopup({ parentDomain, env, sessionID, buttonSessionID
         [FPTI_CUSTOM_KEY.INFO_MSG]: base64encode(window.location.href)
     }).flush();
 
-    let sfvc;
+    const sfvc = isSFVC();
+    const sfvcLog = sfvc ? 'sfvc' : 'browser';
     if (isIOSSafari()) {
-        sfvc = isSFVC();
-
-        logger.info(`native_popup_init_${ sfvc ? 'sfvc' : 'browser' }`)
+        logger.info(`native_popup_init_${ sfvcLog }`)
             .track({
-                [FPTI_KEY.TRANSITION]: `${ FPTI_TRANSITION.NATIVE_POPUP_INIT }_${ sfvc ? 'sfvc' : 'browser' }`
+                [FPTI_KEY.TRANSITION]: `${ FPTI_TRANSITION.NATIVE_POPUP_INIT }_${ sfvcLog }`
             }).flush();
     }
 
@@ -164,8 +163,8 @@ export function setupNativePopup({ parentDomain, env, sessionID, buttonSessionID
             }).flush().then(closeWindow);
         
         if (isIOSSafari()) {
-            logger.info(`${ FPTI_TRANSITION.NATIVE_POPUP_NO_OPENER }_${ sfvc ? 'sfvc' : 'browser' }`).track({
-                [FPTI_KEY.TRANSITION]:      `${ FPTI_TRANSITION.NATIVE_POPUP_NO_OPENER }_${ sfvc ? 'sfvc' : 'browser' }`
+            logger.info(`${ FPTI_TRANSITION.NATIVE_POPUP_NO_OPENER }_${ sfvcLog }`).track({
+                [FPTI_KEY.TRANSITION]:      `${ FPTI_TRANSITION.NATIVE_POPUP_NO_OPENER }_${ sfvcLog }`
             }).flush().then(closeWindow);
         }
 
