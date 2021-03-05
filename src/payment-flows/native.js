@@ -614,7 +614,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
 
     const onCancelCallback = () => {
         cancelled = true;
-        getLogger().info(`native_message_oncancel`)
+        getLogger().info(`native_message_oncancel`, { buttonSessionID })
             .track({
                 [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.NATIVE_ON_CANCEL
             })
@@ -626,7 +626,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     };
 
     const onErrorCallback = ({ data : { message } } : {| data : {| message : string |} |}) => {
-        getLogger().info(`native_message_onerror`, { err: message })
+        getLogger().info(`native_message_onerror`, { err: message, buttonSessionID })
             .track({
                 [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_ON_ERROR,
                 [FPTI_CUSTOM_KEY.INFO_MSG]: `Error message: ${ message }`
@@ -638,7 +638,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     };
 
     const onShippingChangeCallback = ({ data } : {| data : OnShippingChangeData |}) => {
-        getLogger().info(`native_message_onshippingchange`)
+        getLogger().info(`native_message_onshippingchange`, { buttonSessionID })
             .track({
                 [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.NATIVE_ON_SHIPPING_CHANGE
             }).flush();
@@ -665,7 +665,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     };
 
     const onFallbackCallback = () => {
-        getLogger().info(`native_message_onfallback`)
+        getLogger().info(`native_message_onfallback`, { buttonSessionID })
             .track({
                 [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.NATIVE_ON_FALLBACK
             }).flush();
@@ -684,12 +684,12 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                 instrumentNativeSDKProps(sdkProps);
                 return socket.send(SOCKET_MESSAGE.SET_PROPS, sdkProps);
             }).then(() => {
-                getLogger().info(`native_response_setprops`).track({
+                getLogger().info(`native_response_setprops`, { buttonSessionID }).track({
                     [FPTI_KEY.STATE]:           FPTI_STATE.BUTTON,
                     [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.NATIVE_APP_SWITCH_ACK
                 }).flush();
             }).catch(err => {
-                getLogger().info(`native_response_setprops_error`).track({
+                getLogger().info(`native_response_setprops_error`, { buttonSessionID }).track({
                     [FPTI_KEY.STATE]:           FPTI_STATE.BUTTON,
                     [FPTI_CUSTOM_KEY.ERR_DESC]: stringifyError(err)
                 }).flush();
@@ -697,15 +697,15 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         };
 
         const closeNative = memoize(() => {
-            getLogger().info(`native_message_close`).flush();
+            getLogger().info(`native_message_close`, { buttonSessionID }).flush();
             return socket.send(SOCKET_MESSAGE.CLOSE).then(() => {
-                getLogger().info(`native_response_close`).flush();
+                getLogger().info(`native_response_close`, { buttonSessionID }).flush();
                 return close();
             });
         });
 
         const getPropsListener = socket.on(SOCKET_MESSAGE.GET_PROPS, () : ZalgoPromise<NativeSDKProps> => {
-            getLogger().info(`native_message_getprops`).flush();
+            getLogger().info(`native_message_getprops`, { buttonSessionID }).flush();
             return getSDKProps();
         });
 
