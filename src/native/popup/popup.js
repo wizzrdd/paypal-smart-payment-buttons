@@ -156,11 +156,10 @@ export function setupNativePopup({ parentDomain, env, sessionID, buttonSessionID
         logger.info('native_popup_no_opener', {
             buttonSessionID,
             href: base64encode(window.location.href)
-        }).info(`native_popup_no_opener_hash_${ getRawHash() }`)
-            .track({
-                [FPTI_KEY.TRANSITION]:      `${ FPTI_TRANSITION.NATIVE_POPUP_NO_OPENER }_hash_${ getRawHash() }`,
-                [FPTI_CUSTOM_KEY.INFO_MSG]: `location: ${ base64encode(window.location.href) }`
-            }).flush().then(closeWindow);
+        }).info(`native_popup_no_opener_hash_${ getRawHash() }`).track({
+            [FPTI_KEY.TRANSITION]:      `${ FPTI_TRANSITION.NATIVE_POPUP_NO_OPENER }_hash_${ getRawHash() }`,
+            [FPTI_CUSTOM_KEY.INFO_MSG]: `location: ${ base64encode(window.location.href) }`
+        }).flush().then(closeWindow);
         
         if (isIOSSafari()) {
             logger.info(`${ FPTI_TRANSITION.NATIVE_POPUP_NO_OPENER }_${ sfvcLog }`).track({
