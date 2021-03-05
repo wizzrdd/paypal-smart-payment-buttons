@@ -614,7 +614,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
 
     const onCancelCallback = () => {
         cancelled = true;
-        getLogger().info(`native_message_oncancel`, { buttonSessionID })
+        getLogger().info(`native_message_oncancel`)
             .track({
                 [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.NATIVE_ON_CANCEL
             })
