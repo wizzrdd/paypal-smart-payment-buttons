@@ -94,7 +94,7 @@ export function setupNativePopup({ parentDomain, env, sessionID, buttonSessionID
 
         logger.info(`native_popup_init_${ sfvc ? 'sfvc' : 'browser' }`)
             .track({
-                [FPTI_KEY.TRANSITION]:      `${ FPTI_TRANSITION.NATIVE_POPUP_INIT }_${ sfvc ? 'sfvc' : 'browser' }`
+                [FPTI_KEY.TRANSITION]: `${ FPTI_TRANSITION.NATIVE_POPUP_INIT }_${ sfvc ? 'sfvc' : 'browser' }`
             }).flush();
     }
 
