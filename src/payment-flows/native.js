@@ -687,7 +687,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                 getLogger().info(`native_response_setprops`).track({
                     [FPTI_KEY.STATE]:           FPTI_STATE.BUTTON,
                     [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.NATIVE_APP_SWITCH_ACK
-                    [FPTI_KEY.]
                 }).flush();
             }).catch(err => {
                 getLogger().info(`native_response_setprops_error`).track({
