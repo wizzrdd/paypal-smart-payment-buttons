@@ -827,14 +827,17 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         const nativeWin = popup(nativeUrl);
 
         const closePopup = (event) => {
-            getLogger().info(`native_closing_popup_${ event }`).track({
+            const eventType = event && event.type ? String(event.type) : event;
+
+            getLogger().info(`native_closing_popup_${ eventType }`).track({
                 [FPTI_KEY.STATE]:       FPTI_STATE.BUTTON,
-                [FPTI_KEY.TRANSITION]:  event ? ` ${ FPTI_TRANSITION.NATIVE_CLOSING_POPUP }_${ event }` : FPTI_TRANSITION.NATIVE_CLOSING_POPUP
+                [FPTI_KEY.TRANSITION]:  event ? ` ${ FPTI_TRANSITION.NATIVE_CLOSING_POPUP }_${ eventType }` : FPTI_TRANSITION.NATIVE_CLOSING_POPUP
             }).flush();
 
             nativeWin.close();
         };
         window.addEventListener('pagehide', closePopup);
+        window.addEventListener('unload', closePopup);
 
         getLogger()
             .info(`native_attempt_appswitch_popup_shown`, { url: nativeUrl })
@@ -917,9 +920,11 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         }, 500);
 
         const closePopup = (event) => {
-            getLogger().info(`native_closing_popup_${ event }`).track({
+            const eventType = event && event.type ? String(event.type) : event;
+
+            getLogger().info(`native_closing_popup_${ eventType }`).track({
                 [FPTI_KEY.STATE]:       FPTI_STATE.BUTTON,
-                [FPTI_KEY.TRANSITION]:  event ? `${ FPTI_TRANSITION.NATIVE_CLOSING_POPUP }_${ event }` : FPTI_TRANSITION.NATIVE_CLOSING_POPUP
+                [FPTI_KEY.TRANSITION]:  event ? `${ FPTI_TRANSITION.NATIVE_CLOSING_POPUP }_${ eventType }` : FPTI_TRANSITION.NATIVE_CLOSING_POPUP
             }).flush();
             closeListener.cancel();
             popupWin.close();
