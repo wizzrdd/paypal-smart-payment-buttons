@@ -84,11 +84,6 @@ let clean;
 let initialPageUrl;
 let nativeEligibility : NativeEligibility;
 
-const sfvc = isSFVC();
-const sfvcLog = sfvc ? 'sfvc' : 'browser';
-const sfvcOrSafari = !sfvc ? isSFVCorSafari() : false;
-const sfvcOrSafariLog = sfvcOrSafari ? 'sfvcOrSafari' : 'browser';
-
 type NativeSocketOptions = {|
     sessionUID : string,
     firebaseConfig : FirebaseConfig,
