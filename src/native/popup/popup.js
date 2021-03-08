@@ -162,12 +162,13 @@ export function setupNativePopup({ parentDomain, env, sessionID, buttonSessionID
             const height = window.innerHeight;
             const scale = Math.round(window.screen.width / window.innerWidth * 100) / 100;
             const computedHeight = Math.round(height * scale);
-            
-            const log = `${ FPTI_TRANSITION.NATIVE_POPUP_NO_OPENER }_hash_${ getRawHash() }_${ logMessage }_${ computedHeight }`;
+
+            const log = `${ FPTI_TRANSITION.NATIVE_POPUP_NO_OPENER }_hash_${ getRawHash() }_${ logMessage }`;
             logger
                 .info(log)
                 .track({
-                    [FPTI_KEY.TRANSITION]: log
+                    [FPTI_KEY.TRANSITION]:      log,
+                    [FPTI_CUSTOM_KEY.INFO_MSG]: `height: ${ computedHeight }`
                 }).flush();
         }
 
