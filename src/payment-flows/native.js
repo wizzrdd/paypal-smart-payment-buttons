@@ -2,7 +2,7 @@
 /* eslint max-lines: off, max-nested-callbacks: off */
 
 import { extendUrl, uniqueID, getUserAgent, supportsPopups, memoize, stringifyError,
-    stringifyErrorMessage, cleanup, once, noop, inlineMemoize, isSFVC, isSFVCorSafari } from 'belter/src';
+    stringifyErrorMessage, cleanup, once, noop, inlineMemoize } from 'belter/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { PLATFORM, ENV, FPTI_KEY, FUNDING } from '@paypal/sdk-constants/src';
 import { type CrossDomainWindowType, isWindowClosed, onCloseWindow, getDomain } from 'cross-domain-utils/src';
