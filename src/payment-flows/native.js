@@ -599,16 +599,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             .info(`native_approve_${ isIOSSafari() ? 'ios' : 'android' }_window_width_${ window.outerWidth }`)
             .info(`native_approve_${ isIOSSafari() ? 'ios' : 'android' }_window_height_${ window.outerHeight }`)
             .flush();
-        
-        getLogger()
-            .info(`native_onapprove_sfvc_${ sfvcLog }`)
-            .info(`native_onapprove_sfvcOrSafari_${ sfvcOrSafariLog }`)
-            .track({
-                [FPTI_KEY.TRANSITION]: `${ FPTI_TRANSITION.NATIVE_ON_APPROVE }_sfvc_${ sfvcLog }`
-            })
-            .track({
-                [FPTI_KEY.TRANSITION]: `${ FPTI_TRANSITION.NATIVE_ON_APPROVE  }_sfvcOrSafari_${ sfvcOrSafariLog }`
-            }).flush();
 
         const data = { payerID, paymentID, billingToken, forceRestAPI: true };
         const actions = { restart: () => fallbackToWebCheckout() };
@@ -1126,15 +1116,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     };
 
     const click = () => {
-        getLogger()
-            .info(`process_button_click_sfvc_${ sfvcLog }`)
-            .info(`process_button_click_sfvcOrSafari_${ sfvcOrSafariLog }`)
-            .track({
-                [FPTI_KEY.TRANSITION]: `${ FPTI_TRANSITION.BUTTON_CLICK }_sfvc_${ sfvcLog }`
-            })
-            .track({
-                [FPTI_KEY.TRANSITION]: `${ FPTI_TRANSITION.BUTTON_CLICK }_sfvcOrSafari_${ sfvcOrSafariLog }`
-            }).flush();
         return ZalgoPromise.try(() => {
             const sessionUID = uniqueID();
 
