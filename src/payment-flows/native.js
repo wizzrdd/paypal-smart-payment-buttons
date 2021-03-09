@@ -955,7 +955,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             getLogger().info(`native_popup_load_timeout`).flush();
         }, 5 * 1000);
 
-        const awaitRedirectListener = listen(popupWin, getNativePopupDomain(), POST_MESSAGE.AWAIT_REDIRECT, ({ data: { app, pageUrl, stickinessID: popupStickinessID } }) => {
+        const awaitRedirectListener = listen(popupWin, getNativePopupDomain(), POST_MESSAGE.AWAIT_REDIRECT, ({ data: { app, pageUrl, sfvc, stickinessID: popupStickinessID } }) => {
             getLogger().info(`native_post_message_await_redirect`).flush();
             clearTimeout(redirectListenerTimeout);
 
@@ -970,6 +970,10 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
 
                 if (isNativeOptedIn({ props })) {
                     return true;
+                }
+
+                if (sfvc) {
+                    return false;
                 }
 
                 return orderPromise.then(orderID => {

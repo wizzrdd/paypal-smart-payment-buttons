@@ -275,7 +275,7 @@ export function setupNativePopup({ parentDomain, env, sessionID, buttonSessionID
     const pageUrl = `${ window.location.href.split('#')[0] }#${  HASH.CLOSE }`;
 
     appInstalledPromise.then(app => {
-        sendToParent(MESSAGE.AWAIT_REDIRECT, { app, pageUrl, stickinessID }).then(({ redirect = true, redirectUrl, appSwitch = true }) => {
+        sendToParent(MESSAGE.AWAIT_REDIRECT, { app, pageUrl, sfvc, stickinessID }).then(({ redirect = true, redirectUrl, appSwitch = true }) => {
             if (!redirect) {
                 return;
             }
