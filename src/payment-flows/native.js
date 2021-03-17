@@ -42,7 +42,8 @@ const SOCKET_MESSAGE = {
     ON_APPROVE:         'onApprove',
     ON_CANCEL:          'onCancel',
     ON_ERROR:           'onError',
-    ON_FALLBACK:        'onFallback'
+    ON_FALLBACK:        'onFallback',
+    RESPONSE_ON_APPROVE: 'response_onApprove'
 };
 
 const NATIVE_DOMAIN = {
@@ -632,6 +633,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         });
     };
 
+
     const onCancelCallback = () => {
         cancelled = true;
         getLogger().info(`native_message_oncancel`)
@@ -733,11 +735,20 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             return getSDKProps();
         });
 
+        const responseOnApproveCallback = () => {
+            return ZalgoPromise.try(() => {
+                getLogger().info(`native_message_response_onapprove`).flush();
+            }).then(() => {
+                return { buttonSessionID }
+            });
+        }
+
         const onShippingChangeListener = socket.on(SOCKET_MESSAGE.ON_SHIPPING_CHANGE, onShippingChangeCallback);
         const onApproveListener = socket.on(SOCKET_MESSAGE.ON_APPROVE, onApproveCallback);
         const onCancelListener = socket.on(SOCKET_MESSAGE.ON_CANCEL, onCancelCallback);
         const onErrorListener = socket.on(SOCKET_MESSAGE.ON_ERROR, onErrorCallback);
         const onFallbackListener = socket.on(SOCKET_MESSAGE.ON_FALLBACK, onFallbackCallback);
+        const onResponseOnApproveFallbackListener = socket.on(SOCKET_MESSAGE.RESPONSE_ON_APPROVE, responseOnApproveCallback);
 
         clean.register(getPropsListener.cancel);
         clean.register(onShippingChangeListener.cancel);
@@ -745,6 +756,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         clean.register(onCancelListener.cancel);
         clean.register(onErrorListener.cancel);
         clean.register(onFallbackListener.cancel);
+        clean.register(onResponseOnApproveFallbackListener.cancel);
 
         socket.reconnect();
 
