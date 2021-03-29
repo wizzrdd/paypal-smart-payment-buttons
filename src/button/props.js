@@ -4,6 +4,7 @@ import type { CrossDomainWindowType } from 'cross-domain-utils/src';
 import { ENV, INTENT, COUNTRY, FUNDING, CARD, PLATFORM, CURRENCY, type FundingEligibilityType } from '@paypal/sdk-constants/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 import type { InstallmentsFlowType } from '@paypal/installments/src/types';
+import type { ApplePaySessionConfig } from '@paypal/checkout-components/src/zoid/buttons/util';
 
 import type { ContentType, LocaleType, ProxyWindow, Wallet, CheckoutFlowType, CardFieldsFlowType,
     ThreeDomainSecureFlowType, MenuFlowType, ConnectOptions, PersonalizationType } from '../types';
@@ -102,8 +103,9 @@ export type ButtonXProps = {|
 
     paymentMethodNonce : string,
     branded : boolean,
-    userExperienceFlow : string
+    userExperienceFlow : string,
 
+    applePay: ApplePaySessionConfig
 |};
 
 export type ButtonProps = {|
@@ -169,7 +171,9 @@ export type ButtonProps = {|
 
     paymentMethodNonce : string,
     branded : boolean,
-    userExperienceFlow : string
+    userExperienceFlow : string,
+
+    applePay : ApplePaySessionConfig
 |};
 
 // eslint-disable-next-line complexity
@@ -220,6 +224,7 @@ export function getProps({ facilitatorAccessToken } : {| facilitatorAccessToken 
         branded,
         getQueriedEligibleFunding = () => ZalgoPromise.resolve([]),
         storageID,
+        applePay,
         userExperienceFlow
     } = xprops;
 
@@ -350,6 +355,7 @@ export function getProps({ facilitatorAccessToken } : {| facilitatorAccessToken 
         paymentMethodNonce,
         branded,
         stickinessID,
+        applePay,
         userExperienceFlow
     };
 }
