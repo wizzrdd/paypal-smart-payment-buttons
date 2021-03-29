@@ -2,7 +2,7 @@
 
 import type { CrossDomainWindowType } from 'cross-domain-utils/src';
 import type { ZalgoPromise } from 'zalgo-promise/src';
-import { FUNDING, CARD, WALLET_INSTRUMENT } from '@paypal/sdk-constants/src';
+import { COUNTRY, FUNDING, CARD, WALLET_INSTRUMENT } from '@paypal/sdk-constants/src';
 
 import type { ButtonProps, Components, ServiceData, Config } from '../button/props';
 import type { ProxyWindow, MenuChoices } from '../types';
@@ -91,4 +91,34 @@ export type PaymentFlow = {|
     spinner? : boolean,
     inline? : boolean,
     popup? : boolean
+|};
+
+type ApplePayMerchantCapabilities =
+    'supports3DS' | 'supportsEMV' | 'supportsCredit' | 'supportsDebit';
+
+type ApplePaySupportedNetworks =
+    'discover' | 'visa' | 'mastercard' | 'amex' | 'jcb';
+
+type ApplePayLineItemType = 'final' | 'pending';
+type ApplePayLineItem = {|
+    type : ApplePayLineItemType,
+    label : string,
+    amount : string
+|};
+
+export type ApplePayPaymentRequest = {|
+    merchantCapabilities : $ReadOnlyArray<ApplePayMerchantCapabilities>,
+    supportedNetworks : $ReadOnlyArray<ApplePaySupportedNetworks>,
+    countryCode : $Values<typeof COUNTRY>,
+    requiredBillingContactFields? : $Values<typeof ApplePayContactField>,
+    billingContact? : ApplePayPaymentContact,
+    requiredShippingContactFields? : $Values<typeof ApplePayContactField>,
+    shippingContact? : ApplePayPaymentContact,
+    applicationData? : string,
+    supportedCountries? : $Values<typeof string>,
+    total : ApplePayLineItem,
+    lineItems? : $ReadOnlyArray<ApplePayLineItem>,
+    currencyCode : sring,
+    shippingType? : ApplePayShippingType,
+    shippingMethods? : $Values<typeof ApplePayShippingMethod>
 |};
