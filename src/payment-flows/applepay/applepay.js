@@ -1,14 +1,15 @@
 /* @flow */
 /* eslint max-lines: off, max-nested-callbacks: off */
 
-import { cleanup, getUserAgent, memoize, noop, stringifyError, stringifyErrorMessage, uniqueID } from 'belter/src';
-import { PLATFORM, ENV, FPTI_KEY, FUNDING } from '@paypal/sdk-constants/src';
+import { cleanup, memoize, stringifyError, stringifyErrorMessage } from 'belter/src';
+import { FPTI_KEY } from '@paypal/sdk-constants/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 
-import { getDetailedOrderInfo } from '../api';
-import { getLogger, promiseOne, promiseNoop, isIOSSafari, isAndroidChrome, getStorageState, unresolvedPromise } from '../lib';
-import { USER_ACTION, FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY } from '../constants';
-import type { ApplePayPayment, ApplePayPaymentMethod, ApplePayShippingMethod, ApplePayPaymentContact, ApplePayPaymentRequest, ApplePaySupportedNetworks, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, SetupOptions, IsPaymentEligibleOptions, InitOptions } from './types';
+import { getDetailedOrderInfo } from '../../api';
+import { getLogger, promiseNoop, unresolvedPromise } from '../../lib';
+import { FPTI_STATE, FPTI_TRANSITION } from '../../constants';
+
+import type { ApplePayPayment, ApplePayPaymentMethod, ApplePayShippingMethod, ApplePayPaymentContact, ApplePayPaymentRequest, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, SetupOptions, InitOptions } from './types';
 import { getSupportedNetworksFromIssuers, getShippingContactFromAddress } from './utils';
 
 let clean;
