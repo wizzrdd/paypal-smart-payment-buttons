@@ -2,7 +2,7 @@
 
 import type { CrossDomainWindowType } from 'cross-domain-utils/src';
 import type { ZalgoPromise } from 'zalgo-promise/src';
-import { COUNTRY, FUNDING, CARD, WALLET_INSTRUMENT } from '@paypal/sdk-constants/src';
+import { COUNTRY, CURRENCY, FUNDING, CARD, WALLET_INSTRUMENT } from '@paypal/sdk-constants/src';
 
 import type { ButtonProps, Components, ServiceData, Config } from '../button/props';
 import type { ProxyWindow, MenuChoices } from '../types';
@@ -93,32 +93,108 @@ export type PaymentFlow = {|
     popup? : boolean
 |};
 
-type ApplePayMerchantCapabilities =
+export type ShippingAddress = {|
+    firstName : string,
+    lastName : string,
+    line1 : string,
+    line2 : string,
+    city : string,
+    state : string,
+    postalCode : string,
+    country : string
+|};
+
+export type ApplePayMerchantCapabilities =
     'supports3DS' | 'supportsEMV' | 'supportsCredit' | 'supportsDebit';
 
-type ApplePaySupportedNetworks =
-    'discover' | 'visa' | 'mastercard' | 'amex' | 'jcb';
+export type ApplePaySupportedNetworks =
+    'discover' | 'visa' | 'masterCard' | 'amex' | 'jcb' | 'chinaUnionPay';
 
-type ApplePayLineItemType = 'final' | 'pending';
-type ApplePayLineItem = {|
+export type ApplePayLineItemType = 'final' | 'pending';
+export type ApplePayLineItem = {|
     type : ApplePayLineItemType,
     label : string,
     amount : string
+|};
+
+export type ApplePayContactField = 'email' | 'name' | 'phone' | 'postalAddress' | 'phoneticName';
+
+export type ApplePayPaymentContact = {|
+    phoneNumber? : string,
+    emailAddress? : string,
+    givenName? : string,
+    familyName? : string,
+    phoneticGivenName? : string,
+    phoneticFamilyName? : string,
+    addressLines? : $ReadOnlyArray<string>,
+    subLocality? : string,
+    locality? : string,
+    postalCode? : string,
+    subAdministrativeArea? : string,
+    administrativeArea? : string,
+    country? : string,
+    countryCode? : $Values<typeof COUNTRY>
+|};
+
+export const ApplePayShippingType = {
+    shipping:       ('shipping' : 'shipping'),
+    delivery:       ('delivery' : 'delivery'),
+    storePickup:    ('storePickup' : 'storePickup'),
+    servicePickup:  ('servicePickup' : 'servicePickup')
+};
+
+export type ApplePayShippingMethod = {|
+    label : string,
+    detail : string,
+    amount : string,
+    identifier : string
+|};
+
+export type ApplePayPaymentMethodType = 'debit' | 'credit' | 'prepaid' | 'store';
+
+export type ApplePayPaymentPassActivationState = 'activated' | 'requiresActivation' | 'activating' | 'suspended' | 'deactivated';
+
+export type ApplePayPaymentPass = {|
+    primaryAccountIdentifier : string,
+    primaryAccountNumberSuffix : string,
+    deviceAccountIdentifier? : string,
+    deviceAccountNumberSuffic? : string,
+    activationState : ApplePayPaymentPassActivationState
+|};
+
+export type ApplePayPaymentMethod = {|
+    displayName? : string,
+    network? : string,
+    type? : ApplePayPaymentMethodType,
+    paymentPass? : ApplePayPaymentPass,
+    billingContact? : ApplePayPaymentContact
+|};
+
+export type ApplePayPaymentToken = {|
+    paymentMethod : ApplePayPaymentMethod,
+    transactionIdentifier? : string,
+    paymentData? : Object
+|};
+
+export type ApplePayPayment = {|
+    token : ApplePayPaymentToken,
+    billingContact? : ApplePayPaymentContact,
+    shippingContact? : ApplePayPaymentContact
 |};
 
 export type ApplePayPaymentRequest = {|
     merchantCapabilities : $ReadOnlyArray<ApplePayMerchantCapabilities>,
     supportedNetworks : $ReadOnlyArray<ApplePaySupportedNetworks>,
     countryCode : $Values<typeof COUNTRY>,
-    requiredBillingContactFields? : $Values<typeof ApplePayContactField>,
+    requiredBillingContactFields? : $ReadOnlyArray<ApplePayContactField>,
     billingContact? : ApplePayPaymentContact,
-    requiredShippingContactFields? : $Values<typeof ApplePayContactField>,
+    requiredShippingContactFields? : $ReadOnlyArray<ApplePayContactField>,
     shippingContact? : ApplePayPaymentContact,
     applicationData? : string,
-    supportedCountries? : $Values<typeof string>,
+    supportedCountries? : $ReadOnlyArray<typeof COUNTRY>,
     total : ApplePayLineItem,
     lineItems? : $ReadOnlyArray<ApplePayLineItem>,
-    currencyCode : sring,
-    shippingType? : ApplePayShippingType,
-    shippingMethods? : $Values<typeof ApplePayShippingMethod>
+    currencyCode : $Values<typeof CURRENCY>,
+    shippingType? : $Values<typeof ApplePayShippingType>,
+    shippingMethods? : $ReadOnlyArray<ApplePayShippingMethod>
 |};

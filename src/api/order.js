@@ -2,7 +2,7 @@
 
 /* @flow */
 import type { ZalgoPromise } from 'zalgo-promise/src';
-import { FPTI_KEY, FUNDING, WALLET_INSTRUMENT, INTENT } from '@paypal/sdk-constants/src';
+import { CURRENCY, FPTI_KEY, FUNDING, WALLET_INSTRUMENT, INTENT } from '@paypal/sdk-constants/src';
 import { request, noop, memoize } from 'belter/src';
 
 import { SMART_API_URI, ORDERS_API_URL, VALIDATE_PAYMENT_METHOD_API } from '../config';
@@ -484,7 +484,6 @@ export const getSupplementalOrderInfo : GetSupplementalOrderInfo = memoize(order
                                 currencyValue
                                 currencyCode
                                 currencyFormatSymbolISOCurrency
-                                currencyValue
                             }
                         }
                     }
@@ -501,6 +500,94 @@ export const getSupplementalOrderInfo : GetSupplementalOrderInfo = memoize(order
             }
         `,
         variables: { orderID },
+        headers:   {
+            [HEADERS.CLIENT_CONTEXT]: orderID
+        }
+    });
+});
+
+type ShippingAddress = {|
+    firstName : string,
+    lastName : string,
+    line1 : string,
+    line2 : string,
+    city : string,
+    state : string,
+    postalCode : string,
+    country : string
+|};
+
+type DetailedOrderInfo = {|
+    checkoutSession : {|
+        allowedCardIssuers : $ReadOnlyArray<string>,
+        cart : {|
+            billingType? : string,
+            intent : $Values<typeof INTENT>,
+            paymentId? : ?string,
+            billingToken? : ?string,
+            amounts : {|
+                total : {|
+                    currencyFormatSymbolISOCurrency : string,
+                    currencyValue : string,
+                    currencyCode : $Values<typeof CURRENCY>
+                |}
+            |},
+            shippingAddress? : ShippingAddress
+        |},
+        buyer? : {|
+            userId? : string
+        |},
+        payees? : $ReadOnlyArray<{|
+            merchantId? : string,
+            email? : {|
+                stringValue? : string
+            |}
+        |}>
+    |}
+|};
+
+export type GetDetailedOrderInfo = (string, string) => ZalgoPromise<DetailedOrderInfo>;
+
+export const getDetailedOrderInfo : GetDetailedOrderInfo = memoize((orderID, country) => {
+    return callGraphQL({
+        name:  'GetCheckoutDetails',
+        query: `
+            query GetCheckoutDetails($orderID: String!, $country: CountryCodes!) {
+                checkoutSession(token: $orderID) {
+                    allowedCardIssuers(country: $country)
+                    cart {
+                        billingType
+                        intent
+                        paymentId
+                        billingToken
+                        amounts {
+                            total {
+                                currencyValue
+                                currencyCode
+                                currencyFormatSymbolISOCurrency
+                            }
+                        }
+                        shippingAddress {
+                            firstName
+                            lastName
+                            line1
+                            line2
+                            city
+                            state
+                            postalCode
+                            country
+                        }
+                    }
+                    payees {
+                        merchantId
+                        email {
+                            stringValue
+                        }
+                    }
+                }
+            }
+        `,
+        variables: { orderID, country },
         headers:   {
             [HEADERS.CLIENT_CONTEXT]: orderID
         }
