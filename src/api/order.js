@@ -9,6 +9,7 @@ import { SMART_API_URI, ORDERS_API_URL, VALIDATE_PAYMENT_METHOD_API } from '../c
 import { getLogger } from '../lib';
 import { FPTI_TRANSITION, FPTI_CONTEXT_TYPE, HEADERS, SMART_PAYMENT_BUTTONS,
     INTEGRATION_ARTIFACT, USER_EXPERIENCE_FLOW, PRODUCT_FLOW, PREFER } from '../constants';
+import type { ShippingMethod } from '../payment-flows/types';
 
 import { callSmartAPI, callGraphQL, callRestAPI } from './api';
 
@@ -532,7 +533,8 @@ type DetailedOrderInfo = {|
                     currencyCode : $Values<typeof CURRENCY>
                 |}
             |},
-            shippingAddress? : ShippingAddress
+            shippingAddress? : ShippingAddress,
+            shippingMethods? : $ReadOnlyArray<ShippingMethod>
         |},
         buyer? : {|
             userId? : string
@@ -576,6 +578,15 @@ export const getDetailedOrderInfo : GetDetailedOrderInfo = memoize((orderID, cou
                             state
                             postalCode
                             country
+                        }
+                        shippingMethods {
+                            amount {
+                                currencyCode
+                                currencyValue
+                            }
+                            label
+                            selected
+                            type
                         }
                     }
                     payees {

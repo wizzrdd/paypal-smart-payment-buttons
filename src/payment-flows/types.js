@@ -104,6 +104,16 @@ export type ShippingAddress = {|
     country : string
 |};
 
+export type ShippingMethod = {|
+    amount : {|
+        currencyCode : $Values<typeof CURRENCY>,
+        currencyValue : string
+    |},
+    label : string,
+    selected : boolean,
+    type : 'SHIPPING' | 'PICKUP'
+|};
+
 export type ApplePayMerchantCapabilities =
     'supports3DS' | 'supportsEMV' | 'supportsCredit' | 'supportsDebit';
 

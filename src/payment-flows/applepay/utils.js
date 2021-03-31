@@ -1,6 +1,6 @@
 /* @flow */
 
-import type { ApplePayPaymentContact, ApplePaySupportedNetworks, ShippingAddress } from '../types';
+import type { ApplePayPaymentContact, ApplePaySupportedNetworks, ApplePayShippingMethod, ShippingAddress, ShippingMethod } from '../types';
 
 const validNetworks = {
     discover:       'discover',
@@ -26,7 +26,19 @@ export function getSupportedNetworksFromIssuers(issuers : $ReadOnlyArray<string>
     });
 }
 
-export function getShippingContactFromAddress(shippingAddress : ShippingAddress) : ApplePayPaymentContact {
+export function getShippingContactFromAddress(shippingAddress : ?ShippingAddress) : ApplePayPaymentContact {
+    if (!shippingAddress) {
+        return {
+            givenName:          '',
+            familyName:         '',
+            addressLines:       [],
+            locality:           '',
+            administrativeArea: '',
+            postalCode:         '',
+            country:            ''
+        };
+    }
+
     const { firstName, lastName, line1, line2, city, state, postalCode, country } = shippingAddress;
 
     return {
@@ -41,4 +53,19 @@ export function getShippingContactFromAddress(shippingAddress : ShippingAddress)
         postalCode,
         country
     };
+}
+
+export function getApplePayShippingMethods(shippingMethods : ?$ReadOnlyArray<ShippingMethod>) : $ReadOnlyArray<ApplePayShippingMethod> {
+    if (!shippingMethods || shippingMethods.length === 0) {
+        return [];
+    }
+
+    return shippingMethods.map(method => {
+        return {
+            amount:     method.amount && method.amount.currencyValue ? method.amount.currencyValue : '',
+            detail:     '',
+            identifier: method.type,
+            label:      method.label
+        };
+    });
 }

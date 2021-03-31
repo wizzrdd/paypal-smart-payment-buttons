@@ -10,7 +10,7 @@ import { getLogger, promiseNoop, unresolvedPromise } from '../../lib';
 import { FPTI_STATE, FPTI_TRANSITION } from '../../constants';
 
 import type { ApplePayPayment, ApplePayPaymentMethod, ApplePayShippingMethod, ApplePayPaymentContact, ApplePayPaymentRequest, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, SetupOptions, InitOptions } from './types';
-import { getSupportedNetworksFromIssuers, getShippingContactFromAddress } from './utils';
+import { getApplePayShippingMethods, getSupportedNetworksFromIssuers, getShippingContactFromAddress } from './utils';
 
 let clean;
 
@@ -38,11 +38,10 @@ function isApplePayPaymentEligible() : boolean {
     return applePaymentEligible;
 }
 
-function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
+function initApplePay({ props } : InitOptions) : PaymentFlowInstance {
     const { createOrder, onApprove, onCancel, onError, commit, clientID, sessionID, sdkCorrelationID,
         buttonSessionID, env, stageHost, apiStageHost, onClick, onShippingChange, vault, platform,
         currency, stickinessID: defaultStickinessID, enableFunding, merchantDomain, locale, applePay } = props;
-    const { fundingSource } = payment;
 
     if (clean) {
         clean.all();
@@ -102,7 +101,8 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                                 currencyValue
                             }
                         },
-                        shippingAddress
+                        shippingAddress,
+                        shippingMethods
                     }
                 } = order.checkoutSession;
 
@@ -110,6 +110,7 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
 
                 let paymentMethod : ApplePayPaymentMethod;
                 let shippingMethod : ApplePayShippingMethod;
+                const applePayShippingMethods : $ReadOnlyArray<ApplePayShippingMethod> = getApplePayShippingMethods(shippingMethods);
                 let shippingContact : ApplePayPaymentContact = getShippingContactFromAddress(shippingAddress);
                 let payment : ApplePayPayment;
 
@@ -123,12 +124,13 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
 
                 // set order details into ApplePayRequest
                 const request : ApplePayPaymentRequest = {
-                    countryCode: locale.country,
+                    countryCode:     locale.country,
                     currencyCode,
                     merchantCapabilities,
                     shippingContact,
+                    shippingMethods: applePayShippingMethods,
                     supportedNetworks,
-                    total:          {
+                    total:           {
                         amount: currencyValue,
                         label:  merchantDomain,
                         type:   'final'
