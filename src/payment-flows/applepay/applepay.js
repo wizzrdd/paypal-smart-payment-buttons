@@ -90,7 +90,7 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                 });
         };
 
-        const applePayOrderPromise = orderPromise.then(orderID => {
+        orderPromise.then(orderID => {
             const country = locale.country;
             getDetailedOrderInfo(orderID, country).then(order => {
                 const {
