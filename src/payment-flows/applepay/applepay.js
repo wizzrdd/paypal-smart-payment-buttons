@@ -8,8 +8,8 @@ import { ZalgoPromise } from 'zalgo-promise/src';
 import { getDetailedOrderInfo } from '../../api';
 import { getLogger, promiseNoop, unresolvedPromise } from '../../lib';
 import { FPTI_STATE, FPTI_TRANSITION } from '../../constants';
+import type { ApplePayPayment, ApplePayShippingMethod, ApplePayPaymentContact, ApplePayPaymentRequest, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, SetupOptions, InitOptions } from '../types';
 
-import type { ApplePayPayment, ApplePayPaymentMethod, ApplePayShippingMethod, ApplePayPaymentContact, ApplePayPaymentRequest, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, SetupOptions, InitOptions } from './types';
 import { getApplePayShippingMethods, getSupportedNetworksFromIssuers, getShippingContactFromAddress } from './utils';
 
 let clean;
@@ -39,9 +39,7 @@ function isApplePayPaymentEligible() : boolean {
 }
 
 function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
-    const { createOrder, onApprove, onCancel, onError, commit, clientID, sessionID, sdkCorrelationID,
-        buttonSessionID, env, stageHost, apiStageHost, onClick, onShippingChange, vault, platform,
-        currency, stickinessID: defaultStickinessID, enableFunding, merchantDomain, locale, applePay } = props;
+    const { createOrder, onApprove, onCancel, onError, onClick, merchantDomain, locale, applePay } = props;
 
     const { fundingSource } = payment;
 
@@ -108,12 +106,9 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                     }
                 } = order.checkoutSession;
 
+                const shippingContact : ApplePayPaymentContact = getShippingContactFromAddress(shippingAddress);
                 const supportedNetworks = getSupportedNetworksFromIssuers(allowedCardIssuers);
-
-                let shippingMethod : ApplePayShippingMethod;
                 const applePayShippingMethods : $ReadOnlyArray<ApplePayShippingMethod> = getApplePayShippingMethods(shippingMethods);
-                let shippingContact : ApplePayPaymentContact = getShippingContactFromAddress(shippingAddress);
-                let applePayPayment : ApplePayPayment;
 
                 const merchantCapabilities = [
                     'supports3DS',
@@ -137,7 +132,7 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                         type:   'final'
                     }
                 };
-                
+
                 // create Apple Pay Session
                 const applePaySession = applePay(3, applePayRequest);
                 applePaySession.addEventListener('onvalidateMerchant', async (e) => {
@@ -154,38 +149,24 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                     applePaySession.completePaymentMethodSelection(update);
                 });
 
-                applePaySession.addEventListener('onshippingmethodselected', (e) => {
-                    shippingMethod = e.shippingMethod;
+                applePaySession.addEventListener('onshippingmethodselected', () => {
                     const update = {};
                     applePaySession.completeShippingMethodSelection(update);
                 });
 
-                applePaySession.addEventListener('onshippingcontactselected', (e) => {
-                    shippingContact = e.shippingContact;
+                applePaySession.addEventListener('onshippingcontactselected', () => {
                     const update = {};
                     applePaySession.completeShippingContactSelection(update);
                 });
 
                 applePaySession.addEventListener('onpaymentauthorized', (e) => {
-                    applePayPayment = e.payment;
-                    const { token: { paymentMethod, paymentData, transactionIdentifier }, shippingContact } = applePayPayment;
-                    let result;
-                    onApprove({ data: { payerID, paymentID, billingToken: token } })
-                        .then(() => {
-                            result = {
-                                'status': window.ApplePaySession.STATUS_SUCCESS
-                            };
-                        })
-                        .catch(err => {
-                            result = {
-                                'status': window.ApplePaySession.STATUS_FAILURE
-                            };
-
-                            console.error(err); //TODO: use logging
-                        })
-                        .finally(() => {
-                            applePaySession.completePayment(result);
-                        });
+                    const applePayPayment : ApplePayPayment = e.payment;
+                    const { token, billingContact, shippingContact } = applePayPayment;
+                    // pass token to backend to confirm / validate
+                    // call onApprove when successful
+                    onApprove({});
+                    const result = window.ApplePaySession.STATUS_SUCCESS;
+                    applePaySession.completePayment(result);
                 });
 
                 applePaySession.addEventListener('oncancel', () => {

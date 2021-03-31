@@ -11,9 +11,9 @@ const validNetworks = {
     chinaunionpay:  'chinaUnionPay'
 };
 
-export function getSupportedNetworksFromIssuers(issuers : $ReadOnlyArray<string>) : ?$ReadOnlyArray<ApplePaySupportedNetworks> {
+export function getSupportedNetworksFromIssuers(issuers : $ReadOnlyArray<string>) : $ReadOnlyArray<ApplePaySupportedNetworks> {
     if (!issuers || (issuers && issuers.length === 0)) {
-        return undefined;
+        return [];
     }
 
     issuers.filter(issuer => {
