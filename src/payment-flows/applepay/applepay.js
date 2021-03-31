@@ -1,7 +1,7 @@
 /* @flow */
 /* eslint max-lines: off, max-nested-callbacks: off */
 
-import { cleanup, memoize, stringifyError, stringifyErrorMessage } from 'belter/src';
+import { cleanup, memoize, request, stringifyError, stringifyErrorMessage } from 'belter/src';
 import { FPTI_KEY } from '@paypal/sdk-constants/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 
@@ -80,9 +80,9 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
             return unresolvedPromise();
         });
 
-        const validateMerchant = () => {
-            fetch('')
-                .then(res => res.json())
+        const validateMerchant = (url) => {
+            request({ url })
+                .then(res => res.body)
                 .then(merchantSession => {
                     return merchantSession;
                 }).catch(err => {
@@ -110,7 +110,6 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
 
                 const supportedNetworks = getSupportedNetworksFromIssuers(allowedCardIssuers);
 
-                let paymentMethod : ApplePayPaymentMethod;
                 let shippingMethod : ApplePayShippingMethod;
                 const applePayShippingMethods : $ReadOnlyArray<ApplePayShippingMethod> = getApplePayShippingMethods(shippingMethods);
                 let shippingContact : ApplePayPaymentContact = getShippingContactFromAddress(shippingAddress);
@@ -140,8 +139,8 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                 };
                 // create Apple Pay Session
                 const applePaySession = applePay(3, request);
-                applePaySession.on('validateMerchant', async () => {
-                    const merchantSession = await validateMerchant();
+                applePaySession.addEventListener('onvalidateMerchant', async (e) => {
+                    const merchantSession = await validateMerchant(e.validationURL);
                     if (merchantSession) {
                         merchantSession.completeMerchantValidation(merchantSession);
                     } else {
@@ -149,27 +148,26 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                     }
                 });
 
-                applePaySession.on('paymentmethodselected', (e) => {
-                    paymentMethod = e.paymentMethod;
+                applePaySession.addEventListener('onpaymentmethodselected', () => {
                     const update = {};
                     applePaySession.completePaymentMethodSelection(update);
                 });
 
-                applePaySession.on('shippingmethodselected', (e) => {
+                applePaySession.addEventListener('onshippingmethodselected', (e) => {
                     shippingMethod = e.shippingMethod;
                     const update = {};
                     applePaySession.completeShippingMethodSelection(update);
                 });
 
-                applePaySession.on('shippingcontactselected', (e) => {
+                applePaySession.addEventListener('onshippingcontactselected', (e) => {
                     shippingContact = e.shippingContact;
                     const update = {};
                     applePaySession.completeShippingContactSelection(update);
                 });
 
-                applePaySession.on('paymentauthorized', (e) => {
+                applePaySession.addEventListener('onpaymentauthorized', (e) => {
                     applePayPayment = e.payment;
-                    const { token, shippingContact } = applePayPayment;
+                    const { token: { paymentMethod, paymentData, transactionIdentifier }, shippingContact } = applePayPayment;
                     let result;
                     onApprove({ data: { payerID, paymentID, billingToken: token } })
                         .then(() => {
@@ -189,7 +187,7 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                         });
                 });
 
-                applePaySession.on('cancel', () => {
+                applePaySession.addEventListener('oncancel', () => {
                     if (onCancel) {
                         onCancel();
                     }
