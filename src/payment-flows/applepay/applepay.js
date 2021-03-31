@@ -124,7 +124,7 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                 }
 
                 // set order details into ApplePayRequest
-                const request : ApplePayPaymentRequest = {
+                const applePayRequest : ApplePayPaymentRequest = {
                     countryCode:     locale.country,
                     currencyCode,
                     merchantCapabilities,
@@ -137,8 +137,9 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                         type:   'final'
                     }
                 };
+                
                 // create Apple Pay Session
-                const applePaySession = applePay(3, request);
+                const applePaySession = applePay(3, applePayRequest);
                 applePaySession.addEventListener('onvalidateMerchant', async (e) => {
                     const merchantSession = await validateMerchant(e.validationURL);
                     if (merchantSession) {
