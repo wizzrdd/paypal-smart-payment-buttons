@@ -38,10 +38,12 @@ function isApplePayPaymentEligible() : boolean {
     return applePaymentEligible;
 }
 
-function initApplePay({ props } : InitOptions) : PaymentFlowInstance {
+function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
     const { createOrder, onApprove, onCancel, onError, commit, clientID, sessionID, sdkCorrelationID,
         buttonSessionID, env, stageHost, apiStageHost, onClick, onShippingChange, vault, platform,
         currency, stickinessID: defaultStickinessID, enableFunding, merchantDomain, locale, applePay } = props;
+
+    const { fundingSource } = payment;
 
     if (clean) {
         clean.all();
@@ -112,7 +114,7 @@ function initApplePay({ props } : InitOptions) : PaymentFlowInstance {
                 let shippingMethod : ApplePayShippingMethod;
                 const applePayShippingMethods : $ReadOnlyArray<ApplePayShippingMethod> = getApplePayShippingMethods(shippingMethods);
                 let shippingContact : ApplePayPaymentContact = getShippingContactFromAddress(shippingAddress);
-                let payment : ApplePayPayment;
+                let applePayPayment : ApplePayPayment;
 
                 const merchantCapabilities = [
                     'supports3DS',
@@ -166,13 +168,25 @@ function initApplePay({ props } : InitOptions) : PaymentFlowInstance {
                 });
 
                 applePaySession.on('paymentauthorized', (e) => {
-                    payment = e.payment;
-                    const { token, shippingContact } = payment;
-                    // Define ApplePayPaymentAuthorizationResult
-                    const result = {
-                        'status': window.ApplePaySession.STATUS_SUCCESS
-                    };
-                    applePaySession.completePayment(result);
+                    applePayPayment = e.payment;
+                    const { token, shippingContact } = applePayPayment;
+                    let result;
+                    onApprove({ data: { payerID, paymentID, billingToken: token } })
+                        .then(() => {
+                            result = {
+                                'status': window.ApplePaySession.STATUS_SUCCESS
+                            };
+                        })
+                        .catch(err => {
+                            result = {
+                                'status': window.ApplePaySession.STATUS_FAILURE
+                            };
+
+                            console.error(err); //TODO: use logging
+                        })
+                        .finally(() => {
+                            applePaySession.completePayment(result);
+                        });
                 });
 
                 applePaySession.on('cancel', () => {
