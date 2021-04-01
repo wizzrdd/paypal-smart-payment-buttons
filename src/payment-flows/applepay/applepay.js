@@ -8,7 +8,7 @@ import { ZalgoPromise } from 'zalgo-promise/src';
 import { getDetailedOrderInfo } from '../../api';
 import { getLogger, promiseNoop, unresolvedPromise } from '../../lib';
 import { FPTI_STATE, FPTI_TRANSITION } from '../../constants';
-import type { ApplePayPayment, ApplePayShippingMethod, ApplePayPaymentContact, ApplePayPaymentRequest, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, SetupOptions, InitOptions } from '../types';
+import type { ApplePayPayment, ApplePayPaymentRequest, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, SetupOptions, InitOptions } from '../types';
 
 import { getApplePayShippingMethods, getMerchantCapabilities, getSupportedNetworksFromIssuers, getShippingContactFromAddress } from './utils';
 
@@ -168,21 +168,7 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                     const { token, billingContact, shippingContact } = applePayPayment;
                     // pass token to backend to confirm / validate
                     // call onApprove when successful
-                    const data = { payerID, paymentID, billingToken, forceRestAPI: true };
-                    const actions = { restart: () => fallbackToWebCheckout() };
-                    return ZalgoPromise.all([
-                        onApprove(data, actions)
-                            .catch(err => {
-                                getLogger().info(`native_message_onapprove_error`, { payerID, paymentID, billingToken })
-                                    .track({
-                                        [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_ON_APPROVE_ERROR,
-                                        [FPTI_CUSTOM_KEY.INFO_MSG]: `Error: ${ stringifyError(err) }`
-                                    })
-                                    .flush();
-                                onError(err);
-                            }),
-                        close()
-                    ]);
+
                     const result = window.ApplePaySession.STATUS_SUCCESS;
                     applePaySession.completePayment(result);
                 });
