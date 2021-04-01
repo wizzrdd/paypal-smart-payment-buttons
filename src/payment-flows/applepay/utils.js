@@ -1,8 +1,17 @@
 /* @flow */
 
-import type { ApplePayPaymentContact, ApplePaySupportedNetworks, ApplePayShippingMethod, ShippingAddress, ShippingMethod } from '../types';
+import type { ApplePayPaymentContact, ApplePayMerchantCapabilities, ApplePaySupportedNetworks, ApplePayShippingMethod, FundingOption, ShippingAddress, ShippingMethod } from '../types';
 
-const validNetworks = {
+type ValidNetworks = {|
+    discover : ApplePaySupportedNetworks,
+    visa : ApplePaySupportedNetworks,
+    mastercard : ApplePaySupportedNetworks,
+    amex : ApplePaySupportedNetworks,
+    jcb : ApplePaySupportedNetworks,
+    chinaunionpay : ApplePaySupportedNetworks
+|};
+
+const validNetworks : ValidNetworks = {
     discover:       'discover',
     visa:           'visa',
     mastercard:     'masterCard',
@@ -16,14 +25,18 @@ export function getSupportedNetworksFromIssuers(issuers : $ReadOnlyArray<string>
         return [];
     }
 
-    issuers.filter(issuer => {
+    function validateIssuers(issuer : string) : ?ApplePaySupportedNetworks {
         const network = issuer.toLowerCase().replace(/_/g, '');
         if (Object.keys(validNetworks).indexOf(network) !== -1) {
-            return validNetworks[network];
+            const validNetwork : ApplePaySupportedNetworks = validNetworks[network];
+            return validNetwork;
         }
+    }
 
-        return false;
-    });
+    // $FlowFixMe
+    const validIssuers : $ReadOnlyArray<ApplePaySupportedNetworks> = issuers.filter(validateIssuers);
+
+    return validIssuers;
 }
 
 export function getShippingContactFromAddress(shippingAddress : ?ShippingAddress) : ApplePayPaymentContact {
@@ -68,4 +81,31 @@ export function getApplePayShippingMethods(shippingMethods : ?$ReadOnlyArray<Shi
             label:      method.label
         };
     });
+}
+
+export function getMerchantCapabilities(supportedNetworks : $ReadOnlyArray<ApplePaySupportedNetworks>, fundingOptions : $ReadOnlyArray<FundingOption>) : $ReadOnlyArray<ApplePayMerchantCapabilities> {
+    const merchantCapabilities : Array<ApplePayMerchantCapabilities> = [];
+    merchantCapabilities.push('supports3DS');
+
+    if (supportedNetworks && supportedNetworks.indexOf('chinaUnionPay') !== -1) {
+        merchantCapabilities.push('supportsEMV');
+    }
+
+    if (fundingOptions) {
+        fundingOptions.forEach(option => {
+            if (!option.fundingInstrument) {
+                return;
+            }
+            
+            if (option.fundingInstrument.type === 'CREDIT_CARD') {
+                merchantCapabilities.push('supportsCredit');
+            }
+
+            if (option.fundingInstrument.type === 'DEBIT_CARD') {
+                merchantCapabilities.push('supportsDebit');
+            }
+        });
+    }
+
+    return merchantCapabilities;
 }

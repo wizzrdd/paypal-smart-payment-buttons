@@ -9,7 +9,7 @@ import { SMART_API_URI, ORDERS_API_URL, VALIDATE_PAYMENT_METHOD_API } from '../c
 import { getLogger } from '../lib';
 import { FPTI_TRANSITION, FPTI_CONTEXT_TYPE, HEADERS, SMART_PAYMENT_BUTTONS,
     INTEGRATION_ARTIFACT, USER_EXPERIENCE_FLOW, PRODUCT_FLOW, PREFER } from '../constants';
-import type { ShippingMethod } from '../payment-flows/types';
+import type { FundingOption, ShippingMethod, ShippingAddress } from '../payment-flows/types';
 
 import { callSmartAPI, callGraphQL, callRestAPI } from './api';
 
@@ -507,17 +507,6 @@ export const getSupplementalOrderInfo : GetSupplementalOrderInfo = memoize(order
     });
 });
 
-type ShippingAddress = {|
-    firstName : string,
-    lastName : string,
-    line1 : string,
-    line2 : string,
-    city : string,
-    state : string,
-    postalCode : string,
-    country : string
-|};
-
 type DetailedOrderInfo = {|
     checkoutSession : {|
         allowedCardIssuers : $ReadOnlyArray<string>,
@@ -539,6 +528,7 @@ type DetailedOrderInfo = {|
         buyer? : {|
             userId? : string
         |},
+        fundingOptions : $ReadOnlyArray<FundingOption>,
         payees? : $ReadOnlyArray<{|
             merchantId? : string,
             email? : {|
@@ -586,6 +576,11 @@ export const getDetailedOrderInfo : GetDetailedOrderInfo = memoize((orderID, cou
                             }
                             label
                             selected
+                            type
+                        }
+                    }
+                    fundingOptions {
+                        fundingInstrument {
                             type
                         }
                     }

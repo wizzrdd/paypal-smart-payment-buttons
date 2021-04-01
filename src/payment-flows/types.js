@@ -93,6 +93,16 @@ export type PaymentFlow = {|
     popup? : boolean
 |};
 
+export type FundingOptionType = 'BANK_ACCOUNT' | 'CREDIT_CARD' | 'CRYPTOCURRENCY' | 'DEBIT_CARD' | 'INCENTIVE' | 'PAYPAL_BALANCE' | 'PAYPAL_CREDIT' | 'PRIVATE_LABEL_CREDIT_CARD' | 'REWARDS';
+
+export type FundingInstrument = {|
+    type : FundingOptionType
+|};
+
+export type FundingOption = {|
+    fundingInstrument : FundingInstrument
+|};
+
 export type ShippingAddress = {|
     firstName : string,
     lastName : string,
