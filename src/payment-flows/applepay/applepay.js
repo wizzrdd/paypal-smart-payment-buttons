@@ -27,9 +27,9 @@ function setupApplePay({ props } : SetupOptions) : ZalgoPromise<void> {
 }
 
 function isApplePayEligible({ props } : IsEligibleOptions) : boolean {
-    const { branded, onShippingChange } = props;
+    const { branded, onShippingChange, createBillingAgreement, createSubscription } = props;
 
-    if (branded || onShippingChange) {
+    if (branded || onShippingChange || createBillingAgreement || createSubscription) {
         return false;
     }
 
