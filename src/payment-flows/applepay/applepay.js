@@ -2,12 +2,14 @@
 /* eslint max-lines: off, max-nested-callbacks: off */
 
 import { cleanup, memoize, request, stringifyError, stringifyErrorMessage } from 'belter/src';
+import { type CrossDomainWindowType } from 'cross-domain-utils/src';
 import { FPTI_KEY } from '@paypal/sdk-constants/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 
+import { checkout } from '../checkout';
 import { getDetailedOrderInfo } from '../../api';
 import { getLogger, promiseNoop, unresolvedPromise } from '../../lib';
-import { FPTI_STATE, FPTI_TRANSITION } from '../../constants';
+import { FPTI_CUSTOM_KEY, FPTI_STATE, FPTI_TRANSITION } from '../../constants';
 import type { ApplePayPayment, ApplePayPaymentRequest, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, SetupOptions, InitOptions } from '../types';
 
 import { getApplePayShippingMethods, getMerchantCapabilities, getSupportedNetworksFromIssuers, getShippingContactFromAddress } from './utils';
@@ -38,7 +40,7 @@ function isApplePayPaymentEligible() : boolean {
     return applePaymentEligible;
 }
 
-function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
+function initApplePay({ components, config, props, payment, serviceData } : InitOptions) : PaymentFlowInstance {
     const { createOrder, onApprove, onCancel, onError, onClick, merchantDomain, locale, applePay } = props;
 
     const { fundingSource } = payment;
@@ -106,6 +108,14 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                     onError(err);
                 });
         };
+
+        const fallbackToWebCheckout = (fallbackWin? : ?CrossDomainWindowType) => {
+            const checkoutPayment = { ...payment, win: fallbackWin, isClick: false, isNativeFallback: true };
+            const instance = checkout.init({ props, components, payment: checkoutPayment, config, serviceData });
+            clean.register(() => instance.close());
+            return instance.start();
+        };
+
         orderPromise.then(orderID => {
             const country = locale.country;
             getDetailedOrderInfo(orderID, country).then(order => {
@@ -175,11 +185,30 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
 
                     const applePayPayment : ApplePayPayment = e.payment;
                     const { token, billingContact, shippingContact } = applePayPayment;
-                    // pass token to backend to confirm / validate
-                    // call onApprove when successful
+                    // call graphQL mutation passing in token, billingContact and shippingContact
+                    
+                    
 
-                    const result = window.ApplePaySession.STATUS_SUCCESS;
-                    applePaySession.completePayment(result);
+                    // call onApprove when successful
+                    const data = {};
+                    const actions = { restart: () => fallbackToWebCheckout() };
+                    ZalgoPromise.all([
+                        onApprove(data, actions)
+                            .then(() => {
+                                const result = window.ApplePaySession.STATUS_SUCCESS;
+                                applePaySession.completePayment(result);
+                            })
+                            .catch(err => {
+                                getLogger().info(`applepay_message_onapprove_error`)
+                                    .track({
+                                        [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_ON_APPROVE_ERROR,
+                                        [FPTI_CUSTOM_KEY.INFO_MSG]: `Error: ${ stringifyError(err) }`
+                                    })
+                                    .flush();
+                                onError(err);
+                            }),
+                        close()
+                    ]);
                 });
 
                 applePaySession.addEventListener('oncancel', (e) => {
