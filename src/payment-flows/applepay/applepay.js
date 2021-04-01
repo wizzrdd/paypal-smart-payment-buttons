@@ -187,8 +187,6 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
                     const { token, billingContact, shippingContact } = applePayPayment;
                     // call graphQL mutation passing in token, billingContact and shippingContact
                     
-                    
-
                     // call onApprove when successful
                     const data = {};
                     const actions = { restart: () => fallbackToWebCheckout() };
