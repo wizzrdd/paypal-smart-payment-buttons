@@ -58,6 +58,14 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
         });
     });
 
+    function logApplePayEvent(event) {
+        getLogger().info(`${ FPTI_TRANSITION.APPLEPAY_EVENT }_${ event.type }`)
+            .track({
+                [FPTI_KEY.TRANSITION]: `${ FPTI_TRANSITION.APPLEPAY_EVENT }_${ event.type }`
+            })
+            .flush();
+    }
+
     function initApplePaySession() {
         const validatePromise = validate().then(valid => {
             if (!valid) {
@@ -85,8 +93,7 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                 body:   JSON.stringify({
                     validationURL: url
                 })
-            })
-                .then(res => res.body)
+            }).then(res => res.body)
                 .then(merchantSession => {
                     return merchantSession;
                 }).catch(err => {
@@ -99,7 +106,6 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                     onError(err);
                 });
         };
-
         orderPromise.then(orderID => {
             const country = locale.country;
             getDetailedOrderInfo(orderID, country).then(order => {
@@ -121,7 +127,6 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                 const supportedNetworks = getSupportedNetworksFromIssuers(allowedCardIssuers);
                 const shippingContact = getShippingContactFromAddress(shippingAddress);
                 const applePayShippingMethods = getApplePayShippingMethods(shippingMethods);
-
                 const merchantCapabilities = getMerchantCapabilities(supportedNetworks, fundingOptions);
 
                 // set order details into ApplePayRequest
@@ -142,28 +147,32 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                 // create Apple Pay Session
                 const applePaySession = applePay(3, applePayRequest);
                 applePaySession.addEventListener('onvalidateMerchant', async (e) => {
-                    const merchantSession = await validateMerchant(`${ e.validationURL }/paymentSession`);
+                    logApplePayEvent(e);
+
+                    const merchantSession = await validateMerchant(e.validationURL);
                     if (merchantSession) {
                         merchantSession.completeMerchantValidation(merchantSession);
                     }
                 });
 
-                applePaySession.addEventListener('onpaymentmethodselected', () => {
-                    const update = {};
-                    applePaySession.completePaymentMethodSelection(update);
+                applePaySession.addEventListener('onpaymentmethodselected', (e) => {
+                    logApplePayEvent(e);
+                    applePaySession.completePaymentMethodSelection({});
                 });
 
-                applePaySession.addEventListener('onshippingmethodselected', () => {
-                    const update = {};
-                    applePaySession.completeShippingMethodSelection(update);
+                applePaySession.addEventListener('onshippingmethodselected', (e) => {
+                    logApplePayEvent(e);
+                    applePaySession.completeShippingMethodSelection({});
                 });
 
-                applePaySession.addEventListener('onshippingcontactselected', () => {
-                    const update = {};
-                    applePaySession.completeShippingContactSelection(update);
+                applePaySession.addEventListener('onshippingcontactselected', (e) => {
+                    logApplePayEvent(e);
+                    applePaySession.completeShippingContactSelection({});
                 });
 
                 applePaySession.addEventListener('onpaymentauthorized', (e) => {
+                    logApplePayEvent(e);
+
                     const applePayPayment : ApplePayPayment = e.payment;
                     const { token, billingContact, shippingContact } = applePayPayment;
                     // pass token to backend to confirm / validate
@@ -173,13 +182,25 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                     applePaySession.completePayment(result);
                 });
 
-                applePaySession.addEventListener('oncancel', () => {
+                applePaySession.addEventListener('oncancel', (e) => {
+                    logApplePayEvent(e);
+
                     if (onCancel) {
                         onCancel();
                     }
                 });
 
                 applePaySession.begin();
+            });
+        }).catch(err => {
+            getLogger().info(`applepay_create_order_error`)
+                .track({
+                    [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.APPLEPAY_CREATE_ORDER_ERROR,
+                    [FPTI_KEY.ERROR_DESC]:      stringifyError(err)
+                }).flush();
+
+            return close().then(() => {
+                return onError(err);
             });
         });
     }
