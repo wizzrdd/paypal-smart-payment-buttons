@@ -141,9 +141,13 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
                     logApplePayEvent(e);
 
                     const applePayPayment : ApplePayPayment = e.payment;
-
+                    if (!applePayPayment) {
+                        throw new Error('No payment received from Apple.');
+                    }
+                    
                     // call graphQL mutation passing in token, billingContact and shippingContact
                     updateApplePayPayment(buyerAccessToken, orderID, applePayPayment);
+                    
                     // call onApprove when successful
                     const data = {};
                     const actions = { restart: () => fallbackToWebCheckout() };

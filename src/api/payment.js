@@ -7,7 +7,7 @@ import { noop } from 'belter';
 import { PAYMENTS_API_URL } from '../config';
 import { getLogger } from '../lib';
 import { FPTI_TRANSITION, FPTI_CONTEXT_TYPE, HEADERS } from '../constants';
-import type { ApplePayPaymentContact, ApplePayPaymentToken } from '../payment-flows/types';
+import type { ApplePayPayment } from '../payment-flows/types';
 
 import { callGraphQL, callRestAPI } from './api';
 
@@ -125,9 +125,11 @@ export function patchPayment(paymentID : string, data : PatchData, { facilitator
     });
 }
 
-export function updateApplePayPayment(buyerAccessToken : string, orderID : string, { token, billingContact, shippingContact } : {| token : ApplePayPaymentToken, billingContact : ApplePayPaymentContact, shippingContact : ApplePayPaymentContact |}) : ZalgoPromise<void> {
+export function updateApplePayPayment(buyerAccessToken : string, orderID : string, applePayPayment : ApplePayPayment) : ZalgoPromise<void> {
+    const { token, billingContact, shippingContact } = applePayPayment;
+
     return callGraphQL({
-        name:    'UpgradeFacilitatorAccessToken',
+        name:    'UpdateApplePayPayment',
         headers: {
             [ HEADERS.ACCESS_TOKEN ]:   buyerAccessToken,
             [ HEADERS.CLIENT_CONTEXT ]: orderID
