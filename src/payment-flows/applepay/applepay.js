@@ -1,13 +1,13 @@
 /* @flow */
 /* eslint max-lines: off, max-nested-callbacks: off */
 
-import { cleanup, memoize, request, stringifyError, stringifyErrorMessage } from 'belter/src';
+import { cleanup, memoize, stringifyError, stringifyErrorMessage } from 'belter/src';
 import { type CrossDomainWindowType } from 'cross-domain-utils/src';
 import { FPTI_KEY } from '@paypal/sdk-constants/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 
 import { checkout } from '../checkout';
-import { getDetailedOrderInfo } from '../../api';
+import { getDetailedOrderInfo, validateMerchant } from '../../api';
 import { getLogger, promiseNoop, unresolvedPromise } from '../../lib';
 import { FPTI_CUSTOM_KEY, FPTI_STATE, FPTI_TRANSITION } from '../../constants';
 import type { ApplePayPayment, ApplePayPaymentRequest, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, SetupOptions, InitOptions } from '../types';
@@ -87,27 +87,6 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
 
             return unresolvedPromise();
         });
-
-        const validateMerchant = (url) => {
-            request({
-                url:    'https://',
-                method: 'post',
-                body:   JSON.stringify({
-                    validationURL: url
-                })
-            }).then(res => res.body)
-                .then(merchantSession => {
-                    return merchantSession;
-                }).catch(err => {
-                    getLogger().info('applepay_validateMerchant_error')
-                        .track({
-                            [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.APPLEPAY_VALIDATE_MERCHANT_ERROR,
-                            [FPTI_KEY.ERROR_DESC]: stringifyErrorMessage(err)
-                        })
-                        .flush();
-                    onError(err);
-                });
-        };
 
         const fallbackToWebCheckout = (fallbackWin? : ?CrossDomainWindowType) => {
             const checkoutPayment = { ...payment, win: fallbackWin, isClick: false, isNativeFallback: true };

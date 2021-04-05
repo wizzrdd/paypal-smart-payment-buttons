@@ -158,3 +158,29 @@ export function getNativeEligibility({ vault, shippingCallbackEnabled, merchantI
         return gqlResult.mobileSDKEligibility;
     });
 }
+
+type ApplePaySession = {||};
+export function validateMerchant(url : string) : ZalgoPromise<ApplePaySession> {
+    return callGraphQL({
+        name:  'ValidateMerchant',
+        query: `
+            query GetApplePayMerchantSession(
+                $url : String
+            ) {
+                merchantSession(
+                    url: $url
+                ) {
+                    session
+                }
+            }
+        `,
+        variables: {
+            url
+        }
+    }).then((gqlResult) => {
+        if (!gqlResult || !gqlResult.merchantSession) {
+            throw new Error(`GraphQL GetApplePayMerchantSession returned no merchantSession object`);
+        }
+        return gqlResult.merchantSession.session;
+    });
+}
