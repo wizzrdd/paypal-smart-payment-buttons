@@ -159,7 +159,11 @@ export function getNativeEligibility({ vault, shippingCallbackEnabled, merchantI
     });
 }
 
-type ApplePaySession = {||};
+type ApplePaySession = {|
+    // eslint-disable-next-line flowtype/no-weak-types
+    session : any
+|};
+
 export function validateMerchant(url : string) : ZalgoPromise<ApplePaySession> {
     return callGraphQL({
         name:  'ValidateMerchant',
