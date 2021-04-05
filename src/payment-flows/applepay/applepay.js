@@ -155,32 +155,41 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
                 };
 
                 // create Apple Pay Session
-                const applePaySession = applePay(3, applePayRequest);
-                applePaySession.addEventListener('onvalidateMerchant', async (e) => {
+                const {
+                    begin,
+                    addEventListener,
+                    completeMerchantValidation,
+                    completeShippingContactSelection,
+                    completePaymentMethodSelection,
+                    completeShippingMethodSelection,
+                    completePayment
+                } = applePay(3, applePayRequest);
+
+                addEventListener('onvalidateMerchant', async (e) => {
                     logApplePayEvent(e);
 
                     const merchantSession = await validateMerchant(e.validationURL);
                     if (merchantSession) {
-                        merchantSession.completeMerchantValidation(merchantSession);
+                        completeMerchantValidation(merchantSession);
                     }
                 });
 
-                applePaySession.addEventListener('onpaymentmethodselected', (e) => {
+                addEventListener('onpaymentmethodselected', (e) => {
                     logApplePayEvent(e);
-                    applePaySession.completePaymentMethodSelection({});
+                    completePaymentMethodSelection({});
                 });
 
-                applePaySession.addEventListener('onshippingmethodselected', (e) => {
+                addEventListener('onshippingmethodselected', (e) => {
                     logApplePayEvent(e);
-                    applePaySession.completeShippingMethodSelection({});
+                    completeShippingMethodSelection({});
                 });
 
-                applePaySession.addEventListener('onshippingcontactselected', (e) => {
+                addEventListener('onshippingcontactselected', (e) => {
                     logApplePayEvent(e);
-                    applePaySession.completeShippingContactSelection({});
+                    completeShippingContactSelection({});
                 });
 
-                applePaySession.addEventListener('onpaymentauthorized', (e) => {
+                addEventListener('onpaymentauthorized', (e) => {
                     logApplePayEvent(e);
 
                     const applePayPayment : ApplePayPayment = e.payment;
@@ -194,7 +203,7 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
                         onApprove(data, actions)
                             .then(() => {
                                 const result = window.ApplePaySession.STATUS_SUCCESS;
-                                applePaySession.completePayment(result);
+                                completePayment(result);
                             })
                             .catch(err => {
                                 getLogger().info(`applepay_message_onapprove_error`)
@@ -209,7 +218,7 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
                     ]);
                 });
 
-                applePaySession.addEventListener('oncancel', (e) => {
+                addEventListener('oncancel', (e) => {
                     logApplePayEvent(e);
 
                     if (onCancel) {
@@ -217,7 +226,7 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
                     }
                 });
 
-                applePaySession.begin();
+                begin();
             });
         }).catch(err => {
             getLogger().info(`applepay_create_order_error`)
