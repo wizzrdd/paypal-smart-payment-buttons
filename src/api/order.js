@@ -507,7 +507,7 @@ export const getSupplementalOrderInfo : GetSupplementalOrderInfo = memoize(order
     });
 });
 
-type DetailedOrderInfo = {|
+export type DetailedOrderInfo = {|
     checkoutSession : {|
         allowedCardIssuers : $ReadOnlyArray<string>,
         cart : {|

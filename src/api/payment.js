@@ -2,12 +2,14 @@
 
 import type { ZalgoPromise } from 'zalgo-promise/src';
 import { FPTI_KEY } from '@paypal/sdk-constants/src';
+import { noop } from 'belter';
 
 import { PAYMENTS_API_URL } from '../config';
 import { getLogger } from '../lib';
 import { FPTI_TRANSITION, FPTI_CONTEXT_TYPE, HEADERS } from '../constants';
+import type { ApplePayPaymentContact, ApplePayPaymentToken } from '../payment-flows/types';
 
-import { callRestAPI } from './api';
+import { callGraphQL, callRestAPI } from './api';
 
 type PaymentAPIOptions = {|
     facilitatorAccessToken : string,
@@ -121,4 +123,28 @@ export function patchPayment(paymentID : string, data : PatchData, { facilitator
             [HEADERS.PARTNER_ATTRIBUTION_ID]: partnerAttributionID || ''
         }
     });
+}
+
+export function updateApplePayPayment(buyerAccessToken : string, orderID : string, { token, billingContact, shippingContact } : {| token : ApplePayPaymentToken, billingContact : ApplePayPaymentContact, shippingContact : ApplePayPaymentContact |}) : ZalgoPromise<void> {
+    return callGraphQL({
+        name:    'UpgradeFacilitatorAccessToken',
+        headers: {
+            [ HEADERS.ACCESS_TOKEN ]:   buyerAccessToken,
+            [ HEADERS.CLIENT_CONTEXT ]: orderID
+        },
+        query: `
+            mutation UpdateApplePayPayment(
+                $token: String!
+                $billingContact: String!
+                $shippingContact: String!
+            ) {
+                updateApplePayPayment(
+                    token: $orderID
+                    billingContact: $billingContact
+                    shippingContact: $shippingContact
+                )
+            }
+        `,
+        variables: { token, billingContact, shippingContact }
+    }).then(noop);
 }

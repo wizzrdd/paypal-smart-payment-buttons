@@ -1,6 +1,9 @@
 /* @flow */
 
-import type { ApplePayPaymentContact, ApplePayMerchantCapabilities, ApplePaySupportedNetworks, ApplePayShippingMethod, FundingOption, ShippingAddress, ShippingMethod } from '../types';
+import { COUNTRY } from '@paypal/sdk-constants/src';
+
+import { type DetailedOrderInfo } from '../../api';
+import type { ApplePayPaymentContact, ApplePayMerchantCapabilities, ApplePayPaymentRequest, ApplePaySupportedNetworks, ApplePayShippingMethod, FundingOption, ShippingAddress, ShippingMethod } from '../types';
 
 type ValidNetworks = {|
     discover : ApplePaySupportedNetworks,
@@ -20,7 +23,7 @@ const validNetworks : ValidNetworks = {
     chinaunionpay:  'chinaUnionPay'
 };
 
-export function getSupportedNetworksFromIssuers(issuers : $ReadOnlyArray<string>) : $ReadOnlyArray<ApplePaySupportedNetworks> {
+function getSupportedNetworksFromIssuers(issuers : $ReadOnlyArray<string>) : $ReadOnlyArray<ApplePaySupportedNetworks> {
     if (!issuers || (issuers && issuers.length === 0)) {
         return [];
     }
@@ -39,7 +42,7 @@ export function getSupportedNetworksFromIssuers(issuers : $ReadOnlyArray<string>
     return validIssuers;
 }
 
-export function getShippingContactFromAddress(shippingAddress : ?ShippingAddress) : ApplePayPaymentContact {
+function getShippingContactFromAddress(shippingAddress : ?ShippingAddress) : ApplePayPaymentContact {
     if (!shippingAddress) {
         return {
             givenName:          '',
@@ -68,7 +71,7 @@ export function getShippingContactFromAddress(shippingAddress : ?ShippingAddress
     };
 }
 
-export function getApplePayShippingMethods(shippingMethods : ?$ReadOnlyArray<ShippingMethod>) : $ReadOnlyArray<ApplePayShippingMethod> {
+function getApplePayShippingMethods(shippingMethods : ?$ReadOnlyArray<ShippingMethod>) : $ReadOnlyArray<ApplePayShippingMethod> {
     if (!shippingMethods || shippingMethods.length === 0) {
         return [];
     }
@@ -83,7 +86,7 @@ export function getApplePayShippingMethods(shippingMethods : ?$ReadOnlyArray<Shi
     });
 }
 
-export function getMerchantCapabilities(supportedNetworks : $ReadOnlyArray<ApplePaySupportedNetworks>, fundingOptions : $ReadOnlyArray<FundingOption>) : $ReadOnlyArray<ApplePayMerchantCapabilities> {
+function getMerchantCapabilities(supportedNetworks : $ReadOnlyArray<ApplePaySupportedNetworks>, fundingOptions : $ReadOnlyArray<FundingOption>) : $ReadOnlyArray<ApplePayMerchantCapabilities> {
     const merchantCapabilities : Array<ApplePayMerchantCapabilities> = [];
     merchantCapabilities.push('supports3DS');
 
@@ -108,4 +111,40 @@ export function getMerchantCapabilities(supportedNetworks : $ReadOnlyArray<Apple
     }
 
     return merchantCapabilities;
+}
+
+export function createApplePayRequest(country : $Values<typeof COUNTRY>, order : DetailedOrderInfo) : ApplePayPaymentRequest {
+    const {
+        allowedCardIssuers,
+        cart: {
+            amounts: {
+                total: {
+                    currencyCode,
+                    currencyValue
+                }
+            },
+            shippingAddress,
+            shippingMethods
+        },
+        fundingOptions
+    } = order.checkoutSession;
+
+    const supportedNetworks = getSupportedNetworksFromIssuers(allowedCardIssuers);
+    const shippingContact = getShippingContactFromAddress(shippingAddress);
+    const applePayShippingMethods = getApplePayShippingMethods(shippingMethods);
+    const merchantCapabilities = getMerchantCapabilities(supportedNetworks, fundingOptions);
+
+    return {
+        countryCode:     country,
+        currencyCode,
+        merchantCapabilities,
+        shippingContact,
+        shippingMethods: applePayShippingMethods,
+        supportedNetworks,
+        total:           {
+            amount: currencyValue,
+            label:  '',
+            type:   'final'
+        }
+    };
 }

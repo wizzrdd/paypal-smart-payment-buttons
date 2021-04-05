@@ -7,12 +7,12 @@ import { FPTI_KEY } from '@paypal/sdk-constants/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 
 import { checkout } from '../checkout';
-import { getDetailedOrderInfo, validateMerchant } from '../../api';
+import { getDetailedOrderInfo, updateApplePayPayment, validateMerchant } from '../../api';
 import { getLogger, promiseNoop, unresolvedPromise } from '../../lib';
 import { FPTI_CUSTOM_KEY, FPTI_STATE, FPTI_TRANSITION } from '../../constants';
-import type { ApplePayPayment, ApplePayPaymentRequest, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, SetupOptions, InitOptions } from '../types';
+import type { ApplePayPayment, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, SetupOptions, InitOptions } from '../types';
 
-import { getApplePayShippingMethods, getMerchantCapabilities, getSupportedNetworksFromIssuers, getShippingContactFromAddress } from './utils';
+import { createApplePayRequest } from './utils';
 
 let clean;
 
@@ -41,9 +41,10 @@ function isApplePayPaymentEligible() : boolean {
 }
 
 function initApplePay({ components, config, props, payment, serviceData } : InitOptions) : PaymentFlowInstance {
-    const { createOrder, onApprove, onCancel, onError, onClick, merchantDomain, locale, applePay } = props;
+    const {createOrder, onApprove, onCancel, onError, onClick, locale, applePay } = props;
 
     const { fundingSource } = payment;
+    const { buyerAccessToken } = serviceData;
 
     if (clean) {
         clean.all();
@@ -98,40 +99,8 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
         orderPromise.then(orderID => {
             const country = locale.country;
             getDetailedOrderInfo(orderID, country).then(order => {
-                const {
-                    allowedCardIssuers,
-                    cart: {
-                        amounts: {
-                            total: {
-                                currencyCode,
-                                currencyValue
-                            }
-                        },
-                        shippingAddress,
-                        shippingMethods
-                    },
-                    fundingOptions
-                } = order.checkoutSession;
-
-                const supportedNetworks = getSupportedNetworksFromIssuers(allowedCardIssuers);
-                const shippingContact = getShippingContactFromAddress(shippingAddress);
-                const applePayShippingMethods = getApplePayShippingMethods(shippingMethods);
-                const merchantCapabilities = getMerchantCapabilities(supportedNetworks, fundingOptions);
-
                 // set order details into ApplePayRequest
-                const applePayRequest : ApplePayPaymentRequest = {
-                    countryCode:     locale.country,
-                    currencyCode,
-                    merchantCapabilities,
-                    shippingContact,
-                    shippingMethods: applePayShippingMethods,
-                    supportedNetworks,
-                    total:           {
-                        amount: currencyValue,
-                        label:  merchantDomain,
-                        type:   'final'
-                    }
-                };
+                const applePayRequest = createApplePayRequest(country, order);
 
                 // create Apple Pay Session
                 const {
@@ -172,9 +141,9 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
                     logApplePayEvent(e);
 
                     const applePayPayment : ApplePayPayment = e.payment;
-                    const { token, billingContact, shippingContact } = applePayPayment;
+
                     // call graphQL mutation passing in token, billingContact and shippingContact
-                    
+                    updateApplePayPayment(buyerAccessToken, orderID, applePayPayment);
                     // call onApprove when successful
                     const data = {};
                     const actions = { restart: () => fallbackToWebCheckout() };
