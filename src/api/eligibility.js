@@ -164,18 +164,27 @@ type ApplePaySession = {|
     session : any
 |};
 
-export function validateMerchant(url : string, orderID : string, merchantDomain : string) : ZalgoPromise<ApplePaySession> {
+type ValidateMerchantOptions = {|
+    url : string,
+    orderID : string,
+    merchantID : string,
+    merchantDomain : string
+|};
+
+export function validateMerchant({ url, orderID, merchantID, merchantDomain } : ValidateMerchantOptions) : ZalgoPromise<ApplePaySession> {
     return callGraphQL({
         name:  'ValidateMerchant',
         query: `
             query GetApplePayMerchantSession(
                 $url : String
                 $orderID : String
+                $merchantID : String
                 $merchantDomain : String
             ) {
                 merchantSession(
                     url: $url
                     orderID: $orderID
+                    merchantID: $merchantID
                     merchantDomain: $merchantDomain
                 ) {
                     session
@@ -183,7 +192,7 @@ export function validateMerchant(url : string, orderID : string, merchantDomain 
             }
         `,
         variables: {
-            url, orderID, merchantDomain
+            url, orderID, merchantID, merchantDomain
         }
     }).then((gqlResult) => {
         if (!gqlResult || !gqlResult.merchantSession) {

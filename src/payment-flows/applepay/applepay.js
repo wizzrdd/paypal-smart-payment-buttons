@@ -41,7 +41,7 @@ function isApplePayPaymentEligible() : boolean {
 }
 
 function initApplePay({ components, config, props, payment, serviceData } : InitOptions) : PaymentFlowInstance {
-    const { createOrder, onApprove, onCancel, onError, onClick, locale, merchantDomain, applePay } = props;
+    const { createOrder, onApprove, onCancel, onError, onClick, locale, merchantID, merchantDomain, applePay } = props;
 
     const { fundingSource } = payment;
     const { buyerAccessToken } = serviceData;
@@ -116,7 +116,7 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
                 addEventListener('onvalidateMerchant', async (e) => {
                     logApplePayEvent(e);
 
-                    const merchantSession = await validateMerchant(e.validationURL, orderID, merchantDomain);
+                    const merchantSession = await validateMerchant({ url: e.validationURL, orderID, merchantID: merchantID[0], merchantDomain });
                     if (merchantSession) {
                         completeMerchantValidation(merchantSession);
                     }
