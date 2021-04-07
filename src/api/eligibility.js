@@ -181,7 +181,7 @@ export function validateMerchant({ url, orderID, merchantID, merchantDomain } : 
                 $merchantID : String
                 $merchantDomain : String
             ) {
-                merchantSession(
+                applePayMerchantSession(
                     url: $url
                     orderID: $orderID
                     merchantID: $merchantID
