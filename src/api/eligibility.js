@@ -166,38 +166,41 @@ type ApplePaySession = {|
 
 type ValidateMerchantOptions = {|
     url : string,
+    clientID : string,
     orderID : string,
-    merchantID : string,
-    merchantDomain : string
+    merchantDomain : string,
+    merchantStoreName : string
 |};
 
-export function validateMerchant({ url, orderID, merchantID, merchantDomain } : ValidateMerchantOptions) : ZalgoPromise<ApplePaySession> {
+export function validateMerchant({ url, clientID, orderID, merchantDomain, merchantStoreName } : ValidateMerchantOptions) : ZalgoPromise<ApplePaySession> {
     return callGraphQL({
         name:  'ValidateMerchant',
         query: `
             query GetApplePayMerchantSession(
                 $url : String
                 $orderID : String
-                $merchantID : String
+                $clientID : String
                 $merchantDomain : String
+                $merchantStoreName : String
             ) {
                 applePayMerchantSession(
                     url: $url
                     orderID: $orderID
-                    merchantID: $merchantID
+                    clientID: $clientID
                     merchantDomain: $merchantDomain
+                    merchantStoreName: $merchantStoreName
                 ) {
                     session
                 }
             }
         `,
         variables: {
-            url, orderID, merchantID, merchantDomain
+            url, clientID, orderID, merchantDomain, merchantStoreName
         }
     }).then((gqlResult) => {
-        if (!gqlResult || !gqlResult.merchantSession) {
-            throw new Error(`GraphQL GetApplePayMerchantSession returned no merchantSession object`);
+        if (!gqlResult || !gqlResult.applePayMerchantSession) {
+            throw new Error(`GraphQL GetApplePayMerchantSession returned no applePayMerchantSession object`);
         }
-        return gqlResult.merchantSession.session;
+        return gqlResult.applePayMerchantSession.session;
     });
 }

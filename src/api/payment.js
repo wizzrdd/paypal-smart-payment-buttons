@@ -136,12 +136,12 @@ export function updateApplePayPayment(buyerAccessToken : string, orderID : strin
         },
         query: `
             mutation UpdateApplePayPayment(
-                $token: String!
-                $billingContact: String!
-                $shippingContact: String!
+                $token: ApplePayToken!
+                $billingContact: ApplePayBillingContact!
+                $shippingContact: ApplePayShippingContact!
             ) {
                 updateApplePayPayment(
-                    token: $orderID
+                    token: $token
                     billingContact: $billingContact
                     shippingContact: $shippingContact
                 )
