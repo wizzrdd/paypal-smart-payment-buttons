@@ -125,26 +125,24 @@ export function patchPayment(paymentID : string, data : PatchData, { facilitator
     });
 }
 
-export function updateApplePayPayment(buyerAccessToken : string, orderID : string, applePayPayment : ApplePayPayment) : ZalgoPromise<void> {
+export function validateApplePayPayment(applePayPayment : ApplePayPayment) : ZalgoPromise<void> {
     const { token, billingContact, shippingContact } = applePayPayment;
 
     return callGraphQL({
         name:    'UpdateApplePayPayment',
-        headers: {
-            [ HEADERS.ACCESS_TOKEN ]:   buyerAccessToken,
-            [ HEADERS.CLIENT_CONTEXT ]: orderID
-        },
         query: `
-            mutation UpdateApplePayPayment(
+            query VpdateApplePayPayment(
                 $token: ApplePayToken!
                 $billingContact: ApplePayBillingContact!
                 $shippingContact: ApplePayShippingContact!
             ) {
-                updateApplePayPayment(
+                validateApplePayPayment(
                     token: $token
                     billingContact: $billingContact
                     shippingContact: $shippingContact
-                )
+                ) {
+                    applePayPayment
+                }
             }
         `,
         variables: { token, billingContact, shippingContact }

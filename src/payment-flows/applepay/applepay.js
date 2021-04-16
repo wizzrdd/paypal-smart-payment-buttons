@@ -7,7 +7,7 @@ import { FPTI_KEY } from '@paypal/sdk-constants/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 
 import { checkout } from '../checkout';
-import { getDetailedOrderInfo, updateApplePayPayment, validateMerchant } from '../../api';
+import { getDetailedOrderInfo, validateApplePayPayment, validateMerchant } from '../../api';
 import { getLogger, promiseNoop, unresolvedPromise } from '../../lib';
 import { FPTI_CUSTOM_KEY, FPTI_STATE, FPTI_TRANSITION } from '../../constants';
 import type { ApplePayPayment, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, SetupOptions, InitOptions } from '../types';
@@ -155,7 +155,7 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
                     }
                     
                     // call graphQL mutation passing in token, billingContact and shippingContact
-                    updateApplePayPayment(buyerAccessToken, orderID, applePayPayment);
+                    validateApplePayPayment(applePayPayment);
                     
                     // call onApprove when successful
                     const data = {};
