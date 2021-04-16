@@ -44,7 +44,6 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
     const { createOrder, onApprove, onCancel, onError, onClick, locale, clientID, merchantDomain, applePay } = props;
 
     const { fundingSource } = payment;
-    const { buyerAccessToken } = serviceData;
 
     if (clean) {
         clean.all();
@@ -155,7 +154,7 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
                     }
                     
                     // call graphQL mutation passing in token, billingContact and shippingContact
-                    validateApplePayPayment(applePayPayment);
+                    validateApplePayPayment(orderID, applePayPayment);
                     
                     // call onApprove when successful
                     const data = {};

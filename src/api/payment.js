@@ -125,19 +125,21 @@ export function patchPayment(paymentID : string, data : PatchData, { facilitator
     });
 }
 
-export function validateApplePayPayment(applePayPayment : ApplePayPayment) : ZalgoPromise<void> {
+export function validateApplePayPayment(orderID : string, applePayPayment : ApplePayPayment) : ZalgoPromise<void> {
     const { token, billingContact, shippingContact } = applePayPayment;
 
     return callGraphQL({
-        name:    'ValidateApplePayPayment',
+        name:    'ApplePayPayment',
         query: `
-            query ValidateApplePayPayment(
+            query ApplePayPayment(
                 $token: ApplePayToken!
+                $orderID: String!
                 $billingContact: ApplePayBillingContact!
                 $shippingContact: ApplePayShippingContact!
             ) {
-                validateApplePayPayment(
+                applePayPayment(
                     token: $token
+                    orderID: $orderID
                     billingContact: $billingContact
                     shippingContact: $shippingContact
                 ) {
@@ -145,6 +147,6 @@ export function validateApplePayPayment(applePayPayment : ApplePayPayment) : Zal
                 }
             }
         `,
-        variables: { token, billingContact, shippingContact }
+        variables: { token, orderID, billingContact, shippingContact }
     }).then(noop);
 }
