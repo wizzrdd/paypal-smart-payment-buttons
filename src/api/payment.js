@@ -129,9 +129,9 @@ export function validateApplePayPayment(applePayPayment : ApplePayPayment) : Zal
     const { token, billingContact, shippingContact } = applePayPayment;
 
     return callGraphQL({
-        name:    'UpdateApplePayPayment',
+        name:    'ValidateApplePayPayment',
         query: `
-            query VpdateApplePayPayment(
+            query ValidateApplePayPayment(
                 $token: ApplePayToken!
                 $billingContact: ApplePayBillingContact!
                 $shippingContact: ApplePayShippingContact!
