@@ -112,14 +112,26 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
                     completePayment
                 } = applePay(3, applePayRequest);
 
-                addEventListener('onvalidateMerchant', async (e) => {
+                addEventListener('onvalidateMerchant', (e) => {
                     logApplePayEvent(e);
 
                     const merchantStoreName = '';
-                    const merchantSession = await validateMerchant({ url: e.validationURL, clientID, orderID, merchantDomain, merchantStoreName });
-                    if (merchantSession) {
-                        completeMerchantValidation(merchantSession);
-                    }
+                    validateMerchant({ url: e.validationURL, clientID, orderID, merchantDomain, merchantStoreName }).then(merchantSession => {
+                        if (merchantSession && merchantSession.session) {
+                            try {
+                                const session = atob(merchantSession.session);
+                                completeMerchantValidation(JSON.parse(session));
+                            } catch (err) {
+                                getLogger().info(`applepay_merchant_valiation_error`)
+                                    .track({
+                                        [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.APPLEPAY_VALIDATE_MERCHANT_ERROR,
+                                        [FPTI_CUSTOM_KEY.INFO_MSG]: `Error: ${ stringifyError(err) }`
+                                    })
+                                    .flush();
+                                onError(err);
+                            }
+                        }
+                    });
                 });
 
                 addEventListener('onpaymentmethodselected', (e) => {
@@ -154,28 +166,33 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
                     }
                     
                     // call graphQL mutation passing in token, billingContact and shippingContact
-                    validateApplePayPayment(orderID, applePayPayment);
-                    
-                    // call onApprove when successful
-                    const data = {};
-                    const actions = { restart: () => fallbackToWebCheckout() };
-                    ZalgoPromise.all([
-                        onApprove(data, actions)
-                            .then(() => {
-                                const result = window.ApplePaySession.STATUS_SUCCESS;
-                                completePayment(result);
-                            })
-                            .catch(err => {
-                                getLogger().info(`applepay_message_onapprove_error`)
-                                    .track({
-                                        [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_ON_APPROVE_ERROR,
-                                        [FPTI_CUSTOM_KEY.INFO_MSG]: `Error: ${ stringifyError(err) }`
-                                    })
-                                    .flush();
-                                onError(err);
-                            }),
-                        close()
-                    ]);
+                    validateApplePayPayment(orderID, clientID, applePayPayment)
+                        .then(validatedPayment => {
+                            if (validatedPayment) {
+                                const payment = JSON.parse(validatedPayment);
+
+                                // call onApprove when successfulx
+                                const data = {};
+                                const actions = { restart: () => fallbackToWebCheckout() };
+                                ZalgoPromise.all([
+                                    onApprove(data, actions)
+                                        .then(() => {
+                                            const result = window.ApplePaySession.STATUS_SUCCESS;
+                                            completePayment(result);
+                                        })
+                                        .catch(err => {
+                                            getLogger().info(`applepay_message_onapprove_error`)
+                                                .track({
+                                                    [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_ON_APPROVE_ERROR,
+                                                    [FPTI_CUSTOM_KEY.INFO_MSG]: `Error: ${ stringifyError(err) }`
+                                                })
+                                                .flush();
+                                            onError(err);
+                                        }),
+                                    close()
+                                ]);
+                            }
+                        });
                 });
 
                 addEventListener('oncancel', (e) => {

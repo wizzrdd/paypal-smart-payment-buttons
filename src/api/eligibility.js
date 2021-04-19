@@ -160,8 +160,7 @@ export function getNativeEligibility({ vault, shippingCallbackEnabled, merchantI
 }
 
 type ApplePaySession = {|
-    // eslint-disable-next-line flowtype/no-weak-types
-    session : any
+    session : string
 |};
 
 type ValidateMerchantOptions = {|
@@ -174,14 +173,14 @@ type ValidateMerchantOptions = {|
 
 export function validateMerchant({ url, clientID, orderID, merchantDomain, merchantStoreName } : ValidateMerchantOptions) : ZalgoPromise<ApplePaySession> {
     return callGraphQL({
-        name:  'ValidateMerchant',
+        name:  'GetApplePayMerchantSession',
         query: `
             query GetApplePayMerchantSession(
-                $url : String
-                $orderID : String
-                $clientID : String
-                $merchantDomain : String
-                $merchantStoreName : String
+                $url : String!
+                $orderID : String!
+                $clientID : String!
+                $merchantDomain : String!
+                $merchantStoreName : String!
             ) {
                 applePayMerchantSession(
                     url: $url
@@ -201,6 +200,6 @@ export function validateMerchant({ url, clientID, orderID, merchantDomain, merch
         if (!gqlResult || !gqlResult.applePayMerchantSession) {
             throw new Error(`GraphQL GetApplePayMerchantSession returned no applePayMerchantSession object`);
         }
-        return gqlResult.applePayMerchantSession.session;
+        return gqlResult.applePayMerchantSession;
     });
 }
