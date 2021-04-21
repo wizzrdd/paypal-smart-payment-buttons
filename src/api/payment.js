@@ -150,5 +150,10 @@ export function validateApplePayPayment(orderID : string, clientID : string, app
             }
         `,
         variables: { token, orderID, clientID, billingContact, shippingContact }
-    }).then(noop);
+    }).then((gqlResult) => {
+        if (!gqlResult || !gqlResult.applePayPayment) {
+            throw new Error(`GraphQL GetApplePayPayment returned no applePayment object`);
+        }
+        return gqlResult.applePayPayment;
+    });
 }

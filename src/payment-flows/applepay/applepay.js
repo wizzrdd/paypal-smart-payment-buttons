@@ -169,9 +169,7 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
                     validateApplePayPayment(orderID, clientID, applePayPayment)
                         .then(validatedPayment => {
                             if (validatedPayment) {
-                                const payment = JSON.parse(validatedPayment);
-
-                                // call onApprove when successfulx
+                                // call onApprove when successful
                                 const data = {};
                                 const actions = { restart: () => fallbackToWebCheckout() };
                                 ZalgoPromise.all([
