@@ -12,7 +12,7 @@ import { getLogger, promiseNoop, unresolvedPromise } from '../../lib';
 import { FPTI_CUSTOM_KEY, FPTI_STATE, FPTI_TRANSITION } from '../../constants';
 import type { ApplePayPayment, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, SetupOptions, InitOptions } from '../types';
 
-import { createApplePayRequest } from './utils';
+import { createApplePayRequest, getMerchantStoreName } from './utils';
 
 let clean;
 
@@ -115,7 +115,7 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
                 addEventListener('onvalidateMerchant', (e) => {
                     logApplePayEvent(e);
 
-                    const merchantStoreName = '';
+                    const merchantStoreName = getMerchantStoreName(order) || 'PayPal';
                     validateMerchant({ url: e.validationURL, clientID, orderID, merchantDomain, merchantStoreName }).then(merchantSession => {
                         if (merchantSession && merchantSession.session) {
                             try {
