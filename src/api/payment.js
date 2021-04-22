@@ -2,7 +2,6 @@
 
 import type { ZalgoPromise } from 'zalgo-promise/src';
 import { FPTI_KEY } from '@paypal/sdk-constants/src';
-import { noop } from 'belter';
 
 import { PAYMENTS_API_URL } from '../config';
 import { getLogger } from '../lib';
@@ -125,20 +124,20 @@ export function patchPayment(paymentID : string, data : PatchData, { facilitator
     });
 }
 
-export function validateApplePayPayment(orderID : string, clientID : string, applePayPayment : ApplePayPayment) : ZalgoPromise<void> {
+export function approveApplePayPayment(orderID : string, clientID : string, applePayPayment : ApplePayPayment) : ZalgoPromise<void> {
     const { token, billingContact, shippingContact } = applePayPayment;
 
     return callGraphQL({
-        name:    'GetApplePayPayment',
+        name:    'ApproveApplePayPayment',
         query: `
-            query GetApplePayPayment(
+            mutation ApproveApplePayPayment(
                 $token: ApplePayPaymentToken!
                 $orderID: String!
                 $clientID : String!
                 $billingContact: ApplePayPaymentContact!
                 $shippingContact: ApplePayPaymentContact!
             ) {
-                applePayPayment(
+                approveApplePayPayment(
                     token: $token
                     orderID: $orderID
                     clientID: $clientID
@@ -151,9 +150,9 @@ export function validateApplePayPayment(orderID : string, clientID : string, app
         `,
         variables: { token, orderID, clientID, billingContact, shippingContact }
     }).then((gqlResult) => {
-        if (!gqlResult || !gqlResult.applePayPayment) {
+        if (!gqlResult || !gqlResult.approveApplePayPayment) {
             throw new Error(`GraphQL GetApplePayPayment returned no applePayment object`);
         }
-        return gqlResult.applePayPayment;
+        return gqlResult.approveApplePayPayment;
     });
 }
