@@ -105,7 +105,7 @@ export type ButtonXProps = {|
     branded : boolean,
     userExperienceFlow : string,
 
-    applePay: ApplePaySessionConfig
+    applePay : ApplePaySessionConfig
 |};
 
 export type ButtonProps = {|
