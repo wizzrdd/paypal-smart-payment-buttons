@@ -6,7 +6,7 @@ import { ZalgoPromise } from 'zalgo-promise/src';
 import type { InstallmentsFlowType } from '@paypal/installments/src/types';
 
 import type { ContentType, LocaleType, ProxyWindow, Wallet, CheckoutFlowType, CardFieldsFlowType,
-    ThreeDomainSecureFlowType, MenuFlowType, ConnectOptions, PersonalizationType } from '../types';
+    ThreeDomainSecureFlowType, MenuFlowType, ConnectOptions, PersonalizationType, QRCodeType } from '../types';
 import type { CreateOrder, XCreateOrder, CreateBillingAgreement, XCreateBillingAgreement, OnInit,
     XOnInit, OnApprove, XOnApprove, OnCancel, XOnCancel, OnClick, XOnClick, OnShippingChange, XOnShippingChange, XOnError,
     OnError, XGetPopupBridge, GetPopupBridge, XCreateSubscription, RememberFunding, GetPageURL, OnAuth, GetQueriedEligibleFunding
@@ -23,6 +23,7 @@ import { getCreateBillingAgreement } from '../props/createBillingAgreement';
 import { getCreateSubscription } from '../props/createSubscription';
 import { getOnAuth } from '../props/onAuth';
 import { getOnError } from '../props/onError';
+//import { QRCode } from '../lib/node-qrcode/node-qrcode';
 
 // export something to force webpack to see this as an ES module
 export const TYPES = true;
@@ -358,12 +359,13 @@ export type Components = {|
     CardFields : CardFieldsFlowType,
     ThreeDomainSecure : ThreeDomainSecureFlowType,
     Menu : MenuFlowType,
-    Installments : InstallmentsFlowType
+    Installments : InstallmentsFlowType,
+    QRCode: QRCodeType
 |};
 
 export function getComponents() : Components {
-    const { Checkout, CardFields, ThreeDomainSecure, Menu, Installments } = paypal;
-    return { Checkout, CardFields, ThreeDomainSecure, Menu, Installments };
+    const { Checkout, CardFields, ThreeDomainSecure, Menu, Installments, QRCode } = paypal;
+    return { Checkout, CardFields, ThreeDomainSecure, Menu, Installments, QRCode };
 }
 
 export type Config = {|

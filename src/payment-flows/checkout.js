@@ -14,7 +14,7 @@ import { unresolvedPromise, getLogger } from '../lib';
 import { openPopup } from '../ui';
 import { FUNDING_SKIP_LOGIN } from '../config';
 import { nativeFakeoutExperiment } from '../experiments';
-import { generateQRmodal } from '../lib/node-qrcode/QRmodal';
+//import { generateQRmodal } from '../qrcode/QRmodal';
 
 import type { PaymentFlow, PaymentFlowInstance, SetupOptions, InitOptions } from './types';
 function myLog(str){console.log(`%c ${str}`, 'color:blue;font-weight:700');}
@@ -407,38 +407,27 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
         myLog('+++ in start');
         
         if (payment.fundingSource === FUNDING.VENMO) {
+            const { QRCode } = components;
             const testURL = 'https://venmo.com/go/purchase?facilitator=BT&intent=Continue&resource_id=cGF5bWVudGNvbnRleHRfMzhreDg4bTh5NWJmMjdjNiNkMTFmZDVkZS00NThjLTRjZDUtYTUzMy0wNThlNjM0YWQ3ZmY=&merchant_id=38kx88m8y5bf27c6&environment=SANDBOX'
             myLog('+++ start > fundingSource === venmo');
             myLog('test URL - '+testURL);
-        
+
+            //const parentFrame = window.xprops.getParent();
+            const QRCodeModal = QRCode({cspNonce: cspNonce, qrPath: testURL});
+            //return instance.renderTo(parentFrame,TARGET_ELEMENT.BODY);
+
+            return QRCodeModal.renderTo(window.xprops.getParent(), TARGET_ELEMENT.BODY);
+
+/*        
             let divId = 'pay-with-venmo-desktop';
             let div = document.createElement('div');
             div.id = divId;
             // div.style = {marginLeft:auto,marginRight:auto}
-
             document.body.appendChild(div);
             let attachedDiv = document.getElementById(divId);
-
-            // let canvasId = 'qrcode';            
-            // let canvas = document.createElement('canvas');
-            // canvas.id = canvasId;
-            // let attachedCanvas = document.getElementById(canvasId);
-
             myLog(attachedDiv);
-
-
             generateQRmodal({cspNonce: cspNonce, targetElement: attachedDiv, qrPath: testURL});
-        // if (payment.fundingSource === FUNDING.VENMO && supportsPopups){
-        
-            
-            
-           // instance = generateQRmodal();
-           
-            // QRCode.renderTo
-            // -----
-            // debugger;
-            // do things 
-
+*/
         } else {
             myLog('+++ start > fundingSource === venmo - ELSE ');
             instance = init();

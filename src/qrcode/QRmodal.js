@@ -2,13 +2,13 @@
 /** @jsx h */
 
 import { h, render, Fragment, Node } from 'preact';
-import { getBody } from '../util';
-import {writeElementToWindow} from 'belter/src';
-import {assertSameDomain} from 'cross-domain-utils/src';
+// import { getBody } from '../lib/util';
+// import {writeElementToWindow} from 'belter/src';
+// import {assertSameDomain} from 'cross-domain-utils/src';
 // import { getModalComponent } from '@paypal/checkout-components/src/zoid/modal';\
 // import {Modal} from '@paypal/checkout-components';
 import { QRCode } from './node-qrcode';
-import type {ZoidComponentInstance, ZoidComponent} from '../../types';
+import type {ZoidComponentInstance, ZoidComponent} from '../types';
 
 // import type { CrossDomainWindowType, SameDomainWindowType } from 'cross-domain-utils/src';
 // import { fragment } from 'typed-graphqlify';
@@ -61,9 +61,6 @@ const style = `
     }
 
 `
-
-
-    
 
     let QRCodeDataURL; 
     
