@@ -92,6 +92,30 @@ export const WEBPACK_CONFIG_MENU_DEBUG : WebpackConfig = getSmartWebpackConfig({
     minify:     false,
     vars:       globals
 });
+export const WEBPACK_CONFIG_QRCODE : WebpackConfig = getSmartWebpackConfig({
+    modulename: 'spb',
+    entry:      'src/qrcode',
+    filename:   'smart-qrcode',
+    minify:     false,
+    vars:       globals
+});
+
+export const WEBPACK_CONFIG_QRCODE_MIN : WebpackConfig = getSmartWebpackConfig({
+    modulename: 'spb',
+    entry:      'src/qrcode',
+    filename:   'smart-qrcode',
+    minify:     true,
+    vars:       globals
+});
+
+export const WEBPACK_CONFIG_QRCODE_DEBUG : WebpackConfig = getSmartWebpackConfig({
+    modulename: 'spb',
+    entry:      'src/qrcode',
+    filename:   'smart-qrcode',
+    debug:      true,
+    minify:     false,
+    vars:       globals
+});
 
 export const WEBPACK_CONFIG_NATIVE_POPUP : WebpackConfig = getSmartWebpackConfig({
     modulename:    'spbNativePopup',

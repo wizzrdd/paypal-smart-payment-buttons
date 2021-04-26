@@ -6,9 +6,9 @@ import type { LoggerType, CacheType } from '../../types';
 
 import { EVENT } from './constants';
 import { getParams } from './params';
-// import { getSmartMenuClientScript } from './script';
+import { getSmartQRCodeClientScript } from './script';
 
-import { generateQRmodal } from '../../../src/qrcode/QRmodal'
+//import { generateQRmodal } from '../../../src/qrcode/qrcard'
 import { QRCode }from '../../../src/qrcode/node-qrcode';
 // import { svgToBase64 } from 'belter/src';
 
@@ -25,14 +25,36 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
         app: async ({ req, res, params, meta, logBuffer }) => {
             logger.info(req, EVENT.RENDER);
 
-            const yo = getParams(params, req, res);
-            const { cspNonce, qrPath, debug } = yo// = getParams(params, req, res);
 
-            // const client = await getSmartMenuClientScript({ debug, logBuffer, cache, useLocal });
+            const { cspNonce, qrPath, debug } = getParams(params, req, res);
 
-            // logger.info(req, `menu_client_version_${ client.version }`);
-            // data-client-version="${ client.version }
+            const client = await getSmartQRCodeClientScript({ debug, logBuffer, cache, useLocal });
+
+            logger.info(req, `menu_client_version_${ client.version }`);
             logger.info(req, `qrcode_params`, { params: JSON.stringify(params) });
+            if (!qrPath) {
+                return clientErrorResponse(res, 'Please provide a qrPath query parameter');
+            };
+
+            const pageHTML = `
+            <!DOCTYPE html>
+            <head></head>
+            <body data-nonce="${ cspNonce }" data-client-version="${ client.version }">
+                ${ meta.getSDKLoader({ nonce: cspNonce }) }
+                <script nonce="${ cspNonce }">${ client.script }</script>
+                <script nonce="${ cspNonce }">
+                    // console.log(this);
+                    // debugger;
+                    spb.renderQRCode(${ safeJSON({ 
+                        cspNonce: cspNonce,
+                        qrPath: qrPath
+                    }) })
+                </script>
+            </body>
+        `;
+
+        allowFrame(res);
+        return htmlResponse(res, pageHTML);
 
             // generateQRmodal({})
 
@@ -59,7 +81,7 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
             //     );
             //     return dataUrl;
             // }
-  
+/*  
             QRCode.toString(qrPath, 
                 {
                     type: 'svg',
@@ -79,9 +101,8 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
                         z-index: 200000;
                         align-items: center;
                         justify-content: center;
-                        background-color: rgba(0, 0, 0, 0.4);
-                        font-family: sans-serif;
                     }
+
                     #qr-modal {
                         background: #2F3033;
                         box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.4);
@@ -148,6 +169,7 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
         
                     </body>
                     `
+         
                     allowFrame(res);
                     return htmlResponse(res, pageHTML);
 
