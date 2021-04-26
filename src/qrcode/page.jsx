@@ -4,12 +4,10 @@
 import { h, render, Fragment, Node } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { noop } from 'belter/src';
-// import { ZalgoPromise } from 'zalgo-promise/src';
 
 import { getBody } from '../lib';
 
 import { QRCard } from './qrcard';
-// import { useXProps } from './hooks';
 
 const FADE_TIME = 150;
 
@@ -43,8 +41,6 @@ const style = `
 
 function Page({ cspNonce, qrPath } : PageProps) : typeof Node {
     const [ visible, setVisible ] = useState(false);
-    // useEffect(() => {
-    // });
     const toggleVisible = () => {
         return setVisible(!visible);
     };
