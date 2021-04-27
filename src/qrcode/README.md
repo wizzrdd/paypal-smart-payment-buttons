@@ -4,17 +4,19 @@ The node qrcode repo hasn't been updated in a while: https://github.com/soldair/
 
 We've forked and updated the dependencies: https://github.com/braintree/node-qrcode
 
-To bring in a new version, run the following in the node-qrcode repo:
+To bring in a new version:
 
-```sh
-npm run build
-cp build/qrcode.js ../braintree.js/src/venmo/internal/vendor/node-qrcode.js
-```
-
-this generates something like:
+1. Clone the [repo](https://github.com/braintree/node-qrcode)
+2. Run `npm run build` in the root of that repo
+3. Modify the contents of `build/qrcode.js`:
 
 ```
-var QRCode=function(t){"use strict";var r,e=function(){return"function"=...
+// from something like this:
+var QRCode = function(t){"use strict";var r,e=function(){return"function"=...
+
+// to export a const like this:
+export const QRCode = function(t){"use strict";var r,e=function(){return"function"=...
 ```
 
-we update that to `export const`
+4. Copy the modified contents of `build/qrcode.js` into the `/src/qrcode/node-qrcode.js` file
+   used by qrcode component.

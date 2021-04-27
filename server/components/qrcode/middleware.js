@@ -9,7 +9,6 @@ import { getParams } from './params';
 import { getSmartQRCodeClientScript } from './script';
 
 // import { generateQRmodal } from '../../../src/qrcode/qrcard'
-import { QRCode }from '../../../src/qrcode/node-qrcode';
 // import { svgToBase64 } from 'belter/src';
 
 type QRcodeMiddlewareOptions = {|
