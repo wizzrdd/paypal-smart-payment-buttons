@@ -7,11 +7,8 @@ import { h, render, Fragment, Node, Component } from 'preact';
 // import {assertSameDomain} from 'cross-domain-utils/src';
 
 import { QRCode } from './node-qrcode';
+import { InstructionIcon, Logo } from './assets';
 import type {ZoidComponentInstance, ZoidComponent} from '../types';
-
-
-
-// import {VenmoLogo} from '@paypal/sdk-logos/src/logos/venmo';
 
 type QRPath = string;
 type QRCardProps = {
@@ -24,6 +21,7 @@ class QRCodeElement extends Component<{qrPath: QRPath}, {dataURL: string}> {
         const dataURL = await QRCode.toDataURL(
             this.props.qrPath, 
             {
+                width: 160,
                 color: {
                     dark:"#0074DE",
                     light:"#FFFFFF"
@@ -43,8 +41,6 @@ export function QRCard({
     cspNonce,
     qrPath,
 } : QRCardProps) : typeof Node {
-    // const logo = () => VenmoLogo
-
     const style = `
     #qr-modal {
         background: #2F3033;
@@ -56,10 +52,6 @@ export function QRCard({
         align-items: center;
         justify-content: center;
         flex-direction: column;
-    }
-    #qr-modal img,
-    #qr-modal svg {
-        padding: 24px 24px 12px;
     }
     #qr-modal h1 {
         margin: 0;
@@ -76,19 +68,34 @@ export function QRCard({
         align-items: center;
         justify-content: space-between;
         flex-direction: column;                        
-        min-width: 280px;
-        min-height: 320px;                     
+        width: 280px;
+        height: 320px;                     
     }
-    #instructions {        
+    #innercard > img,
+    #innercard > svg {${
+        'padding: 16px 16px 8px;'
+        /*
+        padding: 24px 24px 12px;
+        width: 100%;
+        height: 100%;
+        */  
+    }}
+    #instructions {
         background-color: #F5F5F5;
         border-bottom-left-radius: 8px;
         border-bottom-right-radius: 8px;
-        padding: 24px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
         font-size: 12px;
         line-height: 16px;
         box-sizing: border-box;
-        width: 100%; 
-        
+        width: 100%;
+    }
+    .instruction-icon {
+        min-width: 68px;
+        min-height: 46px;
+        margin-right: 16px;
     }
     `;
 
@@ -98,8 +105,11 @@ export function QRCard({
             <div id="qr-modal">
                 <div id="innercard">
                     <QRCodeElement qrPath={qrPath} />
-                    <h1>Venmo</h1>
-                    <div id="instructions">To scan QT code, Open your Venmo App</div>
+                    <Logo />
+                    <div id="instructions">
+                        <InstructionIcon className="instruction-icon" />
+                        To scan QT code, Open your Venmo App
+                    </div>
                 </div>
                 
             </div> 
