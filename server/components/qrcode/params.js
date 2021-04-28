@@ -15,7 +15,7 @@ type ParamsType = {|
 type RequestParams = {|
     env : $Values<typeof ENV>,
     cspNonce : string,
-    qrPath: string,
+    qrPath : string,
     locale : LocaleType,
     debug : boolean
 |};

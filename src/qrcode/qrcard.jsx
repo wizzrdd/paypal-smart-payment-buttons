@@ -13,7 +13,8 @@ import type {ZoidComponentInstance, ZoidComponent} from '../types';
 type QRPath = string;
 type QRCardProps = {
     cspNonce : ?string,
-    qrPath : QRPath    
+    qrPath : QRPath,
+    closeFunc : function
 };
 
 class QRCodeElement extends Component<{qrPath: QRPath}, {dataURL: string}> {
@@ -40,6 +41,7 @@ class QRCodeElement extends Component<{qrPath: QRPath}, {dataURL: string}> {
 export function QRCard({ 
     cspNonce,
     qrPath,
+    closeFunc,
 } : QRCardProps) : typeof Node {
     const style = `
     #qr-modal {
@@ -52,13 +54,7 @@ export function QRCard({
         align-items: center;
         justify-content: center;
         flex-direction: column;
-    }
-    #qr-modal h1 {
-        margin: 0;
-        padding: 0;
-        color: #0074DE;
-        text-align: center;
-        padding:0 24px 24px; 
+        position: relative;
     }
     #innercard {
         border: 1px solid #888C94;
@@ -97,12 +93,40 @@ export function QRCard({
         min-height: 46px;
         margin-right: 16px;
     }
+    #close {
+        position: absolute;
+        right: 16px;
+        top: 16px;
+        width: 16px;
+        height: 16px;
+        opacity: 0.6;
+    }
+    #close:hover {
+        opacity: 1;
+    }
+    #close:before, #close:after {
+        position: absolute;
+        left: 8px;
+        content: ' ';
+        height: 16px;
+        width: 2px;
+        background-color: #FFF;
+    }
+    #close:before {
+        transform: rotate(45deg);
+    }
+    #close:after {
+        transform: rotate(-45deg);
+    }
+
     `;
+
 
     return (
         <Fragment> 
             <style nonce={ cspNonce }> { style } </style>
             <div id="qr-modal">
+                <a href="#" id="close" aria-label="close" role="button" onClick={closeFunc}></a>
                 <div id="innercard">
                     <QRCodeElement qrPath={qrPath} />
                     <Logo />
