@@ -63,7 +63,7 @@ const NATIVE_POPUP_DOMAIN = {
 };
 
 const NATIVE_CHECKOUT_URI : { [ $Values<typeof FUNDING> ] : string } = {
-    [ FUNDING.PAYPAL ]: '/smart/checkout/native',
+    [ FUNDING.PAYPAL ]: '/smart/checkout/native/v2',
     [ FUNDING.VENMO ]:  '/smart/checkout/venmo'
 };
 
