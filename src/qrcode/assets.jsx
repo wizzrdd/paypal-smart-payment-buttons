@@ -21,3 +21,128 @@ export function InstructionIcon({className="instruction-icon"} : {className? : s
         </svg>
     )
 }
+export const cardStyle = `
+    html, body {
+        display: flex;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        align-items: center;
+        justify-content: center;
+    }
+    #instructions {
+        background-color: #F5F5F5;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+        line-height: 16px;
+        box-sizing: border-box;
+        width: 100%;
+    }
+    .instruction-icon {
+        min-width: 68px;
+        min-height: 46px;
+        margin-right: 16px;
+    }
+
+    #view-boxes-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        width: 100%;
+        font-family: sans-serif;
+        font-style: normal;
+        font-weight: 100;
+    }
+
+    .card {
+        border: 1px solid #888C94;
+        border-radius: 8px;
+        background-color: white;
+        display: inline-flex;
+        align-items: center;
+        flex-direction: column;
+        width: 280px;
+        height: 320px; 
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        backface-visibility: hidden;
+        transition: transform 1s;
+        transform-style: preserve-3d;
+    }
+    #view-boxes{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        width: 100%;
+    }
+    #view-boxes.is-flipped #front-view {
+        transform: rotateY(180deg);
+        position: absolute;
+    }
+    #view-boxes.is-flipped #back-view {
+        transform: rotateY(0deg);
+        position: relative;
+    }
+
+    #front-view {
+        z-index: 2;
+        transform: rotateY(0deg);
+        justify-content: space-between;
+    }
+    #front-view > svg,
+    #front-view > img {
+        padding: 16px 16px 8px;
+    }
+    #back-view {
+        position: absolute;
+        transform: rotateY(-180deg);
+        background-color: #0074DE;
+        justify-content: center;
+    }
+    #back-view > svg {
+        width: 50%;
+    }
+    `;
+
+export function DemoWrapper(component : typeof Node): typeof Node {
+    return (
+        <Fragment>
+            <style>{`html{background-color: rgba(0, 0, 0, 0.4);}`}</style>
+            <div style={`
+                background: #2F3033;
+                box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.4);
+                border-radius: 16px;                        
+                width: 720px;
+                height: 480px;  
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                position: relative;
+            }
+            `}>
+            {component}
+            </div>
+        </Fragment>
+
+
+
+    )
+    
+} 
+/*
+    .card > img,
+    .card > svg {${                
+    // padding: 24px 24px 12px;
+    // width: 100%;
+    // height: 100%;        
+}}
+*/
+
