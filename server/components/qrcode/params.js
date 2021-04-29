@@ -8,6 +8,7 @@ import { getCSPNonce } from '../../lib';
 type ParamsType = {|
     env : $Values<typeof ENV>,
     qrPath: string,
+    demo?: boolean,
     locale? : LocaleType,
     debug? : boolean
 |};
@@ -16,6 +17,7 @@ type RequestParams = {|
     env : $Values<typeof ENV>,
     cspNonce : string,
     qrPath : string,
+    demo : boolean,
     locale : LocaleType,
     debug : boolean
 |};
@@ -24,6 +26,7 @@ export function getParams(params : ParamsType, req : ExpressRequest, res : Expre
     const {
         env,
         qrPath,
+        demo,
         locale = {},
         debug = false
     } = params;
@@ -39,6 +42,7 @@ export function getParams(params : ParamsType, req : ExpressRequest, res : Expre
         env,
         cspNonce,
         qrPath,
+        demo: Boolean(demo),
         debug:  Boolean(debug),
         locale: { country, lang }
     };

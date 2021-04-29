@@ -25,7 +25,7 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
             logger.info(req, EVENT.RENDER);
 
 
-            const { cspNonce, qrPath, debug } = getParams(params, req, res);
+            const { cspNonce, qrPath, demo, debug } = getParams(params, req, res);
 
             const client = await getSmartQRCodeClientScript({ debug, logBuffer, cache, useLocal });
 
@@ -42,12 +42,10 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
                 ${ meta.getSDKLoader({ nonce: cspNonce }) }
                 <script nonce="${ cspNonce }">${ client.script }</script>
                 <script nonce="${ cspNonce }">
-                    console.dir(window);
-                    // window.xprops.getParent();
-                    debugger;
                     spb.renderQRCode(${ safeJSON({ 
                         cspNonce: cspNonce,
-                        qrPath: qrPath
+                        qrPath: qrPath,
+                        demo: demo
                     }) })
                 </script>
             </body>

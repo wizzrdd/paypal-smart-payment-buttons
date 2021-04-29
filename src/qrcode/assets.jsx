@@ -21,6 +21,16 @@ export function InstructionIcon({className="instruction-icon"} : {className? : s
         </svg>
     )
 }
+
+export function Mark() : typeof Node {
+    // <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/venmo-mark-monotone.svg" alt="Venmo Mark" />
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><
+            path d="M42.3 2L28.5 4.8c.8 1.9 1.4 4.1 1.4 7.4 0 6-4.2 14.8-7.7 20.4L18.5 3 3.3 4.5l7 41.5h17.4c7.7-10 17-24.3 17-35.2 0-3.4-.8-6.1-2.4-8.8z" fill="#fff"/>
+        </svg>
+    )
+}
+
 export const cardStyle = `
     html, body {
         display: flex;
