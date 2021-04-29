@@ -37,7 +37,12 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
 
             const pageHTML = `
             <!DOCTYPE html>
-            <head></head>
+            <head>
+                <link 
+                    rel="stylesheet" 
+                    href="https://www.paypalobjects.com/paypal-ui/web/fonts-and-normalize/1-1-0/fonts-and-normalize.min.css"
+                />
+            </head>
             <body data-nonce="${ cspNonce }" data-client-version="${ client.version }">
                 ${ meta.getSDKLoader({ nonce: cspNonce }) }
                 <script nonce="${ cspNonce }">${ client.script }</script>

@@ -9,8 +9,9 @@ import { useState } from 'preact/hooks';
 import { getBody } from '../lib';
 
 import { QRCode } from './node-qrcode';
-import { InstructionIcon, Logo, Mark, cardStyle, DemoWrapper } from './assets';
+import {type NodeType, BLUE, InstructionIcon, Logo, VenmoMark, AuthMark, cardStyle, DemoWrapper } from './components';
 import type {ZoidComponentInstance, ZoidComponent} from '../types';
+
 
 type QRPath = string;
 type QRCardProps = {
@@ -26,8 +27,8 @@ class QRCodeElement extends Component<{qrPath: QRPath}, {dataURL: string}> {
             {
                 width: 160,
                 color: {
-                    dark:"#0074DE",
-                    light:"#FFFFFF"
+                    dark: BLUE,
+                    light: "#FFFFFF"
                 } 
             }
         );
@@ -40,11 +41,19 @@ class QRCodeElement extends Component<{qrPath: QRPath}, {dataURL: string}> {
     }
 }
 
-function ErrorMessage({message: string}) : typeof Node {
+
+
+function ErrorMessage({
+    message,
+    resetFunc
+} : {
+    message? : string,
+    resetFunc : function
+}) : NodeType {
     return (
         <div id="venmo-error-view">
-            <div id="venmo-error__message"></div>
-            <button id="venmo-error__button">Try scanning again</button>
+            <div className="error-message">{message || 'An issue has occurred' }</div>
+            <button className="reset-button" onClick={resetFunc}>Try scanning again</button>
         </div>
     )
 }
@@ -53,47 +62,109 @@ function QRCard({
     cspNonce,
     qrPath,
     demo
-} : QRCardProps) : typeof Node {
-    const [flipped, setFlipped] = useState(false);
-    const [inError, setInError] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('An issue has occurred');
+} : QRCardProps) : NodeType {
+    const [processState, setProcessState] = useState(null);
+    // 'scanned' > 'authorized' > 'error' 
 
+    // const [scanned, setScanned] = useState(false);
+    // const [authorized, setAuthorized] = useState(false);
+    // const [inError, setInError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState(null);
 
 
     return (
         <Fragment> 
             <style nonce={ cspNonce }> { cardStyle } </style>    
-            <div id="view-boxes" className={ flipped ?  'is-flipped' : null }>
-                <div id="front-view"  className="card">
-                    <QRCodeElement qrPath={qrPath} />
-                    <Logo />
-                    <div id="instructions">
-                        <InstructionIcon className="instruction-icon" />
-                        To scan QT code, Open your Venmo App
+            <div id="view-boxes" className={ processState }>
+                {(processState === 'error') ?
+                    <ErrorMessage message={errorMessage} resetFunc={()=>setProcessState(null)} /> :
+                    <div id="front-view"  className="card">
+                        <QRCodeElement qrPath={qrPath} />
+                        <Logo />
+                        <div id="instructions">
+                            <InstructionIcon className="instruction-icon" />
+                            To scan QT code, Open your Venmo App
+                        </div>
+                    </div>              
+                }
+                <div className="card" id="back-view" >
+                    <span className="mark">
+                        <VenmoMark />
+                        <AuthMark />
+                    </span>
+                    
+                    <div className="auth-message">
+                        Go to your Venmo app and authorize
                     </div>
-                </div>
-                <div className="card" id="back-view">
-                    <Mark />
+                    <div className="success-message">
+                        Venmo account authorized
+                    </div>
+
                 </div>
             </div>
 
-            {demo ?
-
-                <div id="controls" style={`
-                    position: fixed;
-                    bottom: 5vw;
-                    padding: 1rem;
-                    border: 1px solid #888C94;
-                `}>
-                    <button onClick={()=>setFlipped(!flipped)}> Flip </button>
+            {demo ?                
+                <div id="controls">
+                    <style>{`
+                        #controls {
+                            position: fixed;
+                            bottom: 1rem;
+                            left: 1rem;
+                            padding: 1rem;
+                            border: 1px solid #888C94;
+                            display: flex;
+                            flex-wrap: wrap;
+                        }
+                        #controls button {min-width: 48px;}
+                        #controls > * {margin: 0 0.5rem;}
+                        #controls div {display: flex; flex-direction: column;}
+                    `}</style>
+                    <button disabled={processState==='error'} onClick={()=>{
+                        switch (processState) {
+                            case 'authorized': setProcessState(null); break;
+                            case 'scanned' : setProcessState('authorized'); break;
+                            default: setProcessState('scanned')
+                        }}}> {{
+                                'authorized': 'Reset',
+                                'scanned': 'Auth',
+                            }[processState] || 'Scan'
+                        }
+                    </button> 
+                    
+                    <button onClick={()=>setProcessState('error')}> Show Error </button>
+                    <div>
+                        <button onClick={()=>{
+                            setErrorMessage(document.getElementById('errorMsg').value);
+                            setProcessState('error');
+                        }}> Set Error Value </button>
+                        <input type="text" id="errorMsg"/>
+                    </div>
+                    <button style="font-weight:700" onClick={()=>{
+                        setProcessState(null)
+                        setErrorMessage('An issue has occurred');
+                    }}> Reset </button>
+                    <button onClick={()=>{console.log(`
+                        errorMessage: ${errorMessage}
+                        processState: ${processState}
+                        possible states: 
+                          null,
+                          scanned,
+                          authorized,
+                          error                        
+                    `)}}> Observe State </button>
                 </div> : null
             }
 
         </Fragment>
     );
 }
+/*
 
+<button onClick={()=>{console.log('fired')}}> ???? </button>
+                </div> : null
 
+                    
+*/
 
 
 type RenderQRCodeOptions = {

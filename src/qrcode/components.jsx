@@ -5,13 +5,15 @@ import {html} from 'jsx-pragmatic';
 import { h, Fragment, Node } from 'preact';
 import {VenmoLogo, LOGO_COLOR} from '@paypal/sdk-logos/src';
 
-export function Logo() : typeof Node {
+export type NodeType = typeof Node;
+
+export function Logo() : NodeType {
     return (<span innerHTML={`
         ${ VenmoLogo({logoColor:LOGO_COLOR.DEFAULT}).render(html()) }
     `} />)
 }
 
-export function InstructionIcon({className="instruction-icon"} : {className? : string }) : typeof Node {
+export function InstructionIcon({className="instruction-icon"} : {className? : string }) : NodeType {
     return (
         <svg className={className} width="68" height="46" viewBox="0 0 68 46" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="49" cy="25" r="18" fill="white" stroke="#888C94" stroke-width="2"/>
@@ -22,16 +24,40 @@ export function InstructionIcon({className="instruction-icon"} : {className? : s
     )
 }
 
-export function Mark() : typeof Node {
+export function VenmoMark() : NodeType {
     // <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/venmo-mark-monotone.svg" alt="Venmo Mark" />
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><
-            path d="M42.3 2L28.5 4.8c.8 1.9 1.4 4.1 1.4 7.4 0 6-4.2 14.8-7.7 20.4L18.5 3 3.3 4.5l7 41.5h17.4c7.7-10 17-24.3 17-35.2 0-3.4-.8-6.1-2.4-8.8z" fill="#fff"/>
+        <svg id="venmo-mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+            <path d="M42.3 2L28.5 4.8c.8 1.9 1.4 4.1 1.4 7.4 0 6-4.2 14.8-7.7 20.4L18.5 3 3.3 4.5l7 41.5h17.4c7.7-10 17-24.3 17-35.2 0-3.4-.8-6.1-2.4-8.8z" fill="#fff"/>
         </svg>
     )
 }
 
+export function AuthMark(): NodeType {
+    return  (
+        <svg id="success-mark" width="59" height="59" viewBox="0 0 59 59" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="1" width="57" height="57" rx="28.5" fill="#148572" stroke="#888C94"/>
+            <g clip-path="url(#clip0)">
+                <path d="M24.0068 40.8397C22.921 39.7538 22.921 37.9933 24.0068 36.9075L39.2933 21.621C40.3791 20.5352 42.1396 20.5352 43.2255 21.621C44.3113 22.7069 44.3113 24.4674 43.2255 25.5532L27.939 40.8397C26.8532 41.9255 25.0927 41.9255 24.0068 40.8397Z" fill="white"/>
+                <path d="M27.9763 40.8397C26.8905 41.9255 25.13 41.9255 24.0441 40.8397L17.1628 33.9583C16.0769 32.8725 16.0769 31.112 17.1628 30.0261C18.2486 28.9403 20.0091 28.9403 21.095 30.0261L27.9763 36.9075C29.0622 37.9933 29.0622 39.7538 27.9763 40.8397Z" fill="white"/>
+            </g>
+            <defs>
+                <clipPath id="clip0">
+                    <rect width="27.8049" height="27.8049" fill="white" transform="translate(16.2927 16.293)"/>
+                </clipPath>
+            </defs>
+        </svg>
+    )
+}
+
+export const BLUE = '#0074DE'
+
 export const cardStyle = `
+    * {
+        box-sizing: border-box;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        text-transform: none;        
+    }
     html, body {
         display: flex;
         position: fixed;
@@ -42,6 +68,88 @@ export const cardStyle = `
         align-items: center;
         justify-content: center;
     }
+    #venmo-error-view {
+        width: 100%;
+        height: 100%;
+        padding: 1.5em;
+        justify-content: center;
+    }
+    #venmo-error-view .error-message,
+    #venmo-error-view .reset-button {
+        color: #FFFFFF;
+        text-align: center;        
+        line-height: 16px;
+    }
+    #venmo-error-view .error-message {
+        margin-bottom: 2em;
+        word-break: break-word;
+    }
+    #venmo-error-view .reset-button {
+        cursor: pointer;
+        border: 0; 
+        border-radius: 24px;
+        padding: 12px;
+        background: ${BLUE};
+        line-height: 24px;
+        font-weight: 700;
+        width: 300px;
+    }
+    .card, 
+    #venmo-error-view {
+        display: inline-flex;
+        align-items: center;
+        flex-direction: column;
+    }
+    .card {
+        border-radius: 8px;        
+        width: 280px;
+        height: 320px; 
+        backface-visibility: hidden;
+        transition: transform 1s;
+        transform-style: preserve-3d;
+    }
+    #view-boxes {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        width: 100%;
+    }
+    #view-boxes.scanned #front-view,
+    #view-boxes.authorized #front-view {
+        transform: rotateY(180deg);
+        position: absolute;
+    }
+    #view-boxes.scanned #back-view,
+    #view-boxes.authorized #back-view {
+        transform: rotateY(0deg);
+        position: relative;
+    }
+    #view-boxes #back-view #success-mark,
+    #view-boxes #back-view .success-message {
+        opacity: 0;
+    }
+    #view-boxes.authorized #back-view #success-mark,
+    #view-boxes.authorized #back-view .success-message {
+        opacity: 1;
+    }
+    #view-boxes.authorized #back-view #success-mark {
+        transform: rotate(720deg);
+    }
+    #view-boxes.authorized #back-view .auth-message {
+        opacity: 0;
+    }
+    #front-view {
+        background-color: white;
+        border: 1px solid #888C94;
+        z-index: 2;
+        transform: rotateY(0deg);
+        justify-content: space-between;
+    }
+    #front-view > svg,
+    #front-view > img {
+        padding: 16px 16px 8px;
+    }
     #instructions {
         background-color: #F5F5F5;
         border-bottom-left-radius: 8px;
@@ -51,7 +159,6 @@ export const cardStyle = `
         align-items: center;
         font-size: 12px;
         line-height: 16px;
-        box-sizing: border-box;
         width: 100%;
     }
     .instruction-icon {
@@ -59,69 +166,38 @@ export const cardStyle = `
         min-height: 46px;
         margin-right: 16px;
     }
-
-    #view-boxes-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        width: 100%;
-        font-family: sans-serif;
-        font-style: normal;
-        font-weight: 100;
-    }
-
-    .card {
-        border: 1px solid #888C94;
-        border-radius: 8px;
-        background-color: white;
-        display: inline-flex;
-        align-items: center;
-        flex-direction: column;
-        width: 280px;
-        height: 320px; 
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        backface-visibility: hidden;
-        transition: transform 1s;
-        transform-style: preserve-3d;
-    }
-    #view-boxes{
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        width: 100%;
-    }
-    #view-boxes.is-flipped #front-view {
-        transform: rotateY(180deg);
-        position: absolute;
-    }
-    #view-boxes.is-flipped #back-view {
-        transform: rotateY(0deg);
-        position: relative;
-    }
-
-    #front-view {
-        z-index: 2;
-        transform: rotateY(0deg);
-        justify-content: space-between;
-    }
-    #front-view > svg,
-    #front-view > img {
-        padding: 16px 16px 8px;
-    }
     #back-view {
         position: absolute;
         transform: rotateY(-180deg);
-        background-color: #0074DE;
+        background-color: ${BLUE};
         justify-content: center;
+        font-size: 18px;
+        line-height: 16px;
+        text-align: center;
+        color: #FFFFFF;
+    }    
+    #back-view .auth-message,
+    #back-view .success-message {
+        position: absolute;
+        bottom: -30px;
+        white-space: nowrap;
+        transition: opacity 500ms;
     }
-    #back-view > svg {
+    #back-view .mark {
+        position: relative ;
+    }
+    #venmo-mark{
         width: 50%;
+    }
+    #success-mark {
+        position: absolute;
+        left: 50%;
+        bottom: -10%;
+        transition: transform 500ms, opacity 500ms;
     }
     `;
 
-export function DemoWrapper(component : typeof Node): typeof Node {
+export function DemoWrapper(component : NodeType): NodeType {
     return (
         <Fragment>
             <style>{`html{background-color: rgba(0, 0, 0, 0.4);}`}</style>
