@@ -113,7 +113,7 @@ function getMerchantCapabilities(supportedNetworks : $ReadOnlyArray<ApplePaySupp
     return merchantCapabilities;
 }
 
-export function createApplePayRequest(country : $Values<typeof COUNTRY>, order : DetailedOrderInfo) : ApplePayPaymentRequest {
+export function createApplePayRequest(countryCode : $Values<typeof COUNTRY>, order : DetailedOrderInfo) : ApplePayPaymentRequest {
     const {
         allowedCardIssuers,
         cart: {
@@ -135,12 +135,23 @@ export function createApplePayRequest(country : $Values<typeof COUNTRY>, order :
     const merchantCapabilities = getMerchantCapabilities(supportedNetworks, fundingOptions);
 
     return {
-        countryCode:     country,
+        countryCode,
         currencyCode,
         merchantCapabilities,
         shippingContact,
-        shippingMethods: applePayShippingMethods,
+        shippingMethods:              applePayShippingMethods,
         supportedNetworks,
+        requiredBillingContactFields: [
+            'postalAddress',
+            'name',
+            'phone'
+        ],
+        requiredShippingContactFields: [
+            'postalAddress',
+            'name',
+            'phone',
+            'email'
+        ],
         total:           {
             amount: currencyValue,
             label:  '',

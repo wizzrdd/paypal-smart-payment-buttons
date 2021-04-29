@@ -2,20 +2,19 @@
 /* eslint max-lines: off, max-nested-callbacks: off */
 
 import { cleanup, memoize, stringifyError, stringifyErrorMessage } from 'belter/src';
-import { type CrossDomainWindowType } from 'cross-domain-utils/src';
-import { FPTI_KEY } from '@paypal/sdk-constants/src';
+import { FPTI_KEY, FUNDING } from '@paypal/sdk-constants/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 
-import { checkout } from '../checkout';
-import { getDetailedOrderInfo, approveApplePayPayment, validateMerchant } from '../../api';
+import { getDetailedOrderInfo, approveApplePayPayment, getApplePayMerchantSession } from '../../api';
 import { getLogger, promiseNoop, unresolvedPromise } from '../../lib';
 import { FPTI_CUSTOM_KEY, FPTI_STATE, FPTI_TRANSITION } from '../../constants';
-import type { ApplePayPayment, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, SetupOptions, InitOptions } from '../types';
+import type { ApplePayPayment, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, IsPaymentEligibleOptions, SetupOptions, InitOptions } from '../types';
 
 import { createApplePayRequest, getMerchantStoreName } from './utils';
 
-let clean;
+const SUPPORTED_VERSION = 3;
 
+let clean;
 let applePaymentEligible : boolean;
 function setupApplePay({ props } : SetupOptions) : ZalgoPromise<void> {
     const { clientID } = props;
@@ -36,11 +35,21 @@ function isApplePayEligible({ props } : IsEligibleOptions) : boolean {
     return true;
 }
 
-function isApplePayPaymentEligible() : boolean {
+function isApplePayPaymentEligible({ payment } : IsPaymentEligibleOptions) : boolean {
+    const { fundingSource } = payment;
+
+    if (fundingSource !== FUNDING.APPLEPAY) {
+        return false;
+    }
+
+    if (applePaymentEligible && applePaymentEligible[fundingSource] && applePaymentEligible[fundingSource].eligibility) {
+        return true;
+    }
+
     return applePaymentEligible;
 }
 
-function initApplePay({ components, config, props, payment, serviceData } : InitOptions) : PaymentFlowInstance {
+function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
     const { createOrder, onApprove, onCancel, onError, onClick, locale, clientID, merchantDomain, applePay } = props;
 
     const { fundingSource } = payment;
@@ -79,7 +88,7 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
 
             return valid;
         });
-        
+
         const orderPromise = validatePromise.then(valid => {
             if (valid) {
                 return createOrder();
@@ -87,133 +96,140 @@ function initApplePay({ components, config, props, payment, serviceData } : Init
 
             return unresolvedPromise();
         });
+        
+        const setupApplePaySession = () => {
+            orderPromise.then(orderID => {
+                const country = locale.country;
+                getDetailedOrderInfo(orderID, country).then(order => {
+                    // set order details into ApplePayRequest
+                    const applePayRequest = createApplePayRequest(country, order);
 
-        const fallbackToWebCheckout = (fallbackWin? : ?CrossDomainWindowType) => {
-            const checkoutPayment = { ...payment, win: fallbackWin, isClick: false, isNativeFallback: true };
-            const instance = checkout.init({ props, components, payment: checkoutPayment, config, serviceData });
-            clean.register(() => instance.close());
-            return instance.start();
-        };
+                    // create Apple Pay Session
+                    const {
+                        begin,
+                        addEventListener,
+                        completeMerchantValidation,
+                        completeShippingContactSelection,
+                        completePaymentMethodSelection,
+                        completeShippingMethodSelection,
+                        completePayment
+                    } = applePay(SUPPORTED_VERSION, applePayRequest);
 
-        orderPromise.then(orderID => {
-            const country = locale.country;
-            getDetailedOrderInfo(orderID, country).then(order => {
-                // set order details into ApplePayRequest
-                const applePayRequest = createApplePayRequest(country, order);
+                    addEventListener('validateMerchant', (e) => {
+                        logApplePayEvent(e);
 
-                // create Apple Pay Session
-                const {
-                    begin,
-                    addEventListener,
-                    completeMerchantValidation,
-                    completeShippingContactSelection,
-                    completePaymentMethodSelection,
-                    completeShippingMethodSelection,
-                    completePayment
-                } = applePay(3, applePayRequest);
-
-                addEventListener('onvalidateMerchant', (e) => {
-                    logApplePayEvent(e);
-
-                    const merchantStoreName = getMerchantStoreName(order) || 'PayPal';
-                    validateMerchant({ url: e.validationURL, clientID, orderID, merchantDomain, merchantStoreName }).then(merchantSession => {
-                        if (merchantSession && merchantSession.session) {
-                            try {
-                                const session = atob(merchantSession.session);
-                                completeMerchantValidation(JSON.parse(session));
-                            } catch (err) {
+                        const merchantStoreName = getMerchantStoreName(order) || 'PayPal';
+                        getApplePayMerchantSession({ url: e.validationURL, clientID, orderID, merchantDomain, merchantStoreName })
+                            .then(merchantSession => {
+                                try {
+                                    const session = atob(merchantSession.session);
+                                    completeMerchantValidation(JSON.parse(session));
+                                } catch (err) {
+                                    getLogger().info(`applepay_merchant_valiation_error`)
+                                        .track({
+                                            [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.APPLEPAY_VALIDATE_MERCHANT_ERROR,
+                                            [FPTI_CUSTOM_KEY.ERR_DESC]: `Error: ${ stringifyError(err) }`
+                                        })
+                                        .flush();
+                                    onError(err);
+                                    close();
+                                }
+                            })
+                            .catch(err => {
                                 getLogger().info(`applepay_merchant_valiation_error`)
                                     .track({
                                         [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.APPLEPAY_VALIDATE_MERCHANT_ERROR,
-                                        [FPTI_CUSTOM_KEY.INFO_MSG]: `Error: ${ stringifyError(err) }`
+                                        [FPTI_CUSTOM_KEY.ERR_DESC]: `Error: ${ stringifyError(err) }`
                                     })
                                     .flush();
                                 onError(err);
-                            }
+                                close();
+                            });
+                    });
+
+                    addEventListener('paymentmethodselected', (e) => {
+                        logApplePayEvent(e);
+
+                        const { amount, label } = applePayRequest.total;
+                        const newTotal = {
+                            amount,
+                            label
+                        };
+
+                        const update = { newTotal };
+                        completePaymentMethodSelection(update);
+                    });
+
+                    addEventListener('shippingmethodselected', (e) => {
+                        logApplePayEvent(e);
+                        completeShippingMethodSelection({});
+                    });
+
+                    addEventListener('shippingcontactselected', (e) => {
+                        logApplePayEvent(e);
+                        completeShippingContactSelection({});
+                    });
+
+                    addEventListener('paymentauthorized', (e) => {
+                        logApplePayEvent(e);
+
+                        const applePayPayment : ApplePayPayment = e.payment;
+                        if (!applePayPayment) {
+                            throw new Error('No payment received from Apple.');
+                        }
+                        
+                        // call graphQL mutation passing in token, billingContact and shippingContact
+                        approveApplePayPayment(orderID, clientID, applePayPayment)
+                            .then(validatedPayment => {
+                                if (validatedPayment) {
+                                    // call onApprove when successful
+                                    const data = {};
+                                    const actions = { restart: () => ZalgoPromise.try(setupApplePaySession) };
+                                    ZalgoPromise.all([
+                                        onApprove(data, actions)
+                                            .then(() => {
+                                                const result = window.ApplePaySession.STATUS_SUCCESS;
+                                                completePayment(result);
+                                            })
+                                            .catch(err => {
+                                                getLogger().info(`applepay_message_onapprove_error`)
+                                                    .track({
+                                                        [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_ON_APPROVE_ERROR,
+                                                        [FPTI_CUSTOM_KEY.INFO_MSG]: `Error: ${ stringifyError(err) }`
+                                                    })
+                                                    .flush();
+                                                onError(err);
+                                            }),
+                                        close()
+                                    ]);
+                                }
+                            });
+                    });
+
+                    addEventListener('oncancel', (e) => {
+                        logApplePayEvent(e);
+
+                        if (onCancel) {
+                            onCancel();
                         }
                     });
+
+                    begin();
                 });
+            }).catch(err => {
+                getLogger().info(`applepay_create_order_error`)
+                    .track({
+                        [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.APPLEPAY_CREATE_ORDER_ERROR,
+                        [FPTI_KEY.ERROR_DESC]:      stringifyError(err)
+                    }).flush();
 
-                addEventListener('onpaymentmethodselected', (e) => {
-                    logApplePayEvent(e);
-
-                    const { amount, label } = applePayRequest.total;
-                    const newTotal = {
-                        amount,
-                        label
-                    };
-
-                    const update = { newTotal };
-                    completePaymentMethodSelection(update);
+                return close().then(() => {
+                    return onError(err);
                 });
-
-                addEventListener('onshippingmethodselected', (e) => {
-                    logApplePayEvent(e);
-                    completeShippingMethodSelection({});
-                });
-
-                addEventListener('onshippingcontactselected', (e) => {
-                    logApplePayEvent(e);
-                    completeShippingContactSelection({});
-                });
-
-                addEventListener('onpaymentauthorized', (e) => {
-                    logApplePayEvent(e);
-
-                    const applePayPayment : ApplePayPayment = e.payment;
-                    if (!applePayPayment) {
-                        throw new Error('No payment received from Apple.');
-                    }
-                    
-                    // call graphQL mutation passing in token, billingContact and shippingContact
-                    approveApplePayPayment(orderID, clientID, applePayPayment)
-                        .then(validatedPayment => {
-                            if (validatedPayment) {
-                                // call onApprove when successful
-                                const data = {};
-                                const actions = { restart: () => fallbackToWebCheckout() };
-                                ZalgoPromise.all([
-                                    onApprove(data, actions)
-                                        .then(() => {
-                                            const result = window.ApplePaySession.STATUS_SUCCESS;
-                                            completePayment(result);
-                                        })
-                                        .catch(err => {
-                                            getLogger().info(`applepay_message_onapprove_error`)
-                                                .track({
-                                                    [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_ON_APPROVE_ERROR,
-                                                    [FPTI_CUSTOM_KEY.INFO_MSG]: `Error: ${ stringifyError(err) }`
-                                                })
-                                                .flush();
-                                            onError(err);
-                                        }),
-                                    close()
-                                ]);
-                            }
-                        });
-                });
-
-                addEventListener('oncancel', (e) => {
-                    logApplePayEvent(e);
-
-                    if (onCancel) {
-                        onCancel();
-                    }
-                });
-
-                begin();
             });
-        }).catch(err => {
-            getLogger().info(`applepay_create_order_error`)
-                .track({
-                    [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.APPLEPAY_CREATE_ORDER_ERROR,
-                    [FPTI_KEY.ERROR_DESC]:      stringifyError(err)
-                }).flush();
+        };
 
-            return close().then(() => {
-                return onError(err);
-            });
-        });
+        setupApplePaySession();
     }
 
     const click = () => {
