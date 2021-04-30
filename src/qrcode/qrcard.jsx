@@ -3,15 +3,9 @@
 
 import { h, render, Fragment, Node, Component } from 'preact';
 import { useState } from 'preact/hooks';
-// import { getBody } from '../lib/util';
-// import {writeElementToWindow} from 'belter/src';
-// import {assertSameDomain} from 'cross-domain-utils/src';
 import { getBody } from '../lib';
-
 import { QRCode } from './node-qrcode';
-import {type NodeType, BLUE, InstructionIcon, Logo, VenmoMark, AuthMark, cardStyle, DemoWrapper } from './components';
-import type {ZoidComponentInstance, ZoidComponent} from '../types';
-
+import {type NodeType, BLUE, InstructionIcon, Logo, VenmoMark, AuthMark, cardStyle, DemoWrapper, DemoControls } from './components';
 
 type QRPath = string;
 type QRCardProps = {
@@ -64,20 +58,20 @@ function QRCard({
     demo
 } : QRCardProps) : NodeType {
     const [processState, setProcessState] = useState(null);
-    // 'scanned' > 'authorized' > 'error' 
-
-    // const [scanned, setScanned] = useState(false);
-    // const [authorized, setAuthorized] = useState(false);
-    // const [inError, setInError] = useState(false);
     const [errorMessage, setErrorMessage] = useState(null);
 
+    const isError = () => processState === 'error';
+    const setState_error = () => setProcessState('error');
+    const setState_scanned = () => setProcessState('scanned');
+    const setState_authorized = () => setProcessState('authorized');
+    const setState_default = () => setProcessState(null);
 
     return (
         <Fragment> 
             <style nonce={ cspNonce }> { cardStyle } </style>    
             <div id="view-boxes" className={ processState }>
-                {(processState === 'error') ?
-                    <ErrorMessage message={errorMessage} resetFunc={()=>setProcessState(null)} /> :
+                { isError() ?
+                    <ErrorMessage message={errorMessage} resetFunc={()=>setState_default()} /> :
                     <div id="front-view"  className="card">
                         <QRCodeElement qrPath={qrPath} />
                         <Logo />
@@ -103,69 +97,21 @@ function QRCard({
                 </div>
             </div>
 
-            {demo ?                
-                <div id="controls">
-                    <style>{`
-                        #controls {
-                            position: fixed;
-                            bottom: 1rem;
-                            left: 1rem;
-                            padding: 1rem;
-                            border: 1px solid #888C94;
-                            display: flex;
-                            flex-wrap: wrap;
-                        }
-                        #controls button {min-width: 48px;}
-                        #controls > * {margin: 0 0.5rem;}
-                        #controls div {display: flex; flex-direction: column;}
-                    `}</style>
-                    <button disabled={processState==='error'} onClick={()=>{
-                        switch (processState) {
-                            case 'authorized': setProcessState(null); break;
-                            case 'scanned' : setProcessState('authorized'); break;
-                            default: setProcessState('scanned')
-                        }}}> {{
-                                'authorized': 'Reset',
-                                'scanned': 'Auth',
-                            }[processState] || 'Scan'
-                        }
-                    </button> 
-                    
-                    <button onClick={()=>setProcessState('error')}> Show Error </button>
-                    <div>
-                        <button onClick={()=>{
-                            setErrorMessage(document.getElementById('errorMsg').value);
-                            setProcessState('error');
-                        }}> Set Error Value </button>
-                        <input type="text" id="errorMsg"/>
-                    </div>
-                    <button style="font-weight:700" onClick={()=>{
-                        setProcessState(null)
-                        setErrorMessage('An issue has occurred');
-                    }}> Reset </button>
-                    <button onClick={()=>{console.log(`
-                        errorMessage: ${errorMessage}
-                        processState: ${processState}
-                        possible states: 
-                          null,
-                          scanned,
-                          authorized,
-                          error                        
-                    `)}}> Observe State </button>
-                </div> : null
+            { demo ? 
+                <DemoControls 
+                    cspNonce={cspNonce}
+                    processState={processState}
+                    isError={isError}
+                    setState_error={setState_error}
+                    setState_scanned={setState_scanned}
+                    setState_authorized={setState_authorized}
+                    setState_default={setState_default}
+                    setErrorMessage={setErrorMessage}
+                /> : null
             }
-
         </Fragment>
     );
 }
-/*
-
-<button onClick={()=>{console.log('fired')}}> ???? </button>
-                </div> : null
-
-                    
-*/
-
 
 type RenderQRCodeOptions = {
     cspNonce? : string,

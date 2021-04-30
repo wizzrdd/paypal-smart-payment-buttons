@@ -33,7 +33,7 @@ export function VenmoMark() : NodeType {
     )
 }
 
-export function AuthMark(): NodeType {
+export function AuthMark() : NodeType {
     return  (
         <svg id="success-mark" width="59" height="59" viewBox="0 0 59 59" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="1" y="1" width="57" height="57" rx="28.5" fill="#148572" stroke="#888C94"/>
@@ -50,9 +50,9 @@ export function AuthMark(): NodeType {
     )
 }
 
-export const BLUE = '#0074DE'
+export const BLUE : string = '#0074DE';
 
-export const cardStyle = `
+export const cardStyle : string = `
     * {
         box-sizing: border-box;
         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -197,10 +197,10 @@ export const cardStyle = `
     }
     `;
 
-export function DemoWrapper(component : NodeType): NodeType {
+export function DemoWrapper(component : NodeType, cspNonce : ?string,): NodeType {
     return (
         <Fragment>
-            <style>{`html{background-color: rgba(0, 0, 0, 0.4);}`}</style>
+            <style nonce={ cspNonce } >{`html{background-color: rgba(0, 0, 0, 0.4);}`}</style>
             <div style={`
                 background: #2F3033;
                 box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.4);
@@ -217,18 +217,86 @@ export function DemoWrapper(component : NodeType): NodeType {
             {component}
             </div>
         </Fragment>
-
-
-
     )
     
 } 
-/*
-    .card > img,
-    .card > svg {${                
-    // padding: 24px 24px 12px;
-    // width: 100%;
-    // height: 100%;        
-}}
-*/
+
+
+type DemoControlsOptions = {
+    cspNonce? : string,
+    processState : string | null,
+    errorMessage : string | null,
+    isError: function,
+    setState_error: function,
+    setState_scanned: function,
+    setState_authorized: function,
+    setState_default: function,
+    setErrorMessage: function    
+}
+
+export function DemoControls({
+    cspNonce,
+    processState,
+    errorMessage,
+    isError,
+    setState_error,
+    setState_scanned,
+    setState_authorized,
+    setState_default,
+    setErrorMessage
+} : DemoControlsOptions) : NodeType {
+    return (
+        <Fragment> 
+            <div id="controls">
+                <style nonce={ cspNonce }> {`
+                    #controls {
+                        position: fixed;
+                        bottom: 1rem;
+                        left: 1rem;
+                        padding: 1rem;
+                        border: 1px solid #888C94;
+                        display: flex;
+                        flex-wrap: wrap;
+                    }
+                    #controls button {min-width: 48px;}
+                    #controls > * {margin: 0 0.5rem;}
+                    #controls div {display: flex; flex-direction: column;}
+                `}</style>
+                <button disabled={isError()} onClick={()=>{
+                    switch (processState) {
+                        case 'authorized': setState_default(); break;
+                        case 'scanned' : setState_authorized(); break;
+                        default: setState_scanned()
+                    }}}> 
+                        {{ 'null' : 'Scan',
+                            'error' : 'Scan',
+                            'authorized': 'Reset',
+                            'scanned': 'Auth',
+                        }[processState || 'null' ]}
+                </button> 
+                
+                <button onClick={()=>setState_error()}> Show Error </button>
+                <div>
+                    <button onClick={()=>{
+                        setState_error();
+                    }}> Set Error Value </button>
+                    <input type="text" id="errorMsg" value={errorMessage} onChange={(e)=>setErrorMessage(e.target.value)}/>
+                </div>
+                <button style="font-weight:700" onClick={()=>{
+                    setState_default();
+                    setErrorMessage('An issue has occurred');
+                }}> Reset </button>
+                <button onClick={()=>{console.log(`
+                    errorMessage: ${errorMessage || 'null'}
+                    processState: ${processState || 'null'}
+                    possible states: 
+                    null,
+                    scanned,
+                    authorized,
+                    error
+                `)}}> Observe State </button>
+            </div> 
+        </Fragment>
+    )
+}
 
