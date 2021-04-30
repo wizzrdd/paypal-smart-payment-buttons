@@ -330,5 +330,6 @@ app.listen(PORT, () => {
         Smart Button server listening
           - http://localhost.paypal.com:${ PORT }/smart/buttons?clientID=alc_client1
           - http://localhost.paypal.com:${ PORT }/smart/menu?clientID=alc_client1
+          - http://localhost.paypal.com:${ PORT }/smart/qrcode?demo=true&qrPath=string_to_be_encoded
     `);
 });

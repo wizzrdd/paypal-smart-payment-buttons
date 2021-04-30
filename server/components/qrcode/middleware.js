@@ -39,6 +39,7 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
             <!DOCTYPE html>
             <head>
                 <link 
+                    nonce="${ cspNonce }"
                     rel="stylesheet" 
                     href="https://www.paypalobjects.com/paypal-ui/web/fonts-and-normalize/1-1-0/fonts-and-normalize.min.css"
                 />

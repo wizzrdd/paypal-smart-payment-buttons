@@ -177,7 +177,7 @@ export function renderQRCode({ cspNonce = '', qrPath, demo = false} : RenderQRCo
     const PropedCard = <QRCard cspNonce={ cspNonce } qrPath={ qrPath } demo={ demo } onRender={console.log('qrcard.jsx rendered')} /> 
     render(
         demo ?
-            DemoWrapper(PropedCard) :
+            DemoWrapper(PropedCard, cspNonce) :
             PropedCard , 
         getBody()
     );
