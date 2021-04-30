@@ -63,8 +63,8 @@ const NATIVE_POPUP_DOMAIN = {
 };
 
 const NATIVE_CHECKOUT_URI : { [ $Values<typeof FUNDING> ] : string } = {
-    [ FUNDING.PAYPAL ]: isAndroidChrome() ? '/smart/checkout/native/v2' : '/smart/checkout/native',
-    [ FUNDING.VENMO ]:  '/smart/checkout/venmo'
+    [ FUNDING.PAYPAL ]: isAndroidChrome() ? '/smart/checkout/native/v/2' : '/smart/checkout/native',
+    [ FUNDING.VENMO ]:  isAndroidChrome() ? '/smart/checkout/venmo/v/2' : '/smart/checkout/venmo'
 };
 
 const NATIVE_CHECKOUT_POPUP_URI : { [$Values<typeof FUNDING> ] : string } = {
