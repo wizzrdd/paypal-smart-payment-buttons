@@ -15,13 +15,12 @@ import { createApplePayRequest, getMerchantStoreName } from './utils';
 const SUPPORTED_VERSION = 3;
 
 let clean;
-let applePaymentEligible : boolean;
-function setupApplePay({ props } : SetupOptions) : ZalgoPromise<void> {
-    const { clientID } = props;
-    const validClients = [];
-
+let applePaymentEligible;
+function setupApplePay({ serviceData } : SetupOptions) : ZalgoPromise<void> {
+    const { fundingEligibility } = serviceData;
+    
     return ZalgoPromise.try(() => {
-        applePaymentEligible = validClients.indexOf(clientID) !== -1;
+        applePaymentEligible = fundingEligibility && fundingEligibility[FUNDING.APPLEPAY] && fundingEligibility[FUNDING.APPLEPAY].eligible;
     });
 }
 

@@ -143,9 +143,7 @@ export function approveApplePayPayment(orderID : string, clientID : string, appl
                     clientID: $clientID
                     billingContact: $billingContact
                     shippingContact: $shippingContact
-                ) {
-                    payment
-                }
+                )
             }
         `,
         variables: { token, orderID, clientID, billingContact, shippingContact }
