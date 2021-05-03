@@ -3,7 +3,6 @@
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { memoize, noop, supportsPopups, stringifyError, extendUrl, PopupOpenError } from 'belter/src';
 import { FUNDING, FPTI_KEY, CURRENCY, COUNTRY, INTENT, CARD, type FundingEligibilityType } from '@paypal/sdk-constants/src';
-
 import { getParent, getTop, type CrossDomainWindowType } from 'cross-domain-utils/src';
 
 import type { ProxyWindow, ConnectOptions } from '../types';
@@ -14,10 +13,8 @@ import { unresolvedPromise, getLogger } from '../lib';
 import { openPopup } from '../ui';
 import { FUNDING_SKIP_LOGIN } from '../config';
 import { nativeFakeoutExperiment } from '../experiments';
-//import { generateQRmodal } from '../qrcode/QRmodal';
 
 import type { PaymentFlow, PaymentFlowInstance, SetupOptions, InitOptions } from './types';
-function myLog(str){console.log(`%c ${str}`, 'color:blue;font-weight:700');}
 
 export const CHECKOUT_POPUP_DIMENSIONS = {
     WIDTH:  500,
@@ -403,63 +400,12 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     };
 
     const start = memoize(() => {
-
-        myLog('+++ in start');
-        
-        if (payment.fundingSource === FUNDING.VENMO) {
-            const { QRCode } = components;
-            const testURL = 'https://venmo.com/go/purchase?facilitator=BT&intent=Continue&resource_id=cGF5bWVudGNvbnRleHRfMzhreDg4bTh5NWJmMjdjNiNkMTFmZDVkZS00NThjLTRjZDUtYTUzMy0wNThlNjM0YWQ3ZmY=&merchant_id=38kx88m8y5bf27c6&environment=SANDBOX'
-            myLog('+++ start > fundingSource === venmo');
-            myLog('test URL - '+testURL);
-
-            //const parentFrame = window.xprops.getParent();
-            const QRCodeModal = QRCode({cspNonce: cspNonce, qrPath: testURL});
-            //return instance.renderTo(parentFrame,TARGET_ELEMENT.BODY);
-
-            return QRCodeModal.renderTo(window.xprops.getParent(), TARGET_ELEMENT.BODY);
-
-/*        
-            let divId = 'pay-with-venmo-desktop';
-            let div = document.createElement('div');
-            div.id = divId;
-            // div.style = {marginLeft:auto,marginRight:auto}
-            document.body.appendChild(div);
-            let attachedDiv = document.getElementById(divId);
-            myLog(attachedDiv);
-            generateQRmodal({cspNonce: cspNonce, targetElement: attachedDiv, qrPath: testURL});
-*/
-        } else {
-            myLog('+++ start > fundingSource === venmo - ELSE ');
-            instance = init();
-            return instance.renderTo(getRenderWindow(), TARGET_ELEMENT.BODY, context).catch(err => {
-                if (checkoutOpen) {
-                    throw err;
-                }
-            });
-           
-        }
-
-            // // debugger;
-            // return instance.renderTo(getRenderWindow(), TARGET_ELEMENT.BODY, context).catch(err => {
-            //     if (checkoutOpen) {
-            //         throw err;
-            //     }
-            // });
-        // }
-
-
-
-
-
-
-/*
         instance = init();
         return instance.renderTo(getRenderWindow(), TARGET_ELEMENT.BODY, context).catch(err => {
             if (checkoutOpen) {
                 throw err;
             }
         });
-*/
     });
 
     const restart = memoize(() : ZalgoPromise<void> => {
@@ -468,31 +414,22 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     });
 
     const click = () => {
+        if (!win && supportsPopups()) {
+            try {
+                win = openPopup({ width: CHECKOUT_POPUP_DIMENSIONS.WIDTH, height: CHECKOUT_POPUP_DIMENSIONS.HEIGHT });
+            } catch (err) {
+                getLogger().warn('popup_open_error_iframe_fallback', { err: stringifyError(err) });
 
-        myLog('-- clicked');
-
-        if( payment.fundingSource === FUNDING.VENMO) {
-
-
-        } else{
-            if (!win && supportsPopups()) {
-                try {
-                    win = openPopup({ width: CHECKOUT_POPUP_DIMENSIONS.WIDTH, height: CHECKOUT_POPUP_DIMENSIONS.HEIGHT });
-                } catch (err) {
-                    getLogger().warn('popup_open_error_iframe_fallback', { err: stringifyError(err) });
-    
-                    if (err instanceof PopupOpenError) {
-                        context = CONTEXT.IFRAME;
-                    } else {
-                        throw err;
-                    }
+                if (err instanceof PopupOpenError) {
+                    context = CONTEXT.IFRAME;
+                } else {
+                    throw err;
                 }
             }
-        }
+        }            
 
 
-        if (!onClick) {
-            myLog('-- clicked > !onClick');
+        if (!onClick) {            
             start();
             return;
         }
