@@ -8,8 +8,6 @@ import { EVENT } from './constants';
 import { getParams } from './params';
 import { getSmartQRCodeClientScript } from './script';
 
-// import { generateQRmodal } from '../../../src/qrcode/qrcard'
-// import { svgToBase64 } from 'belter/src';
 
 type QRcodeMiddlewareOptions = {|
     logger? : LoggerType,

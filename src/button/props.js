@@ -23,7 +23,6 @@ import { getCreateBillingAgreement } from '../props/createBillingAgreement';
 import { getCreateSubscription } from '../props/createSubscription';
 import { getOnAuth } from '../props/onAuth';
 import { getOnError } from '../props/onError';
-//import { QRCode } from '../lib/node-qrcode/node-qrcode';
 
 // export something to force webpack to see this as an ES module
 export const TYPES = true;
