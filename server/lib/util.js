@@ -10,9 +10,6 @@ import type { ChildType, NullableChildType } from 'jsx-pragmatic/src';
 import { HTTP_HEADER, HTTP_CONTENT_TYPE, HTTP_STATUS_CODE, HTTP_CONTENT_DISPOSITION } from '../config';
 import type { ExpressRequest, ExpressResponse, LoggerType, LoggerPayload } from '../types';
 
-// killing logging 
-import { noop } from 'belter';
-
 function response(res : ExpressResponse, status : $Values<typeof HTTP_STATUS_CODE>, type : $Values<typeof HTTP_CONTENT_TYPE>, message : string) {
     res.status(status)
         .header(HTTP_HEADER.CONTENT_TYPE, type)
@@ -60,21 +57,13 @@ export function isLocalOrTest() : boolean {
 export function safeJSON(...args : $ReadOnlyArray<any>) : string {
     return JSON.stringify.apply(null, arguments).replace(/</g, '\\u003C').replace(/>/g, '\\u003E');
 }
-/*
+
 export const defaultLogger : LoggerType = {
     debug: (req : ExpressRequest, ...args : $ReadOnlyArray<mixed>) => console.debug(...args), // eslint-disable-line no-console
     info:  (req : ExpressRequest, ...args : $ReadOnlyArray<mixed>) => console.info(...args),  // eslint-disable-line no-console
     warn:  (req : ExpressRequest, ...args : $ReadOnlyArray<mixed>) => console.warn(...args), // eslint-disable-line no-console
     error: (req : ExpressRequest, ...args : $ReadOnlyArray<mixed>) => console.error(...args) // eslint-disable-line no-console
 };
-*/
-export const defaultLogger : LoggerType = {
-    debug: ()=>{},
-    info:  ()=>{},
-    warn:  ()=>{},
-    error: ()=>{}
-};
-
 
 const registerDirs = [];
 

@@ -104,7 +104,7 @@ export function setupButtonLogger({ env, sessionID, buttonSessionID, clientID, p
         } else if (isAndroidChrome()) {
             native_device = 'android_chrome';
         }
-/*
+
         logger.info(`button_render`);
         logger.info(`button_render_template_version_${ getTemplateVersion() }`);
         logger.info(`button_render_client_version_${ getClientVersion() }`);
@@ -139,7 +139,7 @@ export function setupButtonLogger({ env, sessionID, buttonSessionID, clientID, p
             [FPTI_BUTTON_KEY.BUTTON_TYPE]:            FPTI_BUTTON_TYPE.IFRAME,
             [FPTI_BUTTON_KEY.BUTTON_TAGLINE_ENABLED]: tagline ? '1' : '0'
         });
-*/
+
         logger.flush();
     });
 }
