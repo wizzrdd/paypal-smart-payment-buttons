@@ -359,7 +359,7 @@ export type Components = {|
     ThreeDomainSecure : ThreeDomainSecureFlowType,
     Menu : MenuFlowType,
     Installments : InstallmentsFlowType,
-    QRCode: QRCodeType
+    QRCode : QRCodeType
 |};
 
 export function getComponents() : Components {

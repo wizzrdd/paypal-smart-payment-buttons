@@ -9,12 +9,12 @@ import { noop } from 'belter';
 import { FUNDING } from '@paypal/sdk-constants';
 
 import { WEBPACK_CONFIG_BUTTONS_LOCAL_DEBUG } from '../webpack.config';
-import { 
+import {
     getButtonMiddleware,
-    getMenuMiddleware, 
-    getNativePopupMiddleware, 
+    getMenuMiddleware,
+    getNativePopupMiddleware,
     getNativeFallbackMiddleware,
-    getQRCodeMiddleware 
+    getQRCodeMiddleware
 } from '../index';
 
 import type { GraphQL } from './lib/graphql';

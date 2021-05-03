@@ -31,7 +31,7 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
             logger.info(req, `qrcode_params`, { params: JSON.stringify(params) });
             if (!qrPath) {
                 return clientErrorResponse(res, 'Please provide a qrPath query parameter');
-            };
+            }
 
             const pageHTML = `
             <!DOCTYPE html>
@@ -46,17 +46,17 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
                 ${ meta.getSDKLoader({ nonce: cspNonce }) }
                 <script nonce="${ cspNonce }">${ client.script }</script>
                 <script nonce="${ cspNonce }">
-                    spb.renderQRCode(${ safeJSON({ 
-                        cspNonce: cspNonce,
-                        qrPath: qrPath,
-                        demo: demo
-                    }) })
+        spb.renderQRCode(${ safeJSON({
+        cspNonce,
+        qrPath,
+        demo
+    }) })
                 </script>
             </body>
         `;
 
-        allowFrame(res);
-        return htmlResponse(res, pageHTML);
+            allowFrame(res);
+            return htmlResponse(res, pageHTML);
         }
     });
 }

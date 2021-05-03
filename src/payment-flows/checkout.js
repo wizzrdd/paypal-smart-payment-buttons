@@ -428,7 +428,7 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
             }
         }
 
-        if (!onClick) {            
+        if (!onClick) {
             start();
             return;
         }
