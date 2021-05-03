@@ -119,7 +119,6 @@ export type MenuFlowProps = {|
 export type MenuFlowType = ZoidComponent<MenuFlowProps>;
 export type MenuComponentInstance = ZoidComponentInstance<MenuFlowProps>;
 
-//export type QRCodeType = ZoidComponent<
 export type QRCodeProps = {|
     qrPath : string,
     cspNonce : ?string

@@ -426,8 +426,7 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
                     throw err;
                 }
             }
-        }            
-
+        }
 
         if (!onClick) {            
             start();
