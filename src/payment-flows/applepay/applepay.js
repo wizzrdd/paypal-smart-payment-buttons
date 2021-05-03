@@ -15,37 +15,27 @@ import { createApplePayRequest, getMerchantStoreName } from './utils';
 const SUPPORTED_VERSION = 3;
 
 let clean;
-let applePaymentEligible;
-function setupApplePay({ serviceData } : SetupOptions) : ZalgoPromise<void> {
-    const { fundingEligibility } = serviceData;
-    
-    return ZalgoPromise.try(() => {
-        applePaymentEligible = fundingEligibility && fundingEligibility[FUNDING.APPLEPAY] && fundingEligibility[FUNDING.APPLEPAY].eligible;
-    });
+function setupApplePay() : ZalgoPromise<void> {
+    return ZalgoPromise.resolve();
 }
 
-function isApplePayEligible({ props } : IsEligibleOptions) : boolean {
+function isApplePayEligible({ props, serviceData } : IsEligibleOptions) : boolean {
     const { branded, onShippingChange, createBillingAgreement, createSubscription } = props;
+    const { fundingEligibility } = serviceData;
 
     if (branded || onShippingChange || createBillingAgreement || createSubscription) {
         return false;
     }
 
-    return true;
+    return fundingEligibility &&
+           fundingEligibility[FUNDING.APPLEPAY] &&
+           fundingEligibility[FUNDING.APPLEPAY].eligible ?
+        fundingEligibility[FUNDING.APPLEPAY].eligible :
+        false;
 }
 
 function isApplePayPaymentEligible({ payment } : IsPaymentEligibleOptions) : boolean {
-    const { fundingSource } = payment;
-
-    if (fundingSource !== FUNDING.APPLEPAY) {
-        return false;
-    }
-
-    if (applePaymentEligible && applePaymentEligible[fundingSource] && applePaymentEligible[fundingSource].eligibility) {
-        return true;
-    }
-
-    return applePaymentEligible;
+    return payment.fundingSource === FUNDING.APPLEPAY;
 }
 
 function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
@@ -181,27 +171,25 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                         approveApplePayPayment(orderID, clientID, applePayPayment)
                             .then(validatedPayment => {
                                 if (validatedPayment) {
-                                    // call onApprove when successful
+                                    completePayment(window.ApplePaySession.STATUS_SUCCESS);
+
                                     const data = {};
                                     const actions = { restart: () => ZalgoPromise.try(setupApplePaySession) };
-                                    ZalgoPromise.all([
-                                        onApprove(data, actions)
-                                            .then(() => {
-                                                const result = window.ApplePaySession.STATUS_SUCCESS;
-                                                completePayment(result);
-                                            })
-                                            .catch(err => {
-                                                getLogger().info(`applepay_message_onapprove_error`)
-                                                    .track({
-                                                        [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_ON_APPROVE_ERROR,
-                                                        [FPTI_CUSTOM_KEY.INFO_MSG]: `Error: ${ stringifyError(err) }`
-                                                    })
-                                                    .flush();
-                                                onError(err);
-                                            }),
+                                    
+                                    return ZalgoPromise.all([
+                                        onApprove(data, actions),
                                         close()
                                     ]);
                                 }
+                            })
+                            .catch(err => {
+                                getLogger().info(`applepay_message_onapprove_error`)
+                                    .track({
+                                        [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_ON_APPROVE_ERROR,
+                                        [FPTI_CUSTOM_KEY.INFO_MSG]: `Error: ${ stringifyError(err) }`
+                                    })
+                                    .flush();
+                                onError(err);
                             });
                     });
 
