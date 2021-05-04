@@ -21,9 +21,9 @@ const PAYMENT_FLOWS : $ReadOnlyArray<PaymentFlow> = [
     walletCapture,
     cardFields,
     popupBridge,
+    applepay,
     native,
-    checkout,
-    applepay
+    checkout
 ];
 
 export function setupPaymentFlows({ props, config, serviceData, components } : {| props : ButtonProps, config : Config, serviceData : ServiceData, components : Components |}) : ZalgoPromise<void> {

@@ -4,10 +4,10 @@ import type { CrossDomainWindowType } from 'cross-domain-utils/src';
 import { ENV, INTENT, COUNTRY, FUNDING, CARD, PLATFORM, CURRENCY, type FundingEligibilityType } from '@paypal/sdk-constants/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 import type { InstallmentsFlowType } from '@paypal/installments/src/types';
-import type { ApplePaySessionConfigRequest } from '@paypal/checkout-components/src/ui/buttons/props';
 
 import type { ContentType, LocaleType, ProxyWindow, Wallet, CheckoutFlowType, CardFieldsFlowType,
     ThreeDomainSecureFlowType, MenuFlowType, ConnectOptions, PersonalizationType } from '../types';
+import type { XApplePaySessionConfigRequest } from '../payment-flows/types';
 import type { CreateOrder, XCreateOrder, CreateBillingAgreement, XCreateBillingAgreement, OnInit,
     XOnInit, OnApprove, XOnApprove, OnCancel, XOnCancel, OnClick, XOnClick, OnShippingChange, XOnShippingChange, XOnError,
     OnError, XGetPopupBridge, GetPopupBridge, XCreateSubscription, RememberFunding, GetPageURL, OnAuth, GetQueriedEligibleFunding
@@ -105,7 +105,7 @@ export type ButtonXProps = {|
     branded : boolean,
     userExperienceFlow : string,
 
-    applePay : ApplePaySessionConfigRequest
+    applePay : XApplePaySessionConfigRequest
 |};
 
 export type ButtonProps = {|
@@ -173,7 +173,7 @@ export type ButtonProps = {|
     branded : boolean,
     userExperienceFlow : string,
 
-    applePay : ApplePaySessionConfigRequest
+    applePay : XApplePaySessionConfigRequest
 |};
 
 // eslint-disable-next-line complexity

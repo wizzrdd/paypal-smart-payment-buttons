@@ -531,7 +531,6 @@ export type DetailedOrderInfo = {|
         merchant : {|
             name : string
         |},
-        fundingOptions : $ReadOnlyArray<FundingOption>,
         payees? : $ReadOnlyArray<{|
             merchantId? : string,
             email? : {|
@@ -579,11 +578,6 @@ export const getDetailedOrderInfo : GetDetailedOrderInfo = memoize((orderID, cou
                             }
                             label
                             selected
-                            type
-                        }
-                    }
-                    fundingOptions {
-                        fundingInstrument {
                             type
                         }
                     }

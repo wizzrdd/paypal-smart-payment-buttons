@@ -218,3 +218,47 @@ export type ApplePayPaymentRequest = {|
     shippingType? : $Values<typeof ApplePayShippingType>,
     shippingMethods? : $ReadOnlyArray<ApplePayShippingMethod>
 |};
+
+type ApplePayErrorCode = 'shippingContactInvalid' | 'billingContactInvalid' | 'addressUnserviceable' | 'unknown';
+
+type ApplePayError = {|
+    code : ApplePayErrorCode,
+    contactField : ApplePayContactField,
+    message : string
+|};
+
+type ApplePayShippingContactUpdate = {|
+    errors? : $ReadOnlyArray<ApplePayErrorCode>,
+    newShippingMethods? : $ReadOnlyArray<ApplePayShippingMethod>,
+    newTotal : ApplePayLineItem,
+    newLineItems? : $ReadOnlyArray<ApplePayLineItem>
+|};
+
+type ApplePayPaymentMethodUpdate = {|
+    newTotal : ApplePayLineItem,
+    newLineItems? : $ReadOnlyArray<ApplePayLineItem>
+|};
+
+type ApplePayShippingMethodUpdate = {|
+    newTotal : ApplePayLineItem,
+    newLineItems? : $ReadOnlyArray<ApplePayLineItem>
+|};
+
+type ApplePayPaymentAuthorizationResult = {|
+    status : number,
+    errors? : $ReadOnlyArray<ApplePayError>
+|};
+
+type ApplePaySessionConfig = {|
+    begin : () => void,
+    addEventListener : (string, Function) => void,
+    // eslint-disable-next-line flowtype/no-weak-types
+    completeMerchantValidation : (validatedSession : any) => void,
+    completeShippingMethodSelection : (update : ApplePayShippingMethodUpdate | {||}) => void,
+    completeShippingContactSelection : (update : ApplePayShippingContactUpdate | {||}) => void,
+    completePaymentMethodSelection : (update : ApplePayPaymentMethodUpdate | {||}) => void,
+    completePayment : (result : ApplePayPaymentAuthorizationResult) => void
+|};
+
+export type XApplePaySessionConfigRequest = (version : number, request : Object) => ZalgoPromise<ApplePaySessionConfig>;
+
