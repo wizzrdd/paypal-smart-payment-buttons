@@ -48,7 +48,7 @@ function ErrorMessage({
     resetFunc : () => void
 |}) : NodeType {
     return (
-        <div id="venmo-error-view">
+        <div id="error-view">
             <div className="error-message">{message || 'An issue has occurred' }</div>
             <button className="reset-button" type="button" onClick={ resetFunc }>Try scanning again</button>
         </div>

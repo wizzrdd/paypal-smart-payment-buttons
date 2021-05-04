@@ -68,23 +68,23 @@ export const cardStyle : string = `
         align-items: center;
         justify-content: center;
     }
-    #venmo-error-view {
+    #error-view {
         width: 100%;
         height: 100%;
         padding: 1.5em;
         justify-content: center;
     }
-    #venmo-error-view .error-message,
-    #venmo-error-view .reset-button {
+    #error-view .error-message,
+    #error-view .reset-button {
         color: #FFFFFF;
         text-align: center;        
         line-height: 16px;
     }
-    #venmo-error-view .error-message {
+    #error-view .error-message {
         margin-bottom: 2em;
         word-break: break-word;
     }
-    #venmo-error-view .reset-button {
+    #error-view .reset-button {
         cursor: pointer;
         border: 0; 
         border-radius: 24px;
@@ -95,7 +95,7 @@ export const cardStyle : string = `
         width: 300px;
     }
     .card, 
-    #venmo-error-view {
+    #error-view {
         display: inline-flex;
         align-items: center;
         flex-direction: column;
