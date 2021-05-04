@@ -1,16 +1,14 @@
 /* @flow */
 /** @jsx h */
 
-import { html } from 'jsx-pragmatic';
+import { preact } from 'jsx-pragmatic';
 import { h, Fragment, Node } from 'preact';
 import { VenmoLogo, LOGO_COLOR } from '@paypal/sdk-logos/src';
 
 export type NodeType = typeof Node;
 
 export function Logo() : NodeType {
-    return (<span innerHTML={ `
-        ${ VenmoLogo({ logoColor: LOGO_COLOR.DEFAULT }).render(html()) }
-    ` } />);
+    return VenmoLogo({ logoColor: LOGO_COLOR.DEFAULT }).render(preact({ Preact: { h } }));
 }
 
 export function InstructionIcon({ stylingClass = 'instruction-icon' } : {|stylingClass? : string |}) : NodeType {
