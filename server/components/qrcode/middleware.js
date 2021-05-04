@@ -27,7 +27,7 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
 
             const client = await getSmartQRCodeClientScript({ debug, logBuffer, cache, useLocal });
 
-            logger.info(req, `menu_client_version_${ client.version }`);
+            logger.info(req, `qrcode_client_version_${ client.version }`);
             logger.info(req, `qrcode_params`, { params: JSON.stringify(params) });
             if (!qrPath) {
                 return clientErrorResponse(res, 'Please provide a qrPath query parameter');
