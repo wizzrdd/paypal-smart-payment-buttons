@@ -132,7 +132,7 @@ export type ApplePaySupportedNetworks =
 
 export type ApplePayLineItemType = 'final' | 'pending';
 export type ApplePayLineItem = {|
-    type : ApplePayLineItemType,
+    type? : ApplePayLineItemType,
     label : string,
     amount : string
 |};
@@ -234,7 +234,7 @@ type ApplePayShippingContactUpdate = {|
     newLineItems? : $ReadOnlyArray<ApplePayLineItem>
 |};
 
-type ApplePayPaymentMethodUpdate = {|
+export type ApplePayPaymentMethodUpdate = {|
     newTotal : ApplePayLineItem,
     newLineItems? : $ReadOnlyArray<ApplePayLineItem>
 |};
