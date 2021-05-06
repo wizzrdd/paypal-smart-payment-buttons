@@ -22,6 +22,7 @@ const logger = {
     warn:  noop,
     error: noop
 };
+
 const testQRpath = 'string_to_be_encoded';
 
 function isRenderCallCorrect ({ html, qrPath, demo } : {|html : string, qrPath : string, demo : boolean|}) : boolean {
