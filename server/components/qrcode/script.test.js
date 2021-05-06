@@ -1,8 +1,9 @@
 /* @flow */
 
 import { noop } from 'belter';
+import { jest } from 'jest';
+
 import { compileLocalSmartQRCodeClientScript, getSmartQRCodeClientScript } from './script';
-import { getQRCodeMiddleware } from './middleware';
 
 
 jest.setTimeout(30000);
@@ -38,10 +39,10 @@ describe('script.js', () => {
     });
     it('getSmartQRCodeClientScript - debug', async () => {
         const debug = true;
-        const script = await getSmartQRCodeClientScript({logBuffer, cache, debug});
+        const script = await getSmartQRCodeClientScript({ logBuffer, cache, debug });
 
         if (!script) {
             throw new Error(`Expected a script from compileLocalSmartQRCodeClientScript`);
         }
     });
-})
+});
