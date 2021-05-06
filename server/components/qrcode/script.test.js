@@ -1,12 +1,10 @@
 /* @flow */
 
 import { noop } from 'belter';
-import { jest } from 'jest';
 
 import { compileLocalSmartQRCodeClientScript, getSmartQRCodeClientScript } from './script';
 
 
-jest.setTimeout(30000);
 
 const cache = {
     // eslint-disable-next-line no-unused-vars
@@ -23,6 +21,7 @@ const logBuffer = {
 };
 
 describe('script.js', () => {
+    jest.setTimeout(30000);
     it('compileLocalSmartQRCodeClientScript', async () => {
         const script = await compileLocalSmartQRCodeClientScript();
 
