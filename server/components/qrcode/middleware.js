@@ -46,7 +46,7 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
                 ${ meta.getSDKLoader({ nonce: cspNonce }) }
                 <script nonce="${ cspNonce }">${ client.script }</script>
                 <script nonce="${ cspNonce }">
-        spb.renderQRCode(${ safeJSON({
+        spbQRCode.renderQRCode(${ safeJSON({
         cspNonce,
         qrPath,
         demo

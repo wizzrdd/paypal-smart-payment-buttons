@@ -22,14 +22,25 @@ const logger = {
     warn:  noop,
     error: noop
 };
+const testQRpath = 'string_to_be_encoded';
 
-test('should do a basic QRCode render and succeed', async () => {
+function isRenderCallCorrect ({ html, qrPath, demo } : {|html : string, qrPath : string, demo : boolean|}) : boolean {
+    /* eslint-disable prefer-regex-literals */
+    const demoValue = demo.toString();
+    const cspNonce_isCorrect = Boolean(html.match(RegExp(`renderQRCode.{"cspNonce":".*"`)));
+    const qrPath_isCorrect = Boolean(html.match(RegExp(`renderQRCode.*,"qrPath":"${ qrPath }"`)));
+    const demo_isCorrect = Boolean(html.match(RegExp(`renderQRCode.*,"demo":${ demoValue }}`)));
+    return cspNonce_isCorrect && qrPath_isCorrect && demo_isCorrect;
+    /* eslint-enable */
+}
+
+test('should do a basic QRCode page render', async () => {
     const qrCodeMiddleware = getQRCodeMiddleware({ logger, cache });
 
     const req = mockReq({
         query: {
             parentDomain: 'foo.paypal.com',
-            qrPath:       'string_to_be_encoded'
+            qrPath:       testQRpath
         }
     });
     const res = mockRes();
@@ -51,6 +62,10 @@ test('should do a basic QRCode render and succeed', async () => {
 
     if (!html) {
         throw new Error(`Expected res to have a body`);
+    }
+
+    if (!isRenderCallCorrect({ html, qrPath: testQRpath, demo: false })) {
+        throw new Error(`Construction of the renderQRCode call is incorrect`);
     }
 });
 
@@ -69,22 +84,26 @@ test('should fail if qrPath query param not provided', async () => {
 
     const status = res.getStatus();
     const contentType = res.getHeader('content-type');
-    const html = res.getBody();
+    const body = res.getBody();
 
     if (status === 200) {
         throw new Error(`Expected response status to be 400, got ${ status }`);
     }
 
-    if (contentType !== 'text/html') {
-        throw new Error(`Expected content type to be text/html, got ${ contentType || 'undefined' }`);
+    if (contentType !== 'text/plain') {
+        throw new Error(`Expected content type to be text/plain, got ${ contentType || 'undefined' }`);
     }
 
-    if (!html) {
+    if (!body) {
         throw new Error(`Expected res to have a body`);
+    }
+    
+    if (body !== 'Please provide a qrPath query parameter') {
+        throw new Error(`Expected body to be 'Please provide a qrPath query parameter', got ${ body || 'undefined ' }`);
     }
 });
 
-test('should do a basic native popup render and fail with a non-paypal domain', async () => {
+test('should fail with a non-paypal domain', async () => {
     const qrCodeMiddleware = getQRCodeMiddleware({ logger, cache });
 
     const req = mockReq({
@@ -114,21 +133,20 @@ test('should do a basic native popup render and fail with a non-paypal domain', 
     }
 });
 
-
-/*
-
-test('should do a basic venmo popup render and succeed', async () => {
-    const paypalNativePopupMiddleware = getNativePopupMiddleware({ graphQL, cache, logger, tracking, fundingSource: FUNDING.VENMO });
+test('should render & make correct init call when when "demo" param passed', async () => {
+    const qrCodeMiddleware = getQRCodeMiddleware({ logger, cache });
 
     const req = mockReq({
         query: {
-            parentDomain: 'foo.paypal.com'
+            parentDomain: 'foo.paypal.com',
+            qrPath:       testQRpath,
+            demo:         'true'
         }
     });
     const res = mockRes();
 
     // $FlowFixMe
-    await paypalNativePopupMiddleware(req, res);
+    await qrCodeMiddleware(req, res);
 
     const status = res.getStatus();
     const contentType = res.getHeader('content-type');
@@ -145,97 +163,8 @@ test('should do a basic venmo popup render and succeed', async () => {
     if (!html) {
         throw new Error(`Expected res to have a body`);
     }
-});
 
-
-test('should do a basic venmo popup render and fail with a non-paypal domain', async () => {
-    const paypalNativePopupMiddleware = getNativePopupMiddleware({ graphQL, cache, logger, tracking, fundingSource: FUNDING.VENMO });
-
-    const req = mockReq({
-        query: {
-            parentDomain: 'haxpaypal.com'
-        }
-    });
-    const res = mockRes();
-
-    // $FlowFixMe
-    await paypalNativePopupMiddleware(req, res);
-
-    const status = res.getStatus();
-    const contentType = res.getHeader('content-type');
-    const html = res.getBody();
-
-    if (status !== 400) {
-        throw new Error(`Expected response status to be 400, got ${ status }`);
-    }
-
-    if (contentType !== 'text/plain') {
-        throw new Error(`Expected content type to be text/plain, got ${ contentType || 'undefined' }`);
-    }
-
-    if (!html) {
-        throw new Error(`Expected res to have a body`);
+    if (!isRenderCallCorrect({ html, qrPath: testQRpath, demo: true })) {
+        throw new Error(`Construction of the renderQRCode call is incorrect`);
     }
 });
-
-
-test('should do a basic native fallback render and succeed', async () => {
-    const paypalNativePopupMiddleware = getNativeFallbackMiddleware({ graphQL, cache, logger, tracking, fundingSource: FUNDING.PAYPAL });
-
-    const req = mockReq({
-        query: {
-            parentDomain: 'foo.paypal.com'
-        }
-    });
-    const res = mockRes();
-
-    // $FlowFixMe
-    await paypalNativePopupMiddleware(req, res);
-
-    const status = res.getStatus();
-    const contentType = res.getHeader('content-type');
-    const html = res.getBody();
-
-    if (status !== 200) {
-        throw new Error(`Expected response status to be 200, got ${ status }`);
-    }
-
-    if (contentType !== 'text/html') {
-        throw new Error(`Expected content type to be text/html, got ${ contentType || 'undefined' }`);
-    }
-
-    if (!html) {
-        throw new Error(`Expected res to have a body`);
-    }
-});
-
-test('should do a basic venmo fallback render and succeed', async () => {
-    const paypalNativePopupMiddleware = getNativeFallbackMiddleware({ graphQL, cache, logger, tracking, fundingSource: FUNDING.VENMO });
-
-    const req = mockReq({
-        query: {
-            parentDomain: 'foo.paypal.com'
-        }
-    });
-    const res = mockRes();
-
-    // $FlowFixMe
-    await paypalNativePopupMiddleware(req, res);
-
-    const status = res.getStatus();
-    const contentType = res.getHeader('content-type');
-    const html = res.getBody();
-
-    if (status !== 200) {
-        throw new Error(`Expected response status to be 200, got ${ status }`);
-    }
-
-    if (contentType !== 'text/html') {
-        throw new Error(`Expected content type to be text/html, got ${ contentType || 'undefined' }`);
-    }
-
-    if (!html) {
-        throw new Error(`Expected res to have a body`);
-    }
-});
-*/
