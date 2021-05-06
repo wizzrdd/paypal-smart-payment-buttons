@@ -1,7 +1,6 @@
 /* @flow */
 
 import { noop } from 'belter';
-import { jest } from 'jest';
 
 import { getQRCodeMiddleware, cancelWatchers } from '../../server';
 

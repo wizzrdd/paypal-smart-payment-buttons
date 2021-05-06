@@ -4,7 +4,8 @@ import { noop } from 'belter';
 
 import { compileLocalSmartQRCodeClientScript, getSmartQRCodeClientScript } from './script';
 
-
+// eslint-disable-next-line no-undef
+jest.setTimeout(30000);
 
 const cache = {
     // eslint-disable-next-line no-unused-vars
@@ -20,28 +21,27 @@ const logBuffer = {
     error: noop
 };
 
-describe('script.js', () => {
-    jest.setTimeout(30000);
-    it('compileLocalSmartQRCodeClientScript', async () => {
-        const script = await compileLocalSmartQRCodeClientScript();
+test('compileLocalSmartQRCodeClientScript', async () => {
+    const script = await compileLocalSmartQRCodeClientScript();
 
-        if (!script) {
-            throw new Error(`Expected a script from compileLocalSmartQRCodeClientScript`);
-        }
-    });
-    it('getSmartQRCodeClientScript - base', async () => {
-        const script = await getSmartQRCodeClientScript();
+    if (!script) {
+        throw new Error(`Expected a script from compileLocalSmartQRCodeClientScript`);
+    }
+});
 
-        if (!script) {
-            throw new Error(`Expected a script from compileLocalSmartQRCodeClientScript`);
-        }
-    });
-    it('getSmartQRCodeClientScript - debug', async () => {
-        const debug = true;
-        const script = await getSmartQRCodeClientScript({ logBuffer, cache, debug });
+test('getSmartQRCodeClientScript - base', async () => {
+    const script = await getSmartQRCodeClientScript();
 
-        if (!script) {
-            throw new Error(`Expected a script from compileLocalSmartQRCodeClientScript`);
-        }
-    });
+    if (!script) {
+        throw new Error(`Expected a script from compileLocalSmartQRCodeClientScript`);
+    }
+});
+
+test('getSmartQRCodeClientScript - debug', async () => {
+    const debug = true;
+    const script = await getSmartQRCodeClientScript({ logBuffer, cache, debug });
+
+    if (!script) {
+        throw new Error(`Expected a script from compileLocalSmartQRCodeClientScript`);
+    }
 });
