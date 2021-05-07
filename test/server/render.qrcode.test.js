@@ -23,15 +23,17 @@ const logger = {
     error: noop
 };
 
-const testQRpath = 'string_to_be_encoded';
 
-function isRenderCallCorrect ({ html, qrPath, demo } : {|html : string, qrPath : string, demo : boolean|}) : boolean {
+const test_qrPath = 'string_to_be_encoded';
+
+function isRenderCallCorrect ({ html, demo } : {|html : string, demo : boolean|}) : boolean {
     /* eslint-disable prefer-regex-literals */
     const demoValue = demo.toString();
+    const startOfSVGString = RegExp(`renderQRCode.*,"svgString":".*"http://www.w3.org/2000/svg`);
     const cspNonce_isCorrect = Boolean(html.match(RegExp(`renderQRCode.{"cspNonce":".*"`)));
-    const qrPath_isCorrect = Boolean(html.match(RegExp(`renderQRCode.*,"qrPath":"${ qrPath }"`)));
+    const svgPath_isCorrect = Boolean(html.match(startOfSVGString));
     const demo_isCorrect = Boolean(html.match(RegExp(`renderQRCode.*,"demo":${ demoValue }}`)));
-    return cspNonce_isCorrect && qrPath_isCorrect && demo_isCorrect;
+    return cspNonce_isCorrect && svgPath_isCorrect && demo_isCorrect;
     /* eslint-enable */
 }
 
@@ -41,7 +43,7 @@ test('should do a basic QRCode page render', async () => {
     const req = mockReq({
         query: {
             parentDomain: 'foo.paypal.com',
-            qrPath:       testQRpath
+            qrPath:       test_qrPath
         }
     });
     const res = mockRes();
@@ -65,7 +67,7 @@ test('should do a basic QRCode page render', async () => {
         throw new Error(`Expected res to have a body`);
     }
 
-    if (!isRenderCallCorrect({ html, qrPath: testQRpath, demo: false })) {
+    if (!isRenderCallCorrect({ html, qrPath: test_qrPath, demo: false })) {
         throw new Error(`Construction of the renderQRCode call is incorrect`);
     }
 });
@@ -140,7 +142,7 @@ test('should render & make correct init call when when "demo" param passed', asy
     const req = mockReq({
         query: {
             parentDomain: 'foo.paypal.com',
-            qrPath:       testQRpath,
+            qrPath:       test_qrPath,
             demo:         'true'
         }
     });
@@ -165,7 +167,7 @@ test('should render & make correct init call when when "demo" param passed', asy
         throw new Error(`Expected res to have a body`);
     }
 
-    if (!isRenderCallCorrect({ html, qrPath: testQRpath, demo: true })) {
+    if (!isRenderCallCorrect({ html, qrPath: test_qrPath, demo: true })) {
         throw new Error(`Construction of the renderQRCode call is incorrect`);
     }
 });

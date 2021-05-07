@@ -23,8 +23,11 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
         app: async ({ req, res, params, meta, logBuffer }) => {
             logger.info(req, EVENT.RENDER);
 
-
             const { cspNonce, qrPath, demo, debug } = getParams(params, req, res);
+
+            if (!qrPath) {
+                return clientErrorResponse(res, 'Please provide a qrPath query parameter');
+            }
 
             const svgString = await QRCode.toString(
                 qrPath,
@@ -41,9 +44,6 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
 
             logger.info(req, `qrcode_client_version_${ client.version }`);
             logger.info(req, `qrcode_params`, { params: JSON.stringify(params) });
-            if (!qrPath) {
-                return clientErrorResponse(res, 'Please provide a qrPath query parameter');
-            }
 
             const pageHTML = `
             <!DOCTYPE html>
