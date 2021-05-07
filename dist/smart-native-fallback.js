@@ -674,8 +674,8 @@
             })) + "_" + function(str) {
                 if ("function" == typeof btoa) return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (function(m, p1) {
                     return String.fromCharCode(parseInt(p1, 16));
-                })));
-                if ("undefined" != typeof Buffer) return Buffer.from(str, "utf8").toString("base64");
+                }))).replace(/[=]/g, "");
+                if ("undefined" != typeof Buffer) return Buffer.from(str, "utf8").toString("base64").replace(/[=]/g, "");
                 throw new Error("Can not find window.btoa or Buffer");
             }((new Date).toISOString().slice(11, 19).replace("T", ".")).replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
         }
@@ -807,8 +807,11 @@
             script.setAttribute("data-uid-auto", uid);
             return uid;
         }));
-        var _FUNDING_SKIP_LOGIN;
+        var _FUNDING_SKIP_LOGIN, _AMPLITUDE_API_KEY;
         (_FUNDING_SKIP_LOGIN = {}).paylater = "paypal", _FUNDING_SKIP_LOGIN.credit = "paypal";
+        (_AMPLITUDE_API_KEY = {}).test = "a23fb4dfae56daf7c3212303b53a8527", _AMPLITUDE_API_KEY.local = "a23fb4dfae56daf7c3212303b53a8527", 
+        _AMPLITUDE_API_KEY.stage = "a23fb4dfae56daf7c3212303b53a8527", _AMPLITUDE_API_KEY.sandbox = "a23fb4dfae56daf7c3212303b53a8527", 
+        _AMPLITUDE_API_KEY.production = "ce423f79daba95faeb0694186170605c";
         function setupNativeFallback(_ref) {
             var _ref$parentDomain = _ref.parentDomain, parentDomain = void 0 === _ref$parentDomain ? window.location.origin : _ref$parentDomain;
             if (!window.opener) throw new Error("Expected window to have opener");

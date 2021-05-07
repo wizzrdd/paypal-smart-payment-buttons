@@ -85,7 +85,8 @@ export function initiatePaymentFlow({ payment, serviceData, config, components, 
                 [FPTI_KEY.TRANSITION]:     FPTI_TRANSITION.BUTTON_CLICK,
                 [FPTI_KEY.CHOSEN_FUNDING]: fundingSource,
                 [FPTI_KEY.CHOSEN_FI_TYPE]: instrumentType,
-                [FPTI_KEY.PAYMENT_FLOW]:   name
+                [FPTI_KEY.PAYMENT_FLOW]:   name,
+                [FPTI_KEY.IS_VAULT]:       instrumentType ? '1' : '0'
             }).flush();
 
         return ZalgoPromise.hash({
@@ -102,7 +103,7 @@ export function initiatePaymentFlow({ payment, serviceData, config, components, 
             const updateClientConfigPromise = createOrder()
                 .then(orderID => {
                     if (updateFlowClientConfig) {
-                        return updateFlowClientConfig({ orderID, payment });
+                        return updateFlowClientConfig({ orderID, payment, userExperienceFlow });
                     }
 
                     // Do not block by default

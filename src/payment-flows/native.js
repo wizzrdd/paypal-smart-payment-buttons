@@ -12,7 +12,7 @@ import { WEB_CHECKOUT_URI, AMPLITUDE_API_KEY } from '../config';
 import { getNativeEligibility, firebaseSocket, type MessageSocket, type FirebaseConfig, type NativeEligibility } from '../api';
 import { getLogger, promiseOne, promiseNoop, isIOSSafari, isAndroidChrome, getStorageState, unresolvedPromise } from '../lib';
 import { USER_ACTION, FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY } from '../constants';
-import { nativeFakeoutExperiment, androidPopupExperiment, nativeRepeatClickExperiment } from '../experiments';
+import { nativeFakeoutExperiment, androidPopupExperiment } from '../experiments';
 import { HASH } from '../native/popup/constants';
 import { type OnShippingChangeData } from '../props/onShippingChange';
 import type { NativePopupInputParams } from '../../server/components/native/params';
@@ -84,7 +84,6 @@ const PARTIAL_ENCODING_CLIENT = [
 let clean;
 let initialPageUrl;
 let nativeEligibility : NativeEligibility;
-let firstClick = true;
 
 type NativeSocketOptions = {|
     sessionUID : string,
@@ -134,7 +133,7 @@ function deferABSplitToPopup() : boolean {
     }
 
     if (isIOSSafari()) {
-        return false;
+        return true;
     }
 
     return false;
@@ -267,13 +266,6 @@ function isNativePaymentEligible({ payment, props } : IsPaymentEligibleOptions) 
     }
 
     if (nativeEligibility && nativeEligibility[fundingSource] && nativeEligibility[fundingSource].eligibility) {
-        if (!firstClick) {
-            nativeRepeatClickExperiment.logStart();
-            if (nativeRepeatClickExperiment.isEnabled()) {
-                return false;
-            }
-        }
-
         return true;
     }
 
@@ -308,7 +300,7 @@ function setupNative({ props, serviceData } : SetupOptions) : ZalgoPromise<void>
             }).then(result => {
                 nativeEligibility = result;
 
-                if (isTestGroup(FUNDING.PAYPAL) || isTestGroup(FUNDING.VENMO) || isNativeOptedIn({ props })) {
+                if (isTestGroup(FUNDING.PAYPAL) || isTestGroup(FUNDING.VENMO) || isControlGroup(FUNDING.PAYPAL) || isControlGroup(FUNDING.VENMO) || isNativeOptedIn({ props })) {
                     getLogger().configure({
                         amplitudeApiKey: AMPLITUDE_API_KEY[env]
                     });
@@ -458,8 +450,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     let cancelled = false;
     let didFallback = false;
 
-    firstClick = false;
-
     const conditionalExtendUrl = (...args) => {
         if (isIOSSafari() && fundingSource === FUNDING.VENMO && PARTIAL_ENCODING_CLIENT.indexOf(clientID) !== -1) {
             return extendUrlWithPartialEncoding(...args);
@@ -467,7 +457,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         return extendUrl(...args);
     };
 
-    const close = memoize(() => {
+    const destroy = memoize(() => {
         return clean.all();
     });
 
@@ -564,7 +554,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     const getNativePopupParams = () : NativePopupInputParams => {
         const parentDomain = getDomain();
         return {
-            sdkMeta, buttonSessionID, parentDomain, env, clientID, sessionID, sdkCorrelationID
+            sdkMeta, buttonSessionID, parentDomain, env, clientID, sessionID, sdkCorrelationID, buyerCountry
         };
     };
 
@@ -595,7 +585,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         approved = true;
 
         if (isAndroidChrome() && !isControlGroup(fundingSource)) {
-            nativeRepeatClickExperiment.logComplete();
             androidPopupExperiment.logComplete();
         }
 
@@ -624,7 +613,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                         .flush();
                     onError(err);
                 }),
-            close()
+            destroy()
         ]).then(() => {
             return { buttonSessionID };
         });
@@ -639,7 +628,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             .flush();
         return ZalgoPromise.all([
             onCancel(),
-            close()
+            destroy()
         ]).then(() => {
             return { buttonSessionID };
         });
@@ -653,7 +642,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             }).flush();
         return ZalgoPromise.all([
             onError(new Error(message)),
-            close()
+            destroy()
         ]).then(() => {
             return { buttonSessionID };
         });
@@ -722,7 +711,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             getLogger().info(`native_message_close`).flush();
             return socket.send(SOCKET_MESSAGE.CLOSE, { buttonSessionID }).then(() => {
                 getLogger().info(`native_response_close`).flush();
-                return close();
+                return destroy();
             });
         });
 
@@ -829,14 +818,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     });
 
     const popup = memoize((url : string) => {
-        const win = window.open(url);
-        clean.register(() => {
-            if (win && !isWindowClosed(win)) {
-                win.close();
-            }
-        });
-
-        return win;
+        return window.open(url);
     });
 
     const initDirectAppSwitch = ({ sessionUID } : {| sessionUID : string |}) => {
@@ -885,7 +867,8 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                         return connectNative({ sessionUID }).close();
                     }
                 }).then(() => {
-                    return close();
+                    nativeWin.close();
+                    return destroy();
                 });
             }
 
@@ -904,6 +887,8 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                         [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_ATTEMPT_APP_SWITCH_ERRORED,
                         [FPTI_CUSTOM_KEY.ERR_DESC]: stringifyError(err)
                     }).flush();
+                
+                nativeWin.close();
                 return connectNative({ sessionUID }).close().then(() => {
                     throw err;
                 });
@@ -930,7 +915,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                 if (!approved && !cancelled && !didFallback && !isAndroidChrome()) {
                     return ZalgoPromise.all([
                         onCancel(),
-                        close()
+                        destroy()
                     ]);
                 }
             }).then(noop);
@@ -985,6 +970,12 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                 ? popupStickinessID
                 : defaultStickinessID;
 
+            getLogger().addTrackingBuilder(() => {
+                return {
+                    [FPTI_KEY.STICKINESS_ID]: stickinessID
+                };
+            });
+
             const eligibilityPromise = validatePromise.then(valid => {
                 if (!valid) {
                     return false;
@@ -1035,9 +1026,8 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                 }
 
                 if (!valid) {
-                    return close().then(() => {
-                        return { redirect: false };
-                    });
+                    popupWin.close();
+                    return destroy();
                 }
 
                 if (!eligible || (app && !app.installed)) {
@@ -1082,7 +1072,9 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                     return { redirect: true, appSwitch: false, redirectUrl: fallbackUrl };
                 });
             }).catch(err => {
-                return close().then(() => {
+                popupWin.close();
+
+                return destroy().then(() => {
                     return onError(err);
                 });
             });
@@ -1159,7 +1151,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
 
             return useDirectAppSwitch(fundingSource) ? initDirectAppSwitch({ sessionUID }) : initPopupAppSwitch({ sessionUID });
         }).catch(err => {
-            return close().then(() => {
+            return destroy().then(() => {
                 getLogger().error(`native_error`, { err: stringifyError(err) }).track({
                     [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.NATIVE_ERROR,
                     [FPTI_KEY.ERROR_CODE]: 'native_error',
@@ -1176,7 +1168,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     return {
         click,
         start,
-        close
+        close: destroy
     };
 }
 
