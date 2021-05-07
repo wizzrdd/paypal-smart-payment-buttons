@@ -9,7 +9,7 @@ import { SMART_API_URI, ORDERS_API_URL, VALIDATE_PAYMENT_METHOD_API } from '../c
 import { getLogger } from '../lib';
 import { FPTI_TRANSITION, FPTI_CONTEXT_TYPE, HEADERS, SMART_PAYMENT_BUTTONS,
     INTEGRATION_ARTIFACT, USER_EXPERIENCE_FLOW, PRODUCT_FLOW, PREFER } from '../constants';
-import type { FundingOption, ShippingMethod, ShippingAddress } from '../payment-flows/types';
+import type { ShippingMethod, ShippingAddress } from '../payment-flows/types';
 
 import { callSmartAPI, callGraphQL, callRestAPI } from './api';
 
