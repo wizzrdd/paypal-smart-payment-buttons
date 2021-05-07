@@ -103,6 +103,7 @@ export const cardStyle : string = `
         width: 280px;
         height: 320px; 
         backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
         transition: transform 1s;
         transform-style: preserve-3d;
     }
@@ -151,6 +152,10 @@ export const cardStyle : string = `
     #front-view > img + img { 
         padding-top: 12px;
         padding-bottom: 12px; 
+    }
+    #qr-code {
+        min-width: 160px;
+        min-height: 160px;
     }
     #instructions {
         background-color: #F5F5F5;

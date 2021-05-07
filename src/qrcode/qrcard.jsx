@@ -32,7 +32,7 @@ function ErrorMessage({
 function QRCodeElement({ svgString } : {| svgString : string |}) : NodeType {
     
     const src = `data:image/svg+xml;base64,${ btoa(svgString) }`;
-    return (<img src={ src } alt="QR Code" />);
+    return (<img id="qr-code" src={ src } alt="QR Code" />);
 }
 
 function QRCard({
