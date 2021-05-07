@@ -3,7 +3,7 @@
 import { COUNTRY } from '@paypal/sdk-constants/src';
 
 import { type DetailedOrderInfo } from '../../api';
-import type { ApplePayPaymentContact, ApplePayMerchantCapabilities, ApplePayPaymentRequest, ApplePaySupportedNetworks, ShippingAddress, ShippingMethod } from '../types';
+import type { ApplePayPaymentContact, ApplePayMerchantCapabilities, ApplePayPaymentRequest, ApplePaySupportedNetworks, ApplePayShippingMethod, ShippingAddress, ShippingMethod } from '../types';
 
 type ValidNetworks = {|
     discover : ApplePaySupportedNetworks,
@@ -147,20 +147,14 @@ export function createApplePayRequest(countryCode : $Values<typeof COUNTRY>, ord
             'phone',
             'email'
         ],
+        shippingContact: shippingContact && shippingContact.givenName ? shippingContact : {},
+        shippingMethods: applePayShippingMethods && applePayShippingMethods.length ? applePayShippingMethods : [],
         total:           {
             amount: currencyValue,
             label:  '',
             type:   'final'
         }
     };
-
-    if (shippingContact && shippingContact.givenName) {
-        result.shippingContact = shippingContact;
-    }
-
-    if (applePayShippingMethods && applePayShippingMethods.length) {
-        result.shippingMethods = applePayShippingMethods;
-    }
 
     return result;
 }
