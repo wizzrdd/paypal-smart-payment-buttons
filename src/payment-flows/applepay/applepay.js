@@ -59,9 +59,9 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
     });
 
     function logApplePayEvent(event) {
-        getLogger().info(`${ FPTI_TRANSITION.APPLEPAY_EVENT }_${ event.type }`)
+        getLogger().info(`${ FPTI_TRANSITION.APPLEPAY_EVENT }_${ event }`)
             .track({
-                [FPTI_KEY.TRANSITION]: `${ FPTI_TRANSITION.APPLEPAY_EVENT }_${ event.type }`
+                [FPTI_KEY.TRANSITION]: `${ FPTI_TRANSITION.APPLEPAY_EVENT }_${ event }`
             })
             .flush();
     }
@@ -93,12 +93,12 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                 getDetailedOrderInfo(orderID, country).then(order => {
                     // set order details into ApplePayRequest
                     const applePayRequest = createApplePayRequest(country, order);
-
+                    
                     // create Apple Pay Session
                     applePay(SUPPORTED_VERSION, applePayRequest).then(response => {
                         const {
                             begin,
-                            addEventListener,
+                            addListener,
                             completeMerchantValidation,
                             completeShippingContactSelection,
                             completePaymentMethodSelection,
@@ -106,29 +106,16 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                             completePayment
                         } = response;
 
-                        ZalgoPromise.all([
-                            addEventListener('validateMerchant', (e) => {
-                                logApplePayEvent(e);
+                        function validateMerchant(url) {
+                            logApplePayEvent('validatemerchant');
 
-                                const merchantStoreName = getMerchantStoreName(order) || 'PayPal';
-                                getApplePayMerchantSession({ url: e.validationURL, clientID, orderID, merchantDomain, merchantStoreName })
-                                    .then(merchantSession => {
-                                        try {
-                                            const session = atob(merchantSession.session);
-                                            console.log(`Apple Pay Session: ${ session }`);
-                                            completeMerchantValidation(JSON.parse(session));
-                                        } catch (err) {
-                                            getLogger().info(`applepay_merchant_valiation_error`)
-                                                .track({
-                                                    [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.APPLEPAY_VALIDATE_MERCHANT_ERROR,
-                                                    [FPTI_CUSTOM_KEY.ERR_DESC]: `Error: ${ stringifyError(err) }`
-                                                })
-                                                .flush();
-                                            onError(err);
-                                            close();
-                                        }
-                                    })
-                                    .catch(err => {
+                            const merchantStoreName = getMerchantStoreName(order) || 'PayPal';
+                            getApplePayMerchantSession({ url, clientID, orderID, merchantDomain, merchantStoreName })
+                                .then(merchantSession => {
+                                    try {
+                                        const session = atob(merchantSession.session);
+                                        completeMerchantValidation(JSON.parse(session));
+                                    } catch (err) {
                                         getLogger().info(`applepay_merchant_valiation_error`)
                                             .track({
                                                 [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.APPLEPAY_VALIDATE_MERCHANT_ERROR,
@@ -137,73 +124,91 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                                             .flush();
                                         onError(err);
                                         close();
-                                    });
-                            }),
+                                    }
+                                })
+                                .catch(err => {
+                                    getLogger().info(`applepay_merchant_valiation_error`)
+                                        .track({
+                                            [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.APPLEPAY_VALIDATE_MERCHANT_ERROR,
+                                            [FPTI_CUSTOM_KEY.ERR_DESC]: `Error: ${ stringifyError(err) }`
+                                        })
+                                        .flush();
+                                    onError(err);
+                                    close();
+                                });
+                        }
 
-                            addEventListener('paymentmethodselected', (e) => {
-                                logApplePayEvent(e);
+                        function paymentMethodSelected() {
+                            logApplePayEvent('paymentmethodselected');
 
-                                const { amount, label } = applePayRequest.total;
-                                const newTotal : ApplePayLineItem = {
-                                    amount,
-                                    label
-                                };
+                            const { amount, label } = applePayRequest.total;
+                            const newTotal : ApplePayLineItem = {
+                                amount,
+                                label
+                            };
 
-                                const update : ApplePayPaymentMethodUpdate = { newTotal };
-                                completePaymentMethodSelection(update);
-                            }),
+                            const update : ApplePayPaymentMethodUpdate = { newTotal };
+                            completePaymentMethodSelection(update);
+                        }
 
-                            addEventListener('shippingmethodselected', (e) => {
-                                logApplePayEvent(e);
-                                completeShippingMethodSelection({});
-                            }),
+                        function shippingMethodSelected() {
+                            logApplePayEvent('shippingmethodselected');
+                            completeShippingMethodSelection({});
+                        }
 
-                            addEventListener('shippingcontactselected', (e) => {
-                                logApplePayEvent(e);
-                                completeShippingContactSelection({});
-                            }),
+                        function shippingContactSelected() {
+                            logApplePayEvent('shippingcontactselected');
+                            completeShippingContactSelection({});
+                        }
 
-                            addEventListener('paymentauthorized', (e) => {
-                                logApplePayEvent(e);
+                        function paymentAuthorized(applePayPayment) {
+                            logApplePayEvent('paymentauthorized');
 
-                                const applePayPayment : ApplePayPayment = e.payment;
-                                if (!applePayPayment) {
-                                    throw new Error('No payment received from Apple.');
-                                }
-                                
-                                // call graphQL mutation passing in token, billingContact and shippingContact
-                                approveApplePayPayment(orderID, clientID, applePayPayment)
-                                    .then(validatedPayment => {
-                                        if (validatedPayment) {
-                                            completePayment(window.ApplePaySession.STATUS_SUCCESS);
+                            if (!applePayPayment) {
+                                throw new Error('No payment received from Apple.');
+                            }
+                            
+                            // call graphQL mutation passing in token, billingContact and shippingContact
+                            approveApplePayPayment(orderID, clientID, applePayPayment)
+                                .then(validatedPayment => {
+                                    if (validatedPayment) {
+                                        completePayment(window.ApplePaySession.STATUS_SUCCESS);
 
-                                            const data = {};
-                                            const actions = { restart: () => ZalgoPromise.try(setupApplePaySession) };
-                                            
-                                            return ZalgoPromise.all([
-                                                onApprove(data, actions),
-                                                close()
-                                            ]);
-                                        }
-                                    })
-                                    .catch(err => {
-                                        getLogger().info(`applepay_message_onapprove_error`)
-                                            .track({
-                                                [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_ON_APPROVE_ERROR,
-                                                [FPTI_CUSTOM_KEY.INFO_MSG]: `Error: ${ stringifyError(err) }`
-                                            })
-                                            .flush();
-                                        onError(err);
-                                    });
-                            }),
+                                        const data = {};
+                                        const actions = { restart: () => ZalgoPromise.try(setupApplePaySession) };
+                                        
+                                        return ZalgoPromise.all([
+                                            onApprove(data, actions),
+                                            close()
+                                        ]);
+                                    }
+                                })
+                                .catch(err => {
+                                    getLogger().info(`applepay_message_onapprove_error`)
+                                        .track({
+                                            [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_ON_APPROVE_ERROR,
+                                            [FPTI_CUSTOM_KEY.INFO_MSG]: `Error: ${ stringifyError(err) }`
+                                        })
+                                        .flush();
+                                    onError(err);
+                                });
+                        }
 
-                            addEventListener('oncancel', (e) => {
-                                logApplePayEvent(e);
+                        function cancel() {
+                            logApplePayEvent('cancel');
 
-                                if (onCancel) {
-                                    onCancel();
-                                }
-                            })
+                            if (onCancel) {
+                                onCancel();
+                            }
+                        }
+
+                        ZalgoPromise.all([
+                            addListener('validatemerchant', validateMerchant),
+                            addListener('paymentmethodselected', paymentMethodSelected),
+                            addListener('shippingmethodselected', shippingMethodSelected),
+                            addListener('shippingcontactselected', shippingContactSelected),
+                            addListener('paymentauthorized', paymentAuthorized),
+                            addListener('cancel', cancel)
                         ]).then(() => {
                             begin();
                         });

@@ -131,12 +131,10 @@ export function createApplePayRequest(countryCode : $Values<typeof COUNTRY>, ord
     const applePayShippingMethods = getApplePayShippingMethods(shippingMethods);
     const merchantCapabilities = getMerchantCapabilities(supportedNetworks);
 
-    return {
+    const result = {
         countryCode,
         currencyCode,
         merchantCapabilities,
-        shippingContact,
-        shippingMethods:              applePayShippingMethods,
         supportedNetworks,
         requiredBillingContactFields: [
             'postalAddress',
@@ -155,6 +153,16 @@ export function createApplePayRequest(countryCode : $Values<typeof COUNTRY>, ord
             type:   'final'
         }
     };
+
+    if (shippingContact && shippingContact.givenName) {
+        result.shippingContact = shippingContact;
+    }
+
+    if (applePayShippingMethods && applePayShippingMethods.length) {
+        result.shippingMethods = applePayShippingMethods;
+    }
+
+    return result;
 }
 
 export function getMerchantStoreName(order : DetailedOrderInfo) : string {
