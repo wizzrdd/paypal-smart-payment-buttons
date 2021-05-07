@@ -92,22 +92,6 @@ function getMerchantCapabilities(supportedNetworks : $ReadOnlyArray<ApplePaySupp
         merchantCapabilities.push('supportsEMV');
     }
 
-    // if (fundingOptions) {
-    //     fundingOptions.forEach(option => {
-    //         if (!option.fundingInstrument) {
-    //             return;
-    //         }
-            
-    //         if (option.fundingInstrument.type === 'CREDIT_CARD') {
-    //             merchantCapabilities.push('supportsCredit');
-    //         }
-
-    //         if (option.fundingInstrument.type === 'DEBIT_CARD') {
-    //             merchantCapabilities.push('supportsDebit');
-    //         }
-    //     });
-    // }
-
     return merchantCapabilities;
 }
 
@@ -159,6 +143,6 @@ export function createApplePayRequest(countryCode : $Values<typeof COUNTRY>, ord
     return result;
 }
 
-export function getMerchantStoreName(order : DetailedOrderInfo) : string {
+export function getMerchantStoreName(order : DetailedOrderInfo) : ?string {
     return order && order.checkoutSession && order.checkoutSession.merchant && order.checkoutSession.merchant.name;
 }

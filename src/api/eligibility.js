@@ -180,7 +180,7 @@ export function getApplePayMerchantSession({ url, clientID, orderID, merchantDom
                 $orderID : String!
                 $clientID : String!
                 $merchantDomain : String!
-                $merchantStoreName : String!
+                $merchantStoreName : String
             ) {
                 applePayMerchantSession(
                     url: $url

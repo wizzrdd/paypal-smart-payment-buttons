@@ -529,7 +529,7 @@ export type DetailedOrderInfo = {|
             userId? : string
         |},
         merchant : {|
-            name : string
+            name : ?string
         |},
         payees? : $ReadOnlyArray<{|
             merchantId? : string,
