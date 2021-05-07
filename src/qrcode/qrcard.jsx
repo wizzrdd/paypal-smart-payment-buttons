@@ -1,44 +1,18 @@
 /* @flow */
 /** @jsx h */
 
-import { h, render, Fragment, Component } from 'preact';
+import { h, render, Fragment } from 'preact';
 import { useState } from 'preact/hooks';
 
 import { getBody } from '../lib';
 
-import { QRCode } from './node-qrcode';
-import { type NodeType, BLUE, InstructionIcon, Logo, VenmoMark, AuthMark, cardStyle, DemoWrapper, DemoControls } from './components';
+import { type NodeType, InstructionIcon, Logo, VenmoMark, AuthMark, cardStyle, DemoWrapper, DemoControls } from './components';
 
-type QRPath = string;
 type QRCardProps = {|
     cspNonce : ?string,
-    qrPath : QRPath,
+    svgString : string,
     demo : boolean
 |};
-
-class QRCodeElement extends Component<{|qrPath : QRPath|}, {|dataURL : string|}> {
-    async componentDidMount() {
-        const { qrPath } = this.props;
-        const dataURL = await QRCode.toDataURL(
-            qrPath,
-            {
-                width: 160,
-                color: {
-                    dark:  BLUE,
-                    light: '#FFFFFF'
-                }
-            }
-        );
-        // eslint-disable-next-line react/no-did-mount-set-state
-        this.setState({ dataURL });
-    }
-    render() : NodeType {
-        const { dataURL } = this.state;
-        return (
-            <img src={ dataURL } alt="QR Code" />
-        );
-    }
-}
 
 function ErrorMessage({
     message,
@@ -55,9 +29,15 @@ function ErrorMessage({
     );
 }
 
+function QRCodeElement({ svgString } : {| svgString : string |}) : NodeType {
+    
+    const src = `data:image/svg+xml;base64,${ btoa(svgString) }`;
+    return (<img src={ src } alt="QR Code" />);
+}
+
 function QRCard({
     cspNonce,
-    qrPath,
+    svgString,
     demo
 } : QRCardProps) : NodeType {
     const [ processState, setProcessState ] = useState(null);
@@ -76,7 +56,7 @@ function QRCard({
                 { isError() ?
                     <ErrorMessage message={ errorMessage } resetFunc={ () => setState_default() } /> :
                     <div id="front-view" className="card">
-                        <QRCodeElement qrPath={ qrPath } />
+                        <QRCodeElement svgString={ svgString } />
                         <Logo />
                         <div id="instructions">
                             <InstructionIcon stylingClass="instruction-icon" />
@@ -116,12 +96,12 @@ function QRCard({
 
 type RenderQRCodeOptions = {|
     cspNonce? : string,
-    qrPath : string,
+    svgString : string,
     demo? : boolean
 |};
 
-export function renderQRCode({ cspNonce = '', qrPath, demo = false } : RenderQRCodeOptions) {
-    const PropedCard = <QRCard cspNonce={ cspNonce } qrPath={ qrPath } demo={ demo } />;
+export function renderQRCode({ cspNonce = '', svgString, demo = false } : RenderQRCodeOptions) {
+    const PropedCard = <QRCard cspNonce={ cspNonce } svgString={ svgString } demo={ demo } />;
     render(
         demo ?
             DemoWrapper(PropedCard, cspNonce) :

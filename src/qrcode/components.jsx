@@ -48,7 +48,7 @@ export function AuthMark() : NodeType {
     );
 }
 
-export const BLUE : string = '#0074DE';
+const BLUE : string = '#0074DE';
 
 export const cardStyle : string = `
     * {
@@ -142,11 +142,15 @@ export const cardStyle : string = `
         border: 1px solid #888C94;
         z-index: 2;
         transform: rotateY(0deg);
-        justify-content: space-between;
+        justify-content: flex-end;
     }
     #front-view > svg,
     #front-view > img {
-        padding: 16px 16px 8px;
+        padding: 16px 16px 0px;
+    }
+    #front-view > img + img { 
+        padding-top: 12px;
+        padding-bottom: 12px; 
     }
     #instructions {
         background-color: #F5F5F5;

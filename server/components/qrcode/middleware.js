@@ -4,9 +4,10 @@ import { clientErrorResponse, htmlResponse, allowFrame, defaultLogger, safeJSON,
     isLocalOrTest, type ExpressMiddleware } from '../../lib';
 import type { LoggerType, CacheType } from '../../types';
 
-import { EVENT } from './constants';
+import { EVENT, BLUE } from './constants';
 import { getParams } from './params';
 import { getSmartQRCodeClientScript } from './script';
+import { QRCode } from './node-qrcode';
 
 
 type QRcodeMiddlewareOptions = {|
@@ -24,6 +25,17 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
 
 
             const { cspNonce, qrPath, demo, debug } = getParams(params, req, res);
+
+            const svgString = await QRCode.toString(
+                qrPath,
+                {
+                    width: 160,
+                    color: {
+                        dark:  BLUE,
+                        light: '#FFFFFF'
+                    }
+                }
+            );
 
             const client = await getSmartQRCodeClientScript({ debug, logBuffer, cache, useLocal });
 
@@ -48,7 +60,7 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
                 <script nonce="${ cspNonce }">
         spbQRCode.renderQRCode(${ safeJSON({
         cspNonce,
-        qrPath,
+        svgString,
         demo
     }) })
                 </script>

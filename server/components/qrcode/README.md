@@ -18,5 +18,5 @@ var QRCode = function(t){"use strict";var r,e=function(){return"function"=...
 export const QRCode = function(t){"use strict";var r,e=function(){return"function"=...
 ```
 
-4. Copy the modified contents of `build/qrcode.js` into the `/src/qrcode/node-qrcode.js` file
-   used by qrcode component.
+4. Copy the modified contents of `build/qrcode.js` into the `/server/components/qrcode/node-qrcode.js` file
+   used by the qrcode middleware.
