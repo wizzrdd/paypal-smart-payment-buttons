@@ -67,7 +67,7 @@ test('should do a basic QRCode page render', async () => {
         throw new Error(`Expected res to have a body`);
     }
 
-    if (!isRenderCallCorrect({ html, qrPath: test_qrPath, demo: false })) {
+    if (!isRenderCallCorrect({ html, demo: false })) {
         throw new Error(`Construction of the renderQRCode call is incorrect`);
     }
 });
@@ -167,7 +167,7 @@ test('should render & make correct init call when when "demo" param passed', asy
         throw new Error(`Expected res to have a body`);
     }
 
-    if (!isRenderCallCorrect({ html, qrPath: test_qrPath, demo: true })) {
+    if (!isRenderCallCorrect({ html, demo: true })) {
         throw new Error(`Construction of the renderQRCode call is incorrect`);
     }
 });
