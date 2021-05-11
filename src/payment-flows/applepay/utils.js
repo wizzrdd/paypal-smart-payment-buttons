@@ -87,6 +87,7 @@ function getApplePayShippingMethods(shippingMethods : ?$ReadOnlyArray<ShippingMe
 function getMerchantCapabilities(supportedNetworks : $ReadOnlyArray<ApplePaySupportedNetworks>) : $ReadOnlyArray<ApplePayMerchantCapabilities> {
     const merchantCapabilities : Array<ApplePayMerchantCapabilities> = [];
     merchantCapabilities.push('supports3DS');
+    merchantCapabilities.push('supportsCredit');
 
     if (supportedNetworks && supportedNetworks.indexOf('chinaUnionPay') !== -1) {
         merchantCapabilities.push('supportsEMV');

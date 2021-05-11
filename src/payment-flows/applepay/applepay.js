@@ -66,6 +66,18 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
             .flush();
     }
 
+    function handleApplePayError(eventName, error) : ZalgoPromise<void> {
+        getLogger().info(eventName)
+            .track({
+                [FPTI_KEY.TRANSITION]:      eventName,
+                [FPTI_CUSTOM_KEY.ERR_DESC]: `Error: ${ stringifyError(error) }`
+            })
+            .flush();
+        return close().then(() => {
+            return onError(error);
+        });
+    }
+
     function initApplePaySession() {
         const validatePromise = validate().then(valid => {
             if (!valid) {
@@ -115,25 +127,11 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                                         const session = atob(merchantSession.session);
                                         completeMerchantValidation(JSON.parse(session));
                                     } catch (err) {
-                                        getLogger().info(`applepay_merchant_valiation_error`)
-                                            .track({
-                                                [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.APPLEPAY_VALIDATE_MERCHANT_ERROR,
-                                                [FPTI_CUSTOM_KEY.ERR_DESC]: `Error: ${ stringifyError(err) }`
-                                            })
-                                            .flush();
-                                        onError(err);
-                                        close();
+                                        handleApplePayError(FPTI_TRANSITION.APPLEPAY_MERCHANT_VALIDATION_COMPLETION_ERROR, err);
                                     }
                                 })
                                 .catch(err => {
-                                    getLogger().info(`applepay_merchant_valiation_error`)
-                                        .track({
-                                            [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.APPLEPAY_VALIDATE_MERCHANT_ERROR,
-                                            [FPTI_CUSTOM_KEY.ERR_DESC]: `Error: ${ stringifyError(err) }`
-                                        })
-                                        .flush();
-                                    onError(err);
-                                    close();
+                                    handleApplePayError(FPTI_TRANSITION.APPLEPAY_MERCHANT_VALIDATION_ERROR, err);
                                 });
                         }
 
@@ -183,13 +181,8 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                                     }
                                 })
                                 .catch(err => {
-                                    getLogger().info(`applepay_message_onapprove_error`)
-                                        .track({
-                                            [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_ON_APPROVE_ERROR,
-                                            [FPTI_CUSTOM_KEY.INFO_MSG]: `Error: ${ stringifyError(err) }`
-                                        })
-                                        .flush();
-                                    onError(err);
+                                    completePayment(window.ApplePaySession.STATUS_FAILURE);
+                                    handleApplePayError(FPTI_TRANSITION.APPLEPAY_PAYMENT_ERROR, err);
                                 });
                         }
 
@@ -212,26 +205,11 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                             begin();
                         });
                     }).catch(err => {
-                        getLogger().info(`applepay_get_details_error`)
-                            .track({
-                                [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.APPLEPAY_GET_DETAILS_ERROR,
-                                [FPTI_KEY.ERROR_DESC]: stringifyError(err)
-                            });
-                        return close().then(() => {
-                            return onError(err);
-                        });
+                        handleApplePayError(FPTI_TRANSITION.APPLEPAY_GET_DETAILS_ERROR, err);
                     });
                 });
             }).catch(err => {
-                getLogger().info(`applepay_create_order_error`)
-                    .track({
-                        [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.APPLEPAY_CREATE_ORDER_ERROR,
-                        [FPTI_KEY.ERROR_DESC]: stringifyError(err)
-                    }).flush();
-
-                return close().then(() => {
-                    return onError(err);
-                });
+                handleApplePayError(FPTI_TRANSITION.APPLEPAY_CREATE_ORDER_ERROR, err);
             });
         };
 
@@ -243,8 +221,8 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
             return initApplePaySession();
         }).catch(err => {
             return close().then(() => {
-                getLogger().error(`applepay_error`, { err: stringifyError(err) }).track({
-                    [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.NATIVE_ERROR,
+                getLogger().error(`applepay_flow_error`, { err: stringifyError(err) }).track({
+                    [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.APPLEPAY_FLOW_ERROR,
                     [FPTI_KEY.ERROR_CODE]: 'applepay_error',
                     [FPTI_KEY.ERROR_DESC]: stringifyErrorMessage(err)
                 }).flush();
