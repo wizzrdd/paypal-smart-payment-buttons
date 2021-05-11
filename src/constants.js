@@ -118,6 +118,7 @@ export const FPTI_TRANSITION = {
     FIREBASE_CONNECTION_ERRORED:    ('firebase_connection_errored' : 'firebase_connection_errored'),
 
     APPLEPAY_EVENT:                         ('applepay_event' : 'applepay_event'),
+    APPLEPAY_ON_CLICK_INVALID:              ('applepay_onclick_invalid' : 'applepay_onclick_invalid'),
     APPLEPAY_VALIDATE_MERCHANT_ERROR:       ('applepay_validateMerchant_error' : 'applepay_validateMerchant_error'),
     APPLEPAY_CREATE_ORDER_ERROR:            ('applepay_create_order_error' : 'applepay_create_order_error'),
     APPLEPAY_GET_DETAILS_ERROR:             ('applepay_get_details_error' : 'applepay_get_details_error'),

@@ -71,7 +71,7 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
             if (!valid) {
                 getLogger().info(`native_onclick_invalid`).track({
                     [FPTI_KEY.STATE]:       FPTI_STATE.BUTTON,
-                    [FPTI_KEY.TRANSITION]:  FPTI_TRANSITION.NATIVE_ON_CLICK_INVALID
+                    [FPTI_KEY.TRANSITION]:  FPTI_TRANSITION.APPLEPAY_ON_CLICK_INVALID
                 }).flush();
             }
 
