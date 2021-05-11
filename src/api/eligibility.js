@@ -167,8 +167,7 @@ type ValidateMerchantOptions = {|
     url : string,
     clientID : string,
     orderID : string,
-    merchantDomain : string,
-    merchantStoreName : string
+    merchantDomain : string
 |};
 
 export function getApplePayMerchantSession({ url, clientID, orderID, merchantDomain } : ValidateMerchantOptions) : ZalgoPromise<ApplePaySession> {
