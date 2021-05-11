@@ -142,7 +142,3 @@ export function createApplePayRequest(countryCode : $Values<typeof COUNTRY>, ord
 
     return result;
 }
-
-export function getMerchantStoreName(order : DetailedOrderInfo) : ?string {
-    return order && order.checkoutSession && order.checkoutSession.merchant && order.checkoutSession.merchant.name;
-}

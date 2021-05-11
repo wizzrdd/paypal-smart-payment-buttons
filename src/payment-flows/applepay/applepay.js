@@ -10,7 +10,7 @@ import { getLogger, promiseNoop, unresolvedPromise } from '../../lib';
 import { FPTI_CUSTOM_KEY, FPTI_STATE, FPTI_TRANSITION } from '../../constants';
 import type { ApplePayPaymentMethodUpdate, ApplePayLineItem, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, IsPaymentEligibleOptions, InitOptions } from '../types';
 
-import { createApplePayRequest, getMerchantStoreName } from './utils';
+import { createApplePayRequest } from './utils';
 
 const SUPPORTED_VERSION = 3;
 
@@ -109,8 +109,7 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                         function validateMerchant({ validationURL }) {
                             logApplePayEvent('validatemerchant');
 
-                            const merchantStoreName = getMerchantStoreName(order) || 'PayPal';
-                            getApplePayMerchantSession({ url: validationURL, clientID, orderID, merchantDomain, merchantStoreName })
+                            getApplePayMerchantSession({ url: validationURL, clientID, orderID, merchantDomain })
                                 .then(merchantSession => {
                                     try {
                                         const session = atob(merchantSession.session);
