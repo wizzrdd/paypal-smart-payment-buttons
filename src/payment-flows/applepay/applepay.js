@@ -78,7 +78,7 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
         });
     }
 
-    function initApplePaySession() {
+    function initApplePaySession() : ZalgoPromise<void> {
         const validatePromise = validate().then(valid => {
             if (!valid) {
                 getLogger().info(`native_onclick_invalid`).track({
@@ -99,15 +99,15 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
         });
 
         const setupApplePaySession = () => {
-            orderPromise.then(orderID => {
+            return orderPromise.then(orderID => {
                 const country = locale.country;
 
-                getDetailedOrderInfo(orderID, country).then(order => {
+                return getDetailedOrderInfo(orderID, country).then(order => {
                     // set order details into ApplePayRequest
                     const applePayRequest = createApplePayRequest(country, order);
                     
                     // create Apple Pay Session
-                    applePay(SUPPORTED_VERSION, applePayRequest).then(response => {
+                    return applePay(SUPPORTED_VERSION, applePayRequest).then(response => {
                         const {
                             begin,
                             addEventListener,
@@ -213,7 +213,7 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
             });
         };
 
-        setupApplePaySession();
+        return setupApplePaySession();
     }
 
     const click = () => {
