@@ -98,7 +98,7 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                     applePay(SUPPORTED_VERSION, applePayRequest).then(response => {
                         const {
                             begin,
-                            addListener,
+                            addEventListener,
                             completeMerchantValidation,
                             completeShippingContactSelection,
                             completePaymentMethodSelection,
@@ -106,11 +106,11 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                             completePayment
                         } = response;
 
-                        function validateMerchant(url) {
+                        function validateMerchant({ validationURL }) {
                             logApplePayEvent('validatemerchant');
 
                             const merchantStoreName = getMerchantStoreName(order) || 'PayPal';
-                            getApplePayMerchantSession({ url, clientID, orderID, merchantDomain, merchantStoreName })
+                            getApplePayMerchantSession({ url: validationURL, clientID, orderID, merchantDomain, merchantStoreName })
                                 .then(merchantSession => {
                                     try {
                                         const session = atob(merchantSession.session);
@@ -203,12 +203,12 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                         }
 
                         ZalgoPromise.all([
-                            addListener('validatemerchant', validateMerchant),
-                            addListener('paymentmethodselected', paymentMethodSelected),
-                            addListener('shippingmethodselected', shippingMethodSelected),
-                            addListener('shippingcontactselected', shippingContactSelected),
-                            addListener('paymentauthorized', paymentAuthorized),
-                            addListener('cancel', cancel)
+                            addEventListener('validatemerchant', validateMerchant),
+                            addEventListener('paymentmethodselected', paymentMethodSelected),
+                            addEventListener('shippingmethodselected', shippingMethodSelected),
+                            addEventListener('shippingcontactselected', shippingContactSelected),
+                            addEventListener('paymentauthorized', paymentAuthorized),
+                            addEventListener('cancel', cancel)
                         ]).then(() => {
                             begin();
                         });
