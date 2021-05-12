@@ -5,6 +5,8 @@ import { preact } from 'jsx-pragmatic';
 import { h, Fragment, Node } from 'preact';
 import { VenmoLogo, LOGO_COLOR } from '@paypal/sdk-logos/src';
 
+import { VENMO_BLUE } from '../constants';
+
 export type NodeType = typeof Node;
 
 export function Logo() : NodeType {
@@ -48,8 +50,6 @@ export function AuthMark() : NodeType {
     );
 }
 
-const BLUE : string = '#0074DE';
-
 export const cardStyle : string = `
     * {
         box-sizing: border-box;
@@ -87,7 +87,7 @@ export const cardStyle : string = `
         border: 0; 
         border-radius: 24px;
         padding: 12px;
-        background: ${ BLUE };
+        background: ${ VENMO_BLUE };
         line-height: 24px;
         font-weight: 700;
         width: 300px;
@@ -176,7 +176,7 @@ export const cardStyle : string = `
     #back-view {
         position: absolute;
         transform: rotateY(-180deg);
-        background-color: ${ BLUE };
+        background-color: ${ VENMO_BLUE };
         justify-content: center;
         font-size: 18px;
         line-height: 16px;
