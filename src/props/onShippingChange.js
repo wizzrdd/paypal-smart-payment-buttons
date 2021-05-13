@@ -1,7 +1,7 @@
 /* @flow */
 
 import { ZalgoPromise } from 'zalgo-promise/src';
-import { FPTI_KEY } from '@paypal/sdk-constants/src';
+import { COUNTRY, CURRENCY, FPTI_KEY } from '@paypal/sdk-constants/src';
 
 import { patchOrder, type OrderResponse } from '../api';
 import { FPTI_TRANSITION, FPTI_CONTEXT_TYPE } from '../constants';
@@ -28,7 +28,25 @@ export function buildXOnShippingChangeData(data : XOnShippingChangeDataType) : X
     return data;
 }
 
+type SHIPPING_OPTION_TYPE = 'SHIPPING' | 'PICKUP';
 export type OnShippingChangeData = {|
+    orderID? : string,
+    paymentID? : string,
+    paymentToken? : string,
+    shipping_address? : {|
+        city : string,
+        state : string,
+        country_code : $Values<typeof COUNTRY>,
+        postal_code : string
+    |},
+    selected_shipping_option? : {|
+        label : string,
+        type : SHIPPING_OPTION_TYPE,
+        amount : {|
+            currency_code : $Values<typeof CURRENCY>,
+            value : string
+        |}
+    |},
     buyerAccessToken : ?string,
     forceRestAPI? : boolean
 |};

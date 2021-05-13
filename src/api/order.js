@@ -522,6 +522,18 @@ export type DetailedOrderInfo = {|
             paymentId? : ?string,
             billingToken? : ?string,
             amounts : {|
+                shippingAndHandling : {|
+                    currencyFormatSymbolISOCurrency : string,
+                    currencyValue : string,
+                    currencyCode : $Values<typeof CURRENCY>
+                |},
+
+                tax : {|
+                    currencyFormatSymbolISOCurrency : string,
+                    currencyValue : string,
+                    currencyCode : $Values<typeof CURRENCY>
+                |},
+                
                 total : {|
                     currencyFormatSymbolISOCurrency : string,
                     currencyValue : string,
@@ -558,6 +570,16 @@ export const getDetailedOrderInfo : GetDetailedOrderInfo = memoize((orderID, cou
                         paymentId
                         billingToken
                         amounts {
+                            shippingAndHandling {
+                                currencyValue
+                                currencySymbol
+                                currencyFormat
+                            }
+                            tax {
+                                currencyValue
+                                currencySymbol
+                                currencyFormat
+                            }
                             total {
                                 currencyValue
                                 currencyCode

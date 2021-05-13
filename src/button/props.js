@@ -102,7 +102,7 @@ export type ButtonXProps = {|
 
     paymentMethodNonce : string,
     branded? : boolean,
-    userExperienceFlow : string
+    userExperienceFlow : string,
 
     applePay : XApplePaySessionConfigRequest
 |};
@@ -170,7 +170,7 @@ export type ButtonProps = {|
 
     paymentMethodNonce : string,
 
-    applePay : XApplePaySessionConfigRequest
+    applePay : XApplePaySessionConfigRequest,
 
     branded : boolean | null,
     userExperienceFlow : string

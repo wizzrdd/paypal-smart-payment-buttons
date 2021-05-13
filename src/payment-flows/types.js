@@ -228,7 +228,7 @@ type ApplePayError = {|
     message : string
 |};
 
-type ApplePayShippingContactUpdate = {|
+export type ApplePayShippingContactUpdate = {|
     errors? : $ReadOnlyArray<ApplePayErrorCode>,
     newShippingMethods? : $ReadOnlyArray<ApplePayShippingMethod>,
     newTotal : ApplePayLineItem,
@@ -240,7 +240,7 @@ export type ApplePayPaymentMethodUpdate = {|
     newLineItems? : $ReadOnlyArray<ApplePayLineItem>
 |};
 
-type ApplePayShippingMethodUpdate = {|
+export type ApplePayShippingMethodUpdate = {|
     newTotal : ApplePayLineItem,
     newLineItems? : $ReadOnlyArray<ApplePayLineItem>
 |};

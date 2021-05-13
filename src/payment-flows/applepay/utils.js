@@ -101,9 +101,15 @@ export function createApplePayRequest(countryCode : $Values<typeof COUNTRY>, ord
         allowedCardIssuers,
         cart: {
             amounts: {
+                shippingAndHandling: {
+                    currencyValue: shippingValue
+                },
+                tax: {
+                    currencyValue: taxValue
+                },
                 total: {
                     currencyCode,
-                    currencyValue
+                    currencyValue: totalValue
                 }
             },
             shippingAddress,
@@ -115,6 +121,8 @@ export function createApplePayRequest(countryCode : $Values<typeof COUNTRY>, ord
     const shippingContact = getShippingContactFromAddress(shippingAddress);
     const applePayShippingMethods = getApplePayShippingMethods(shippingMethods);
     const merchantCapabilities = getMerchantCapabilities(supportedNetworks);
+
+    const selectedShippingMethod = shippingMethods && shippingMethods.length ? shippingMethods.filter(method => method.selected)[0] : null;
 
     const result = {
         countryCode,
@@ -134,12 +142,37 @@ export function createApplePayRequest(countryCode : $Values<typeof COUNTRY>, ord
         ],
         shippingContact: shippingContact && shippingContact.givenName ? shippingContact : {},
         shippingMethods: applePayShippingMethods && applePayShippingMethods.length ? applePayShippingMethods : [],
+        lineItems:       [
+            {
+                label:  'Sales Tax',
+                amount: taxValue
+            },
+            {
+                label:  'Shipping',
+                amount: shippingValue
+            }
+        ],
         total:           {
-            amount: currencyValue,
-            label:  '',
+            label:  'Total',
+            amount: totalValue,
             type:   'final'
         }
     };
 
+    if (selectedShippingMethod && selectedShippingMethod.type === 'PICKUP') {
+        result.requiredShippingContactFields = [
+            'email'
+        ];
+    }
+
     return result;
+}
+
+export function isJSON(json : Object) : boolean {
+    try {
+        JSON.parse(json);
+        return true;
+    } catch {
+        return false;
+    }
 }

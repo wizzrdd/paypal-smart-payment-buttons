@@ -8,9 +8,10 @@ import { ZalgoPromise } from 'zalgo-promise/src';
 import { getDetailedOrderInfo, approveApplePayPayment, getApplePayMerchantSession } from '../../api';
 import { getLogger, promiseNoop, unresolvedPromise } from '../../lib';
 import { FPTI_CUSTOM_KEY, FPTI_STATE, FPTI_TRANSITION } from '../../constants';
-import type { ApplePayPaymentMethodUpdate, ApplePayLineItem, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, IsPaymentEligibleOptions, InitOptions } from '../types';
+import { type OnShippingChangeData } from '../../props/onShippingChange';
+import type { ApplePayShippingContactUpdate, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, IsPaymentEligibleOptions, InitOptions } from '../types';
 
-import { createApplePayRequest } from './utils';
+import { createApplePayRequest, isJSON } from './utils';
 
 const SUPPORTED_VERSION = 3;
 
@@ -20,10 +21,10 @@ function setupApplePay() : ZalgoPromise<void> {
 }
 
 function isApplePayEligible({ props, serviceData } : IsEligibleOptions) : boolean {
-    const { branded, onShippingChange, createBillingAgreement, createSubscription } = props;
+    const { branded, createBillingAgreement, createSubscription } = props;
     const { fundingEligibility } = serviceData;
 
-    if (branded || onShippingChange || createBillingAgreement || createSubscription) {
+    if (branded || createBillingAgreement || createSubscription) {
         return false;
     }
 
@@ -39,7 +40,7 @@ function isApplePayPaymentEligible({ payment } : IsPaymentEligibleOptions) : boo
 }
 
 function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
-    const { createOrder, onApprove, onCancel, onError, onClick, locale, clientID, merchantDomain, applePay } = props;
+    const { createOrder, onApprove, onCancel, onError, onClick, onShippingChange, locale, clientID, merchantDomain, currency, applePay } = props;
 
     const { fundingSource } = payment;
 
@@ -58,10 +59,12 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
         });
     });
 
-    function logApplePayEvent(event) {
-        getLogger().info(`${ FPTI_TRANSITION.APPLEPAY_EVENT }_${ event }`)
+    function logApplePayEvent(event, payload) {
+        const data = isJSON(payload) ? payload : {};
+        getLogger().info(`${ FPTI_TRANSITION.APPLEPAY_EVENT }_${ event }`, data)
             .track({
-                [FPTI_KEY.TRANSITION]: `${ FPTI_TRANSITION.APPLEPAY_EVENT }_${ event }`
+                [FPTI_KEY.TRANSITION]:      `${ FPTI_TRANSITION.APPLEPAY_EVENT }_${ event }`,
+                [FPTI_CUSTOM_KEY.INFO_MSG]: JSON.stringify(data)
             })
             .flush();
     }
@@ -79,6 +82,85 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
     }
 
     function initApplePaySession() : ZalgoPromise<void> {
+        let shippingLabel;
+
+        const onShippingChangeCallback = ({ orderID, billingToken, shippingContact, shippingMethod = null }) : ZalgoPromise<ApplePayShippingContactUpdate> => {
+            if (onShippingChange) {
+                const data : OnShippingChangeData = {
+                    orderID,
+                    buyerAccessToken: billingToken || '',
+                    shipping_address: {
+                        city:         shippingContact.locality,
+                        state:        shippingContact.administrativeArea,
+                        country_code: shippingContact.country,
+                        postal_code:  shippingContact.postalCode
+                    }
+                };
+
+                if (shippingMethod) {
+                    data.selected_shipping_option = {
+                        label:  shippingMethod.label,
+                        type:   shippingMethod.identifier,
+                        amount: {
+                            currency_code: currency,
+                            value:         shippingMethod.amount
+                        }
+                    };
+                }
+                const actions = {
+                    resolve: () => {
+                        return ZalgoPromise.resolve();
+                    },
+                    reject: () => {
+                        return ZalgoPromise.reject();
+                    }
+                };
+                return onShippingChange({ ...data, forceRestAPI: true }, actions)
+                    .then(() => {
+                        return getDetailedOrderInfo(orderID, locale.country).then(updatedOrder => {
+                            const {
+                                cart: {
+                                    amounts: {
+                                        shippingAndHandling: {
+                                            currencyValue: updatedShippingValue
+                                        },
+                                        tax: {
+                                            currencyValue: updatedTaxValue
+                                        },
+                                        total: {
+                                            currencyValue: updatedTotalValue
+                                        }
+                                    }
+                                }
+                            } = updatedOrder.checkoutSession;
+
+                            const update = {
+                                newTotal: {
+                                    label:  'Total',
+                                    amount: updatedTotalValue
+                                },
+                                newLineItems: [
+                                    {
+                                        label:  'Sales Tax',
+                                        amount: updatedTaxValue
+                                    },
+                                    {
+                                        label:  shippingLabel,
+                                        amount: updatedShippingValue
+                                    }
+                                ]
+                            };
+
+                            return update;
+                        });
+                    }).catch(err => {
+                        throw err;
+                    });
+            } else {
+                throw new Error('"onShippingChange" not implemented.  Provide "onShippingChange" callback in button props to handle shipping changes.');
+            }
+        };
+
         const validatePromise = validate().then(valid => {
             if (!valid) {
                 getLogger().info(`native_onclick_invalid`).track({
@@ -107,6 +189,22 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                     const applePayRequest = createApplePayRequest(country, order);
                     
                     // create Apple Pay Session
+                    const {
+                        cart: {
+                            billingToken,
+                            amounts: {
+                                shippingAndHandling: {
+                                    currencyValue: shippingValue
+                                },
+                                tax: {
+                                    currencyValue: taxValue
+                                },
+                                total: {
+                                    currencyValue: totalValue
+                                }
+                            }
+                        }
+                    } = order.checkoutSession;
                     return applePay(SUPPORTED_VERSION, applePayRequest).then(response => {
                         const {
                             begin,
@@ -119,7 +217,7 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                         } = response;
 
                         function validateMerchant({ validationURL }) {
-                            logApplePayEvent('validatemerchant');
+                            logApplePayEvent('validatemerchant', { validationURL });
 
                             getApplePayMerchantSession({ url: validationURL, clientID, orderID, merchantDomain })
                                 .then(merchantSession => {
@@ -135,30 +233,74 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                                 });
                         }
 
-                        function paymentMethodSelected() {
-                            logApplePayEvent('paymentmethodselected');
+                        function paymentMethodSelected({ paymentMethod }) {
+                            logApplePayEvent('paymentmethodselected', paymentMethod);
 
-                            const { amount, label } = applePayRequest.total;
-                            const newTotal : ApplePayLineItem = {
-                                amount,
-                                label
+                            const newTotal = { ...applePayRequest.total };
+                            const update = {
+                                newTotal,
+                                newLineItems: [
+                                    {
+                                        label:  'Sales Tax',
+                                        amount: taxValue
+                                    },
+                                    {
+                                        label:  'Shipping',
+                                        amount: shippingValue
+                                    }
+                                ]
                             };
 
-                            const update : ApplePayPaymentMethodUpdate = { newTotal };
                             completePaymentMethodSelection(update);
                         }
-
-                        function shippingMethodSelected() {
+                        
+                        function shippingMethodSelected({ shippingMethod }) {
                             logApplePayEvent('shippingmethodselected');
-                            completeShippingMethodSelection({});
+
+                            const { label, amount } = shippingMethod;
+                            const newAmount = parseFloat(totalValue) + parseFloat(amount);
+
+                            shippingLabel = label || 'Shipping';
+
+                            const update = {
+                                newTotal: {
+                                    label:  'Total',
+                                    amount: newAmount.toString()
+                                },
+                                newLineItems: [
+                                    {
+                                        label:  'Sales Tax',
+                                        amount: taxValue
+                                    },
+                                    {
+                                        label: shippingLabel,
+                                        amount
+                                    }
+                                ]
+                            };
+                            // patch updated amount
+                            completeShippingMethodSelection(update);
                         }
 
-                        function shippingContactSelected() {
-                            logApplePayEvent('shippingcontactselected');
-                            completeShippingContactSelection({});
+                        function shippingContactSelected({ shippingContact }) {
+                            logApplePayEvent('shippingcontactselected', shippingContact);
+
+                            // patch updated shipping contact information
+                            onShippingChangeCallback({ orderID, billingToken, shippingContact })
+                            .then(update => {
+                                completeShippingContactSelection(update);
+                            })
+                            .catch(err => {
+                                const update = {
+                                    errors: [
+                                        new ApplePayError();
+                                    ]
+                                };
+                                completeShippingContactSelection(update);
+                            });
                         }
 
-                        function paymentAuthorized(applePayPayment) {
+                        function paymentAuthorized({ payment: applePayPayment }) {
                             logApplePayEvent('paymentauthorized');
 
                             if (!applePayPayment) {
