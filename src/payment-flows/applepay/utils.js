@@ -142,22 +142,27 @@ export function createApplePayRequest(countryCode : $Values<typeof COUNTRY>, ord
         ],
         shippingContact: shippingContact && shippingContact.givenName ? shippingContact : {},
         shippingMethods: applePayShippingMethods && applePayShippingMethods.length ? applePayShippingMethods : [],
-        lineItems:       [
-            {
-                label:  'Sales Tax',
-                amount: taxValue
-            },
-            {
-                label:  'Shipping',
-                amount: shippingValue
-            }
-        ],
+        lineItems:       [],
         total:           {
             label:  'Total',
             amount: totalValue,
             type:   'final'
         }
     };
+
+    if (taxValue && taxValue.length) {
+        result.lineItems.push({
+            label: 'Sales Tax',
+            amount: taxValue
+        });
+    }
+
+    if (shippingValue && shippingValue.length) [
+        result.lineItems.push({
+            label: 'Shipping',
+            amount: shippingValue
+        })
+    ]
 
     if (selectedShippingMethod && selectedShippingMethod.type === 'PICKUP') {
         result.requiredShippingContactFields = [

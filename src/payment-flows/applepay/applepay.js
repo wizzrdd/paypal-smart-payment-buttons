@@ -239,17 +239,22 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                             const newTotal = { ...applePayRequest.total };
                             const update = {
                                 newTotal,
-                                newLineItems: [
-                                    {
-                                        label:  'Sales Tax',
-                                        amount: taxValue
-                                    },
-                                    {
-                                        label:  'Shipping',
-                                        amount: shippingValue
-                                    }
-                                ]
+                                newLineItems: []
                             };
+
+                            if (taxValue && taxValue.length) {
+                                update.newLineItems.push({
+                                    label:  'Sales Tax',
+                                    amount: taxValue
+                                });
+                            }
+
+                            if (shippingValue && shippingValue.length) {
+                                update.newLineItems.push({
+                                    label: 'Shipping',
+                                    amount: shippingValue
+                                });
+                            }
 
                             completePaymentMethodSelection(update);
                         }
@@ -291,12 +296,12 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                                 completeShippingContactSelection(update);
                             })
                             .catch(err => {
-                                const update = {
-                                    errors: [
-                                        new ApplePayError();
-                                    ]
-                                };
-                                completeShippingContactSelection(update);
+                                // const update = {
+                                //     errors: [
+                                //         new ApplePayError();
+                                //     ]
+                                // };
+                                completeShippingContactSelection({});
                             });
                         }
 
