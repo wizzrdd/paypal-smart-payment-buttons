@@ -3,7 +3,7 @@
 import { COUNTRY } from '@paypal/sdk-constants/src';
 
 import { type DetailedOrderInfo } from '../../api';
-import type { ApplePayPaymentContact, ApplePayMerchantCapabilities, ApplePayPaymentRequest, ApplePaySupportedNetworks, ApplePayShippingMethod, ShippingAddress, ShippingMethod } from '../types';
+import type { ApplePayError, ApplePayPaymentContact, ApplePayMerchantCapabilities, ApplePayPaymentRequest, ApplePaySupportedNetworks, ApplePayShippingMethod, ShippingAddress, ShippingMethod, Shipping_Address } from '../types';
 
 type ValidNetworks = {|
     discover : ApplePaySupportedNetworks,
@@ -74,14 +74,18 @@ function getApplePayShippingMethods(shippingMethods : ?$ReadOnlyArray<ShippingMe
         return [];
     }
 
-    return shippingMethods.map(method => {
+    const result = [ ...shippingMethods ].sort(method => {
+        return method.selected ? -1 : 0;
+    }).map(method => {
         return {
-            amount:     method.amount && method.amount.currencyValue ? method.amount.currencyValue : '',
+            amount:     method.amount && method.amount.currencyValue ? method.amount.currencyValue : '0.00',
             detail:     '',
             identifier: method.type,
             label:      method.label
         };
     });
+
+    return result;
 }
 
 function getMerchantCapabilities(supportedNetworks : $ReadOnlyArray<ApplePaySupportedNetworks>) : $ReadOnlyArray<ApplePayMerchantCapabilities> {
@@ -152,22 +156,20 @@ export function createApplePayRequest(countryCode : $Values<typeof COUNTRY>, ord
 
     if (taxValue && taxValue.length) {
         result.lineItems.push({
-            label: 'Sales Tax',
+            label:  'Sales Tax',
             amount: taxValue
         });
     }
 
-    if (shippingValue && shippingValue.length) [
+    if (shippingValue && shippingValue.length) {
         result.lineItems.push({
-            label: 'Shipping',
+            label:  'Shipping',
             amount: shippingValue
-        })
-    ]
+        });
+    }
 
     if (selectedShippingMethod && selectedShippingMethod.type === 'PICKUP') {
-        result.requiredShippingContactFields = [
-            'email'
-        ];
+        result.requiredShippingContactFields = [];
     }
 
     return result;
@@ -180,4 +182,38 @@ export function isJSON(json : Object) : boolean {
     } catch {
         return false;
     }
+}
+
+export function validateShippingContact(contact : ApplePayPaymentContact) : {| errors : $ReadOnlyArray<ApplePayError>, shipping_address : Shipping_Address |} {
+    const errors = [];
+
+    if (!contact.addressLines || !contact.addressLines.length) {
+        errors.push(new window.ApplePayError('addressInvalid', 'addressLines', 'Address is invalid'));
+    }
+    
+    if (!contact.locality) {
+        errors.push(new window.ApplePayError('cityInvalid', 'locality', 'City is invalid'));
+    }
+
+    if (!contact.administrativeArea) {
+        errors.push(new window.ApplePayError('stateInvalid', 'administrativeArea', 'State is invalid'));
+    }
+
+    if (!contact.countryCode) {
+        errors.push(new window.ApplePayError('countryCodeInvalid', 'countryCode', 'Country code is invalid'));
+    }
+
+    if (!contact.postalCode) {
+        errors.push(new window.ApplePayError('postalCodeInvalid', 'postalCode', 'Postal code is invalid'));
+    }
+
+    const shipping_address = {
+        city:         contact.locality,
+        state:        contact.administrativeArea,
+        country_code: contact.countryCode,
+        postal_code:  contact.postalCode
+    };
+
+    // $FlowFixMe
+    return { errors, shipping_address };
 }

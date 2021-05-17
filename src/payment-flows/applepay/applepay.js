@@ -8,10 +8,9 @@ import { ZalgoPromise } from 'zalgo-promise/src';
 import { getDetailedOrderInfo, approveApplePayPayment, getApplePayMerchantSession } from '../../api';
 import { getLogger, promiseNoop, unresolvedPromise } from '../../lib';
 import { FPTI_CUSTOM_KEY, FPTI_STATE, FPTI_TRANSITION } from '../../constants';
-import { type OnShippingChangeData } from '../../props/onShippingChange';
-import type { ApplePayShippingContactUpdate, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, IsPaymentEligibleOptions, InitOptions } from '../types';
+import type { ApplePayPaymentContact, ApplePayShippingMethod, ApplePayShippingMethodUpdate, ApplePayShippingContactUpdate, PaymentFlow, PaymentFlowInstance, IsEligibleOptions, IsPaymentEligibleOptions, InitOptions } from '../types';
 
-import { createApplePayRequest, isJSON } from './utils';
+import { createApplePayRequest, isJSON, validateShippingContact } from './utils';
 
 const SUPPORTED_VERSION = 3;
 
@@ -21,10 +20,10 @@ function setupApplePay() : ZalgoPromise<void> {
 }
 
 function isApplePayEligible({ props, serviceData } : IsEligibleOptions) : boolean {
-    const { branded, createBillingAgreement, createSubscription } = props;
+    const { branded, createBillingAgreement, createSubscription, onShippingChange } = props;
     const { fundingEligibility } = serviceData;
 
-    if (branded || createBillingAgreement || createSubscription) {
+    if (branded || createBillingAgreement || createSubscription || !onShippingChange) {
         return false;
     }
 
@@ -41,7 +40,6 @@ function isApplePayPaymentEligible({ payment } : IsPaymentEligibleOptions) : boo
 
 function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
     const { createOrder, onApprove, onCancel, onError, onClick, onShippingChange, locale, clientID, merchantDomain, currency, applePay } = props;
-
     const { fundingSource } = payment;
 
     if (clean) {
@@ -82,83 +80,124 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
     }
 
     function initApplePaySession() : ZalgoPromise<void> {
-        let shippingLabel;
+        let currentTotalAmount;
+        let currentTaxAmount;
+        let currentShippingAmount;
+        let currentShippingLabel = 'Shipping';
+        let currentShippingContact;
+        let currentShippingMethod;
 
-        const onShippingChangeCallback = ({ orderID, billingToken, shippingContact, shippingMethod = null }) : ZalgoPromise<ApplePayShippingContactUpdate> => {
-            if (onShippingChange) {
-                const data : OnShippingChangeData = {
-                    orderID,
-                    buyerAccessToken: billingToken || '',
-                    shipping_address: {
-                        city:         shippingContact.locality,
-                        state:        shippingContact.administrativeArea,
-                        country_code: shippingContact.country,
-                        postal_code:  shippingContact.postalCode
-                    }
-                };
+        const onShippingChangeCallback = <T>({ orderID, shippingContact, shippingMethod = null } : {| orderID : string, shippingContact : ApplePayPaymentContact, shippingMethod? : ?ApplePayShippingMethod |}) : ZalgoPromise<T> => {
+            const { errors, shipping_address } = validateShippingContact(shippingContact);
 
-                if (shippingMethod) {
-                    data.selected_shipping_option = {
-                        label:  shippingMethod.label,
-                        type:   shippingMethod.identifier,
-                        amount: {
-                            currency_code: currency,
-                            value:         shippingMethod.amount
-                        }
-                    };
-                }
-                const actions = {
-                    resolve: () => {
-                        return ZalgoPromise.resolve();
+            if (!shippingMethod && errors && errors.length) {
+                const update = {
+                    errors,
+                    newTotal: {
+                        label:  'Total',
+                        amount: currentTotalAmount
                     },
-                    reject: () => {
-                        return ZalgoPromise.reject();
+                    newLineItems: []
+                };
+
+                if (currentTaxAmount) {
+                    update.newLineItems.push({
+                        label:  'Sales Tax',
+                        amount: currentTaxAmount
+                    });
+                }
+
+                if (currentShippingAmount) {
+                    update.newLineItems.push({
+                        label:  'Shipping',
+                        amount: currentShippingAmount
+                    });
+                }
+                
+                // $FlowFixMe
+                return ZalgoPromise.resolve({
+                    ...update
+                });
+            }
+
+            const data = {
+                orderID,
+                shipping_address
+            };
+
+            if (shippingMethod) {
+                // $FlowFixMe
+                data.selected_shipping_option = {
+                    label:  shippingMethod.label || currentShippingLabel,
+                    // $FlowFixMe
+                    type:   shippingMethod.identifier,
+                    amount: {
+                        currency_code: currency,
+                        value:         shippingMethod.amount
                     }
                 };
-                return onShippingChange({ ...data, forceRestAPI: true }, actions)
-                    .then(() => {
-                        return getDetailedOrderInfo(orderID, locale.country).then(updatedOrder => {
-                            const {
-                                cart: {
-                                    amounts: {
-                                        shippingAndHandling: {
-                                            currencyValue: updatedShippingValue
-                                        },
-                                        tax: {
-                                            currencyValue: updatedTaxValue
-                                        },
-                                        total: {
-                                            currencyValue: updatedTotalValue
-                                        }
+            }
+            const actions = {
+                resolve: () => {
+                    return ZalgoPromise.resolve();
+                },
+                reject: (err) => {
+                    return ZalgoPromise.reject(err);
+                }
+            };
+            
+            // $FlowFixMe
+            return onShippingChange({ ...data, forceRestAPI: true }, actions)
+                .then(() => {
+                    currentShippingContact = shippingContact;
+
+                    if (shippingMethod) {
+                        currentShippingMethod = shippingMethod;
+                    }
+
+                    return getDetailedOrderInfo(orderID, locale.country).then(updatedOrder => {
+                        const {
+                            cart: {
+                                amounts: {
+                                    shippingAndHandling: {
+                                        currencyValue: updatedShippingValue
+                                    },
+                                    tax: {
+                                        currencyValue: updatedTaxValue
+                                    },
+                                    total: {
+                                        currencyValue: updatedTotalValue
                                     }
                                 }
-                            } = updatedOrder.checkoutSession;
+                            }
+                        } = updatedOrder.checkoutSession;
 
-                            const update = {
-                                newTotal: {
-                                    label:  'Total',
-                                    amount: updatedTotalValue
+                        currentShippingAmount = updatedShippingValue;
+                        currentTaxAmount = updatedTaxValue;
+                        currentTotalAmount = updatedTotalValue;
+
+                        const update = {
+                            newTotal: {
+                                label:  'Total',
+                                amount: updatedTotalValue
+                            },
+                            newLineItems: [
+                                {
+                                    label:  'Sales Tax',
+                                    amount: updatedTaxValue
                                 },
-                                newLineItems: [
-                                    {
-                                        label:  'Sales Tax',
-                                        amount: updatedTaxValue
-                                    },
-                                    {
-                                        label:  shippingLabel,
-                                        amount: updatedShippingValue
-                                    }
-                                ]
-                            };
+                                {
+                                    label:  currentShippingLabel,
+                                    amount: updatedShippingValue
+                                }
+                            ]
+                        };
 
-                            return update;
-                        });
-                    }).catch(err => {
-                        throw err;
+                        return update;
                     });
-            } else {
-                throw new Error('"onShippingChange" not implemented.  Provide "onShippingChange" callback in button props to handle shipping changes.');
-            }
+                }).catch(err => {
+                    throw err;
+                });
         };
 
         const validatePromise = validate().then(valid => {
@@ -191,7 +230,6 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                     // create Apple Pay Session
                     const {
                         cart: {
-                            billingToken,
                             amounts: {
                                 shippingAndHandling: {
                                     currencyValue: shippingValue
@@ -205,6 +243,13 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                             }
                         }
                     } = order.checkoutSession;
+ 
+                    currentShippingAmount = shippingValue;
+                    currentShippingLabel = applePayRequest.shippingMethods && applePayRequest.shippingMethods.length ? applePayRequest.shippingMethods[0].label : 'Shipping';
+                    currentShippingMethod = applePayRequest.shippingMethods && applePayRequest.shippingMethods.length ? applePayRequest.shippingMethods[0] : null;
+                    currentTaxAmount = taxValue;
+                    currentTotalAmount = totalValue;
+                    
                     return applePay(SUPPORTED_VERSION, applePayRequest).then(response => {
                         const {
                             begin,
@@ -236,23 +281,25 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                         function paymentMethodSelected({ paymentMethod }) {
                             logApplePayEvent('paymentmethodselected', paymentMethod);
 
-                            const newTotal = { ...applePayRequest.total };
                             const update = {
-                                newTotal,
+                                newTotal: {
+                                    label:  'Total',
+                                    amount: currentTotalAmount
+                                },
                                 newLineItems: []
                             };
 
                             if (taxValue && taxValue.length) {
                                 update.newLineItems.push({
                                     label:  'Sales Tax',
-                                    amount: taxValue
+                                    amount: currentTaxAmount
                                 });
                             }
 
                             if (shippingValue && shippingValue.length) {
                                 update.newLineItems.push({
-                                    label: 'Shipping',
-                                    amount: shippingValue
+                                    label:  currentShippingLabel,
+                                    amount: currentShippingAmount
                                 });
                             }
 
@@ -262,47 +309,73 @@ function initApplePay({ props, payment } : InitOptions) : PaymentFlowInstance {
                         function shippingMethodSelected({ shippingMethod }) {
                             logApplePayEvent('shippingmethodselected');
 
-                            const { label, amount } = shippingMethod;
-                            const newAmount = parseFloat(totalValue) + parseFloat(amount);
-
-                            shippingLabel = label || 'Shipping';
-
-                            const update = {
-                                newTotal: {
-                                    label:  'Total',
-                                    amount: newAmount.toString()
-                                },
-                                newLineItems: [
-                                    {
-                                        label:  'Sales Tax',
-                                        amount: taxValue
-                                    },
-                                    {
-                                        label: shippingLabel,
-                                        amount
-                                    }
-                                ]
-                            };
                             // patch updated amount
-                            completeShippingMethodSelection(update);
+                            onShippingChangeCallback<ApplePayShippingMethodUpdate>({ orderID, shippingContact: currentShippingContact, shippingMethod })
+                                .then(update => {
+                                    currentShippingMethod = shippingMethod;
+                                    completeShippingMethodSelection(update);
+                                })
+                                .catch(() => {
+                                    const update = {
+                                        newTotal: {
+                                            label:  'Total',
+                                            amount: currentTotalAmount
+                                        },
+                                        newLineItems: []
+                                    };
+
+                                    if (taxValue && taxValue.length) {
+                                        update.newLineItems.push({
+                                            label:  'Sales Tax',
+                                            amount: currentTaxAmount
+                                        });
+                                    }
+
+                                    if (shippingValue && shippingValue.length) {
+                                        update.newLineItems.push({
+                                            label:  currentShippingLabel,
+                                            amount: currentShippingAmount
+                                        });
+                                    }
+                                    completeShippingMethodSelection(update);
+                                });
                         }
 
                         function shippingContactSelected({ shippingContact }) {
                             logApplePayEvent('shippingcontactselected', shippingContact);
 
                             // patch updated shipping contact information
-                            onShippingChangeCallback({ orderID, billingToken, shippingContact })
-                            .then(update => {
-                                completeShippingContactSelection(update);
-                            })
-                            .catch(err => {
-                                // const update = {
-                                //     errors: [
-                                //         new ApplePayError();
-                                //     ]
-                                // };
-                                completeShippingContactSelection({});
-                            });
+                            onShippingChangeCallback<ApplePayShippingContactUpdate>({ orderID, shippingContact, shippingMethod: currentShippingMethod })
+                                .then(update => {
+                                    completeShippingContactSelection(update);
+                                })
+                                .catch(() => {
+                                    const update = {
+                                        errors: [
+                                            new window.ApplePayError('Invalid Shipping')
+                                        ],
+                                        newTotal: {
+                                            label:  'Total',
+                                            amount: totalValue
+                                        },
+                                        newLineItems: []
+                                    };
+
+                                    if (taxValue && taxValue.length) {
+                                        update.newLineItems.push({
+                                            label:  'Sales Tax',
+                                            amount: taxValue
+                                        });
+                                    }
+
+                                    if (shippingValue && shippingValue.length) {
+                                        update.newLineItems.push({
+                                            label:  'Shipping',
+                                            amount: shippingValue
+                                        });
+                                    }
+                                    completeShippingContactSelection(update);
+                                });
                         }
 
                         function paymentAuthorized({ payment: applePayPayment }) {

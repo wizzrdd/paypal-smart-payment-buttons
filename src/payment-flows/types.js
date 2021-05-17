@@ -105,6 +105,13 @@ export type FundingOption = {|
     fundingInstrument : FundingInstrument
 |};
 
+export type Shipping_Address = {|
+    city : string,
+    state : string,
+    country_code : $Values<typeof COUNTRY>,
+    postal_code : string
+|};
+
 export type ShippingAddress = {|
     firstName : string,
     lastName : string,
@@ -223,14 +230,14 @@ export type ApplePayPaymentRequest = {|
 
 type ApplePayErrorCode = 'shippingContactInvalid' | 'billingContactInvalid' | 'addressUnserviceable' | 'unknown';
 
-type ApplePayError = {|
+export type ApplePayError = {|
     code : ApplePayErrorCode,
     contactField : ApplePayContactField,
     message : string
 |};
 
 export type ApplePayShippingContactUpdate = {|
-    errors? : $ReadOnlyArray<ApplePayErrorCode>,
+    errors? : $ReadOnlyArray<ApplePayError>,
     newShippingMethods? : $ReadOnlyArray<ApplePayShippingMethod>,
     newTotal : ApplePayLineItem,
     newLineItems? : $ReadOnlyArray<ApplePayLineItem>

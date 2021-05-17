@@ -10,8 +10,27 @@ import { upgradeLSATExperiment } from '../experiments';
 
 import type { CreateOrder } from './createOrder';
 
+type SHIPPING_OPTION_TYPE = 'SHIPPING' | 'PICKUP';
 export type XOnShippingChangeDataType = {|
-
+    orderID? : string,
+    paymentID? : string,
+    paymentToken? : string,
+    shipping_address? : {|
+        city : string,
+        state : string,
+        country_code : $Values<typeof COUNTRY>,
+        postal_code : string
+    |},
+    selected_shipping_option? : {|
+        label : string,
+        type : SHIPPING_OPTION_TYPE,
+        amount : {|
+            currency_code : $Values<typeof CURRENCY>,
+            value : string
+        |}
+    |},
+    buyerAccessToken? : ?string,
+    forceRestAPI? : boolean
 |};
 
 export type XOnShippingChangeActionsType = {|
@@ -28,7 +47,6 @@ export function buildXOnShippingChangeData(data : XOnShippingChangeDataType) : X
     return data;
 }
 
-type SHIPPING_OPTION_TYPE = 'SHIPPING' | 'PICKUP';
 export type OnShippingChangeData = {|
     orderID? : string,
     paymentID? : string,
@@ -47,7 +65,7 @@ export type OnShippingChangeData = {|
             value : string
         |}
     |},
-    buyerAccessToken : ?string,
+    buyerAccessToken? : ?string,
     forceRestAPI? : boolean
 |};
 
