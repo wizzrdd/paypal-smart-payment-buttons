@@ -9,7 +9,7 @@ import type { ProxyWindow, ConnectOptions } from '../types';
 import { type CreateBillingAgreement, type CreateSubscription } from '../props';
 import { enableVault, exchangeAccessTokenForAuthCode, getConnectURL, getFundingEligibility, updateButtonClientConfig, getSmartWallet  } from '../api';
 import { CONTEXT, TARGET_ELEMENT, BUYER_INTENT, FPTI_TRANSITION, FPTI_CONTEXT_TYPE } from '../constants';
-import { unresolvedPromise, getLogger } from '../lib';
+import { unresolvedPromise, getLogger, isVenmoDesktopPay } from '../lib';
 import { openPopup } from '../ui';
 import { FUNDING_SKIP_LOGIN } from '../config';
 import { nativeFakeoutExperiment } from '../experiments';
@@ -446,6 +446,7 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
 }
 
 function updateCheckoutClientConfig({ orderID, payment, userExperienceFlow }) : ZalgoPromise<void> {
+    
     return ZalgoPromise.try(() => {
         const { buyerIntent, fundingSource } = payment;
         const updateClientConfigPromise = updateButtonClientConfig({ fundingSource, orderID, inline: false, userExperienceFlow });

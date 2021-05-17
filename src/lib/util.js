@@ -2,7 +2,8 @@
 
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { noop, experiment, isAndroid, isIos, isChrome, isSafari, type Experiment } from 'belter/src';
-import { FPTI_KEY } from '@paypal/sdk-constants/src';
+import { FPTI_KEY, FUNDING } from '@paypal/sdk-constants/src';
+
 
 import { FPTI_STATE, FPTI_TRANSITION } from '../constants';
 
@@ -129,4 +130,10 @@ export function isIOSSafari() : boolean {
 
 export function isAndroidChrome() : boolean {
     return isAndroid() && isChrome();
+}
+
+export function isVenmoDesktopPay(fundingSource : string) : boolean {
+    return fundingSource === FUNDING.VENMO  && 
+        !isIos() && 
+        !isAndroid(); 
 }
