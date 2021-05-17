@@ -19,13 +19,8 @@ function setupApplePay() : ZalgoPromise<void> {
     return ZalgoPromise.resolve();
 }
 
-function isApplePayEligible({ props, serviceData } : IsEligibleOptions) : boolean {
-    const { branded, createBillingAgreement, createSubscription, onShippingChange } = props;
+function isApplePayEligible({ serviceData } : IsEligibleOptions) : boolean {
     const { fundingEligibility } = serviceData;
-
-    if (branded || createBillingAgreement || createSubscription || !onShippingChange) {
-        return false;
-    }
 
     return fundingEligibility &&
            fundingEligibility[FUNDING.APPLEPAY] &&
