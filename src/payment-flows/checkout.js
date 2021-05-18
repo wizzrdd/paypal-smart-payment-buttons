@@ -226,6 +226,9 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
         throw new Error(`Checkout already rendered`);
     }
 
+    console.log('x- payment-flows/checkout.js/initCheckout ');
+    debugger;
+
     const { Checkout } = components;
     const { sessionID, buttonSessionID, createOrder, onApprove, onCancel,
         onShippingChange, locale, commit, onError, vault, clientAccessToken,
@@ -245,6 +248,10 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     let forceClosed = false;
 
     const init = () => {
+        console.log('x- payment-flows/checkout.js/initCheckout-> init');
+        debugger;
+    
+        
         nativeFakeoutExperiment.log('web_checkout_start');
         
         return Checkout({
@@ -390,6 +397,8 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     let instance;
 
     const close = () => {
+        console.log('x- payment-flows/checkout.js/initCheckout-> close');
+        debugger;
         checkoutOpen = false;
         return ZalgoPromise.try(() => {
             if (instance) {
@@ -400,21 +409,42 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     };
 
     const start = memoize(() => {
-        instance = init();
-        return instance.renderTo(getRenderWindow(), TARGET_ELEMENT.BODY, context).catch(err => {
-            if (checkoutOpen) {
-                throw err;
-            }
-        });
+        console.log('x- payment-flows/checkout.js/initCheckout-> start');
+        debugger;
+/*
+        if (payment.fundingSource === FUNDING.VENMO) {
+            const { QRCode } = components;
+            const testURL = 'https://appswitch.url?query=params';
+            const QRCodeModal = QRCode({cspNonce: cspNonce, qrPath: testURL})
+            return QRCodeModal.renderTo(window.xprops.getParent(), TARGET_ELEMENT.BODY);
+        } else {
+*/            
+            instance = init();
+            return instance.renderTo(getRenderWindow(), TARGET_ELEMENT.BODY, context).catch(err => {
+                if (checkoutOpen) {
+                    throw err;
+                }
+            });
+
+
+//        }
+
+
+
     });
 
     const restart = memoize(() : ZalgoPromise<void> => {
+        console.log('x- payment-flows/checkout.js/initCheckout-> restart');
+        debugger;
         return initCheckout({ props, components, serviceData, config, payment: { button, fundingSource, card, buyerIntent, isClick: false } })
             .start().finally(unresolvedPromise);
     });
 
     const click = () => {
-        if (!win && supportsPopups()) {
+        console.log('x- payment-flows/checkout.js/initCheckout-> click');
+        debugger;
+
+        if (!isVenmoDesktopPay(fundingSource) && !win && supportsPopups()) {
             try {
                 win = openPopup({ width: CHECKOUT_POPUP_DIMENSIONS.WIDTH, height: CHECKOUT_POPUP_DIMENSIONS.HEIGHT });
             } catch (err) {

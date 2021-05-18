@@ -283,6 +283,8 @@ function isNativePaymentEligible({ payment, props } : IsPaymentEligibleOptions) 
 }
 
 function setupNative({ props, serviceData } : SetupOptions) : ZalgoPromise<void> {
+    console.log('x- payment-flows/native.js/setupNative');
+    debugger;
     return ZalgoPromise.try(() => {
         const { getPageUrl, clientID, onShippingChange, currency, platform, env,
             vault, buttonSessionID, enableFunding, stickinessID: defaultStickinessID, merchantDomain } = props;
@@ -435,6 +437,9 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
 
     const shippingCallbackEnabled = Boolean(onShippingChange);
     sdkMeta = sdkMeta.replace(/[=]+$/, '');
+
+    console.log('x- payment-flows/native.js/initNative');
+    debugger;
 
     if (!firebaseConfig) {
         throw new Error(`Can not run native flow without firebase config`);
@@ -822,6 +827,8 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     });
 
     const initDirectAppSwitch = ({ sessionUID } : {| sessionUID : string |}) => {
+        console.log('x- payment-flows/native.js/initNative -> initDirectAppSwitch');
+        debugger;
         const nativeUrl = getDirectNativeUrl({ sessionUID });
         const nativeWin = popup(nativeUrl);
 
@@ -897,6 +904,8 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     };
 
     const initPopupAppSwitch = ({ sessionUID } : {| sessionUID : string |}) => {
+        console.log('x- payment-flows/native.js/initNative -> initPopupAppSwitch');
+        debugger;
         let redirected = false;
         const popupWin = popup(getNativePopupUrl());
 
@@ -1142,6 +1151,9 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     };
 
     const click = () => {
+        console.log('x- payment-flows/native.js/initNative -> click');
+        debugger;
+        /*
         return ZalgoPromise.try(() => {
             const sessionUID = uniqueID();
 
@@ -1161,6 +1173,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                 throw err;
             });
         });
+        */
     };
 
     const start = promiseNoop;
