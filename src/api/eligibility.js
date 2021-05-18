@@ -171,6 +171,8 @@ type ValidateMerchantOptions = {|
 |};
 
 export function getApplePayMerchantSession({ url, clientID, orderID, merchantDomain } : ValidateMerchantOptions) : ZalgoPromise<ApplePaySession> {
+    const domain = merchantDomain.indexOf('://') !== -1 ? merchantDomain.split('://')[1] : merchantDomain;
+
     return callGraphQL({
         name:  'GetApplePayMerchantSession',
         query: `
@@ -191,7 +193,7 @@ export function getApplePayMerchantSession({ url, clientID, orderID, merchantDom
             }
         `,
         variables: {
-            url, clientID, orderID, merchantDomain
+            url, clientID, orderID, merchantDomain: domain
         }
     }).then((gqlResult) => {
         if (!gqlResult || !gqlResult.applePayMerchantSession) {

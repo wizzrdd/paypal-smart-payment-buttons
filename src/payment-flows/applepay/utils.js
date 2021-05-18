@@ -1,3 +1,4 @@
+/* eslint-disable no-new */
 /* @flow */
 
 import { COUNTRY } from '@paypal/sdk-constants/src';
@@ -92,6 +93,7 @@ function getMerchantCapabilities(supportedNetworks : $ReadOnlyArray<ApplePaySupp
     const merchantCapabilities : Array<ApplePayMerchantCapabilities> = [];
     merchantCapabilities.push('supports3DS');
     merchantCapabilities.push('supportsCredit');
+    merchantCapabilities.push('supportsDebit');
 
     if (supportedNetworks && supportedNetworks.indexOf('chinaUnionPay') !== -1) {
         merchantCapabilities.push('supportsEMV');
@@ -184,36 +186,34 @@ export function isJSON(json : Object) : boolean {
     }
 }
 
-export function validateShippingContact(contact : ApplePayPaymentContact) : {| errors : $ReadOnlyArray<ApplePayError>, shipping_address : Shipping_Address |} {
-    const errors = [];
-
+export function validateShippingContact(contact : ApplePayPaymentContact) : {| shipping_address : Shipping_Address |} {
     if (!contact.addressLines || !contact.addressLines.length) {
-        errors.push(new window.ApplePayError('addressInvalid', 'addressLines', 'Address is invalid'));
+        new window.ApplePayError('shippingContactInvalid', 'addressLines', 'Address is invalid');
     }
     
     if (!contact.locality) {
-        errors.push(new window.ApplePayError('cityInvalid', 'locality', 'City is invalid'));
+        new window.ApplePayError('shippingContactInvalid', 'locality', 'City is invalid');
     }
 
     if (!contact.administrativeArea) {
-        errors.push(new window.ApplePayError('stateInvalid', 'administrativeArea', 'State is invalid'));
+        new window.ApplePayError('shippingContactInvalid', 'administrativeArea', 'State is invalid');
     }
 
     if (!contact.countryCode) {
-        errors.push(new window.ApplePayError('countryCodeInvalid', 'countryCode', 'Country code is invalid'));
+        new window.ApplePayError('shippingContactInvalid', 'countryCode', 'Country code is invalid');
     }
 
     if (!contact.postalCode) {
-        errors.push(new window.ApplePayError('postalCodeInvalid', 'postalCode', 'Postal code is invalid'));
+        new window.ApplePayError('shippingContactInvalid', 'postalCode', 'Postal code is invalid');
     }
 
     const shipping_address = {
         city:         contact.locality,
         state:        contact.administrativeArea,
-        country_code: contact.countryCode,
+        country_code: contact.countryCode && contact.countryCode.toUpperCase(),
         postal_code:  contact.postalCode
     };
 
     // $FlowFixMe
-    return { errors, shipping_address };
+    return { shipping_address };
 }
