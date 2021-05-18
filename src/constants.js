@@ -204,7 +204,7 @@ export const USER_ACTION = {
 
 export const UPGRADE_LSAT_RAMP = {
     EXP_NAME: 'UPGRADE_LSAT_EXPERIMENT',
-    RAMP:      10
+    RAMP:      100
 };
 
 export const FRAME_NAME = {
@@ -214,3 +214,5 @@ export const FRAME_NAME = {
 export const AMPLITUDE_KEY = {
     USER_ID: 'user_id'
 };
+
+export const VENMO_BLUE : string = '#3D93CE';
