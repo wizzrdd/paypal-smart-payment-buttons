@@ -117,7 +117,7 @@ function initApplePay({ props, payment, serviceData } : InitOptions) : PaymentFl
             };
 
             // $FlowFixMe
-            return onShippingChange({ ...data, facilitatorAccessToken, partnerAttributionID, upgradeLSAT: true }, actions)
+            return onShippingChange({ ...data, facilitatorAccessToken, partnerAttributionID, forceRestAPI: true }, actions)
                 .then(() => {
                     currentShippingContact = shippingContact;
 
@@ -317,7 +317,6 @@ function initApplePay({ props, payment, serviceData } : InitOptions) : PaymentFl
                             // patch updated shipping contact information
                             onShippingChangeCallback<ApplePayShippingContactUpdate>({ orderID, shippingContact, shippingMethod: currentShippingMethod })
                                 .then(update => {
-                                    console.log(`Shipping update: ${JSON.stringify(update)}`);
                                     completeShippingContactSelection(update);
                                 })
                                 .catch(err => {

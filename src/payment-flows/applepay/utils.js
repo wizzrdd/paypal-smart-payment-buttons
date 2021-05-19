@@ -1,10 +1,11 @@
+// eslint-disable-next-line eslint-comments/disable-enable-pair
 /* eslint-disable no-new */
 /* @flow */
 
 import { COUNTRY } from '@paypal/sdk-constants/src';
 
 import { type DetailedOrderInfo } from '../../api';
-import type { ApplePayError, ApplePayPaymentContact, ApplePayMerchantCapabilities, ApplePayPaymentRequest, ApplePaySupportedNetworks, ApplePayShippingMethod, ShippingAddress, ShippingMethod, Shipping_Address } from '../types';
+import type { ApplePayPaymentContact, ApplePayMerchantCapabilities, ApplePayPaymentRequest, ApplePaySupportedNetworks, ApplePayShippingMethod, ShippingAddress, ShippingMethod, Shipping_Address } from '../types';
 
 type ValidNetworks = {|
     discover : ApplePaySupportedNetworks,
