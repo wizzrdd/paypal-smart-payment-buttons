@@ -70,7 +70,7 @@ type GetNativeUrlOptions = {|
 
 type NativeUrlQuery = {|
     channel : string,
-    sdkMeta : string,
+    sdkMeta? : string,
     sessionUID : string,
     orderID : string,
     facilitatorAccessToken : string,
