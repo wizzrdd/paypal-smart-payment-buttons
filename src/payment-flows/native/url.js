@@ -69,7 +69,7 @@ type GetNativeUrlOptions = {|
 |};
 
 type NativeUrlQuery = {|
-    sdkMeta : string,
+    sdkMeta? : string,
     sessionUID : string,
     orderID : string,
     facilitatorAccessToken : string,
