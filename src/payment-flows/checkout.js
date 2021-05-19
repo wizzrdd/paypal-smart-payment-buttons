@@ -35,6 +35,9 @@ function getRenderWindow() : Object {
 }
 
 function setupCheckout({ components } : SetupOptions) : ZalgoPromise<void> {
+    console.log('x- payment-flows/checkout.js/setupCheckout');
+    debugger;
+
     const { Checkout } = components;
 
     checkoutOpen = false;
@@ -402,24 +405,37 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     const start = memoize(() => {
         console.log('x- payment-flows/checkout.js/initCheckout-> start');
         debugger;
-/*
-        if (payment.fundingSource === FUNDING.VENMO) {
-            const { QRCode } = components;
-            const testURL = 'https://appswitch.url?query=params';
-            const QRCodeModal = QRCode({cspNonce: cspNonce, qrPath: testURL})
-            return QRCodeModal.renderTo(window.xprops.getParent(), TARGET_ELEMENT.BODY);
-        } else {
-*/            
+
+                
             instance = init();
-            return instance.renderTo(getRenderWindow(), TARGET_ELEMENT.BODY, context).catch(err => {
+            console.log(context);
+            debugger;
+            return instance.renderTo(
+                isVenmoDesktopPay(fundingSource) ? window.xprops.getParent() : getRenderWindow(),
+                TARGET_ELEMENT.BODY,
+                isVenmoDesktopPay(fundingSource) ? CONTEXT.IFRAME : context
+            ).catch(err => {
                 if (checkoutOpen) {
                     throw err;
                 }
             });
 
 
-//        }
-
+/*
+        if ( isVenmoDesktopPay(fundingSource) ){
+            const { QRCode } = components;
+            const testURL = 'https://appswitch.url?query=params';
+            const QRCodeModal = QRCode({cspNonce: cspNonce, qrPath: testURL})
+            return QRCodeModal.renderTo(window.xprops.getParent(), TARGET_ELEMENT.BODY);
+        } else {
+            instance = init();
+            return instance.renderTo(getRenderWindow(), TARGET_ELEMENT.BODY, context).catch(err => {
+                if (checkoutOpen) {
+                    throw err;
+                }
+            });
+       }
+*/
 
 
     });
@@ -436,6 +452,8 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
         debugger;
 
         if (!isVenmoDesktopPay(fundingSource) && !win && supportsPopups()) {
+            console.log('x- isVenmoDesktopPay: '+ isVenmoDesktopPay(fundingSource).toString());
+            debugger;
             try {
                 win = openPopup({ width: CHECKOUT_POPUP_DIMENSIONS.WIDTH, height: CHECKOUT_POPUP_DIMENSIONS.HEIGHT });
             } catch (err) {
