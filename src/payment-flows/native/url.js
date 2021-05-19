@@ -97,9 +97,10 @@ function getNativeUrlQueryParams({ props, serviceData, fundingSource, sessionUID
     const webCheckoutUrl = getWebCheckoutUrl({ orderID, props, fundingSource, facilitatorAccessToken });
     const userAgent = getUserAgent();
     const forceEligible = isNativeOptedIn({ props });
+    const removeSdkMetaFromVenmo = fundingSource === FUNDING.VENMO ? {} : { sdkMeta };
 
     return {
-        sdkMeta,
+        ...removeSdkMetaFromVenmo,
         sessionUID,
         orderID,
         facilitatorAccessToken,
