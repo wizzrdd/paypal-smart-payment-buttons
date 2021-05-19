@@ -1762,10 +1762,6 @@ describe('native ios cases', () => {
 
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
 
-                        if (!redirectQuery.sdkMeta) {
-                            throw new Error(`Expected sdkMeta to be passed in url`);
-                        }
-
                         if (!redirectQuery.sessionUID) {
                             throw new Error(`Expected sessionUID to be passed in url`);
                         }
@@ -3782,10 +3778,6 @@ describe('native chrome cases', () => {
                         }
 
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
-
-                        if (!redirectQuery.sdkMeta) {
-                            throw new Error(`Expected sdkMeta to be passed in url`);
-                        }
 
                         if (!redirectQuery.sessionUID) {
                             throw new Error(`Expected sessionUID to be passed in url`);
