@@ -132,7 +132,7 @@ function getNativeUrlQueryParams({ props, serviceData, fundingSource, sessionUID
 export function getNativeUrl({ props, serviceData, fundingSource, firebaseConfig, sessionUID, pageUrl, orderID, stickinessID } : GetNativeUrlOptions) : string {
     const queryParams = getNativeUrlQueryParams({ props, serviceData, fundingSource, sessionUID, firebaseConfig, pageUrl, orderID, stickinessID });
     
-    if (queryParams.channel === 'desktop-web') {
+    if (queryParams.channel === CHANNEL.DESKTOP) {
         delete queryParams.sdkMeta;
     }
 
