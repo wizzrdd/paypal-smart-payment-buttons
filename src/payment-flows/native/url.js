@@ -137,7 +137,7 @@ function getNativeUrlQueryParams({ props, serviceData, fundingSource, sessionUID
 
 export function getNativeUrl({ props, serviceData, fundingSource, firebaseConfig, sessionUID, pageUrl, orderID, stickinessID } : GetNativeUrlOptions) : string {
     const queryParams = getNativeUrlQueryParams({ props, serviceData, fundingSource, sessionUID, firebaseConfig, pageUrl, orderID, stickinessID });
-
+    
     return extendUrl(`${ getNativeDomain({ props }) }${ NATIVE_CHECKOUT_URI[fundingSource] }`, {
         // $FlowFixMe
         query: queryParams
