@@ -105,7 +105,7 @@ function getNativeUrlQueryParams({ props, serviceData, fundingSource, sessionUID
     const forceEligible = isNativeOptedIn({ props });
     const channel = isDevice() ? CHANNEL.MOBILE : CHANNEL.DESKTOP;
 
-    return {
+    const queryParams = {
         channel,
         sdkMeta,
         sessionUID,
@@ -127,14 +127,16 @@ function getNativeUrlQueryParams({ props, serviceData, fundingSource, sessionUID
         domain:         merchantDomain,
         rtdbInstanceID: firebaseConfig.databaseURL
     };
+
+    if (queryParams.channel === CHANNEL.DESKTOP) {
+        delete queryParams.sdkMeta;
+    }
+
+    return queryParams;
 }
 
 export function getNativeUrl({ props, serviceData, fundingSource, firebaseConfig, sessionUID, pageUrl, orderID, stickinessID } : GetNativeUrlOptions) : string {
     const queryParams = getNativeUrlQueryParams({ props, serviceData, fundingSource, sessionUID, firebaseConfig, pageUrl, orderID, stickinessID });
-    
-    if (queryParams.channel === CHANNEL.DESKTOP) {
-        delete queryParams.sdkMeta;
-    }
 
     return extendUrl(`${ getNativeDomain({ props }) }${ NATIVE_CHECKOUT_URI[fundingSource] }`, {
         // $FlowFixMe
