@@ -9,7 +9,7 @@ import type { ProxyWindow, ConnectOptions } from '../types';
 import { type CreateBillingAgreement, type CreateSubscription } from '../props';
 import { enableVault, exchangeAccessTokenForAuthCode, getConnectURL, getFundingEligibility, updateButtonClientConfig, getSmartWallet  } from '../api';
 import { CONTEXT, TARGET_ELEMENT, BUYER_INTENT, FPTI_TRANSITION, FPTI_CONTEXT_TYPE } from '../constants';
-import { unresolvedPromise, getLogger, isVenmoDesktopPay } from '../lib';
+import { unresolvedPromise, getLogger, canUseVenmoDesktopPay } from '../lib';
 import { openPopup } from '../ui';
 import { FUNDING_SKIP_LOGIN } from '../config';
 
@@ -411,9 +411,9 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
             console.log(context);
             debugger;
             return instance.renderTo(
-                isVenmoDesktopPay(fundingSource) ? window.xprops.getParent() : getRenderWindow(),
+                canUseVenmoDesktopPay(fundingSource) ? window.xprops.getParent() : getRenderWindow(),
                 TARGET_ELEMENT.BODY,
-                isVenmoDesktopPay(fundingSource) ? CONTEXT.IFRAME : context
+                canUseVenmoDesktopPay(fundingSource) ? CONTEXT.IFRAME : context
             ).catch(err => {
                 if (checkoutOpen) {
                     throw err;

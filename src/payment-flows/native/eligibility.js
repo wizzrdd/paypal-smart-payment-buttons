@@ -5,7 +5,7 @@ import { PLATFORM, ENV, FUNDING } from '@paypal/sdk-constants/src';
 import { supportsPopups } from 'belter/src';
 
 import { type NativeEligibility, getNativeEligibility } from '../../api';
-import { isIOSSafari, isAndroidChrome, enableAmplitude } from '../../lib';
+import { isIOSSafari, isAndroidChrome, enableAmplitude, canUseVenmoDesktopPay } from '../../lib';
 import type { ButtonProps, ServiceData } from '../../button/props';
 import type { IsEligibleOptions, IsPaymentEligibleOptions } from '../types';
 
@@ -84,16 +84,23 @@ export function prefetchNativeEligibility({ props, serviceData } : PrefetchNativ
 }
 
 export function isNativeEligible({ props, config, serviceData } : IsEligibleOptions) : boolean {
-
-    const { platform, onShippingChange, createBillingAgreement, createSubscription, env } = props;
+    const { platform, fundingSource, onShippingChange, createBillingAgreement, createSubscription, env, enableFunding } = props;
     const { firebase: firebaseConfig } = config;
     const { merchantID } = serviceData;
 
-    if (platform !== PLATFORM.MOBILE) {
+    const isValidVenmoDesktopPaySituation = canUseVenmoDesktopPay(fundingSource || enableFunding);
+
+    if (platform !== PLATFORM.MOBILE &&        
+        !isIOSSafari() &&
+        !isAndroidChrome() && 
+        !isValidVenmoDesktopPaySituation
+    ) {
         return false;
     }
-
-    if (onShippingChange && !isNativeOptedIn({ props })) {
+    
+    if (onShippingChange &&
+        (!isNativeOptedIn({ props }) && !isValidVenmoDesktopPaySituation)
+    ) {
         return false;
     }
 
@@ -109,15 +116,13 @@ export function isNativeEligible({ props, config, serviceData } : IsEligibleOpti
         return false;
     }
 
-    if (!isIOSSafari() && !isAndroidChrome()) {
-        return false;
-    }
-
     if (isNativeOptedIn({ props })) {
         return true;
     }
 
-    if (env === ENV.LOCAL || env === ENV.STAGE) {
+    if (!isValidVenmoDesktopPaySituation && 
+        (env === ENV.LOCAL || env === ENV.STAGE )    
+    ) {
         return false;
     }
 

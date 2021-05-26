@@ -19,6 +19,8 @@ export type LocaleType = {|
     lang : $Values<typeof LANG>
 |};
 
+export type FundingType = FundingType;
+
 export type ZoidComponentInstance<P> = {|
     render : (string, ?$Values<typeof CONTEXT>) => ZalgoPromise<void>,
     renderTo : (CrossDomainWindowType, string, ?$Values<typeof CONTEXT>) => ZalgoPromise<void>,
@@ -48,7 +50,7 @@ export type CheckoutProps = {|
     onShippingChange : ?({| |}, {| resolve : () => ZalgoPromise<void>, reject : () => ZalgoPromise<void> |}) => ZalgoPromise<void> | void,
     onError : (mixed) => ZalgoPromise<void> | void,
     onClose : () => ZalgoPromise<void> | void,
-    fundingSource : $Values<typeof FUNDING>,
+    fundingSource : FundingType,
     card : ?$Values<typeof CARD>,
     buyerCountry : $Values<typeof COUNTRY>,
     locale : LocaleType,
@@ -56,8 +58,8 @@ export type CheckoutProps = {|
     cspNonce : ?string,
     venmoPayloadID? : ?string,
     clientMetadataID : ?string,
-    enableFunding : ?$ReadOnlyArray<$Values<typeof FUNDING>>,
-    standaloneFundingSource : ?$Values<typeof FUNDING>,
+    enableFunding : ?$ReadOnlyArray<FundingType>,
+    standaloneFundingSource : ?FundingType,
     amplitude? : boolean,
     branded : boolean | null
 |};
@@ -76,7 +78,7 @@ export type CardFieldsProps = {|
     onError : (mixed) => ZalgoPromise<void> | void,
     onClose : () => ZalgoPromise<void> | void,
     onCardTypeChange : ({| card : $Values<typeof CARD> |}) => ZalgoPromise<void> | void,
-    fundingSource : $Values<typeof FUNDING>,
+    fundingSource : FundingType,
     card : ?$Values<typeof CARD>,
     buyerCountry : $Values<typeof COUNTRY>,
     locale : LocaleType,
@@ -180,7 +182,7 @@ export type ConnectOptions = {|
 
 export type SmartFields = {|
     name : string,
-    fundingSource : $Values<typeof FUNDING>,
+    fundingSource : FundingType,
     isValid : () => boolean
 |};
 

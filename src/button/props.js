@@ -5,7 +5,7 @@ import { ENV, INTENT, COUNTRY, FUNDING, CARD, PLATFORM, CURRENCY, type FundingEl
 import { ZalgoPromise } from 'zalgo-promise/src';
 import type { InstallmentsFlowType } from '@paypal/installments/src/types';
 
-import type { ContentType, LocaleType, ProxyWindow, Wallet, CheckoutFlowType, CardFieldsFlowType,
+import type {  FundingType, ContentType, LocaleType, ProxyWindow, Wallet, CheckoutFlowType, CardFieldsFlowType,
     ThreeDomainSecureFlowType, MenuFlowType, ConnectOptions, PersonalizationType, QRCodeType } from '../types';
 import type { CreateOrder, XCreateOrder, CreateBillingAgreement, XCreateBillingAgreement, OnInit,
     XOnInit, OnApprove, XOnApprove, OnCancel, XOnCancel, OnClick, XOnClick, OnShippingChange, XOnShippingChange, XOnError,
@@ -29,7 +29,7 @@ export const TYPES = true;
 
 export type PrerenderDetailsType = {|
     win ? : ? ProxyWindow,
-    fundingSource : $Values<typeof FUNDING>,
+    fundingSource : FundingType,
     card ? : ? $Values<typeof CARD>
 |};
 
@@ -78,9 +78,9 @@ export type ButtonXProps = {|
     getPageUrl : GetPageURL,
     getParent : () => CrossDomainWindowType,
     clientMetadataID : ?string,
-    fundingSource : ?$Values<typeof FUNDING>,
-    disableFunding : ?$ReadOnlyArray<$Values<typeof FUNDING>>,
-    enableFunding : ?$ReadOnlyArray<$Values<typeof FUNDING>>,
+    fundingSource : ?FundingType,
+    disableFunding : ?$ReadOnlyArray<FundingType>,
+    enableFunding : ?$ReadOnlyArray<FundingType>,
     disableCard : ?$ReadOnlyArray<$Values<typeof CARD>>,
     getQueriedEligibleFunding? : GetQueriedEligibleFunding,
     storageID? : string,
@@ -136,10 +136,10 @@ export type ButtonProps = {|
     merchantDomain : string,
     getPageUrl : GetPageURL,
     getParent : () => CrossDomainWindowType,
-    fundingSource : ?$Values<typeof FUNDING>,
-    standaloneFundingSource : ?$Values<typeof FUNDING>,
-    disableFunding : $ReadOnlyArray<$Values<typeof FUNDING>>,
-    enableFunding : $ReadOnlyArray<$Values<typeof FUNDING>>,
+    fundingSource : ?FundingType,
+    standaloneFundingSource : ?FundingType,
+    disableFunding : $ReadOnlyArray<FundingType>,
+    enableFunding : $ReadOnlyArray<FundingType>,
     disableCard : ?$ReadOnlyArray<$Values<typeof CARD>>,
     getQueriedEligibleFunding : GetQueriedEligibleFunding,
 
