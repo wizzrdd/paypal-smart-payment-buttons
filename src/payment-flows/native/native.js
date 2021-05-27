@@ -278,9 +278,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     };
 
     const initPopupAppSwitch = ({ sessionUID } : {| sessionUID : string |}) => {
-        console.log('x- payment-flows/native.js/initNative -> initPopupAppSwitch ');
-        debugger;
-        
+        console.log('x- payment-flows/native.js/initNative -> initPopupAppSwitch ');        
 
         if (isVenmoDesktopPay) {
             
@@ -302,8 +300,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                         [FPTI_KEY.STATE]:       FPTI_STATE.BUTTON,
                         [FPTI_KEY.TRANSITION]:  event ? `${ FPTI_TRANSITION.VENMO_DESKTOP_PAY_CLOSING_QR }_${ event }` : FPTI_TRANSITION.VENMO_DESKTOP_PAY_CLOSING_QR
                     }).flush();
-                    // closeListener.cancel();
-                    // nativePopupWin.close();
                     QRCodeComponentInstance.close();
                 };
 
@@ -360,24 +356,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                 clean.register(connection.cancel);
             
                 connection.setProps();
-
-                    
-                // return {cancel, close }
-                //                };
-
-                // const qrCode = openQRCode({
-                //     props, serviceData, config, fundingSource, sessionUID, QRCode,
-                //     callbacks: {
-                //         onDetectAppSwitch: () => detectAppSwitch({ sessionUID }).then(resolve, reject),
-                //         onApprove:         (data)=>{ onApproveCallback(data)},
-                //         onCancel:          onCancelCallback,
-                //         onError:           onErrorCallback,
-                //         // onFallback:        onFallbackCallback,
-                //         onClose:           onCloseCallback,
-                //         onDestroy:         destroy
-                //     }
-                // });
-                // clean.register(qrCode.cancel);
             });
         } else {
             return new ZalgoPromise((resolve, reject) => {

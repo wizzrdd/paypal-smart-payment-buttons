@@ -406,7 +406,7 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
                 
         instance = init();
         console.log(context);
-        debugger;
+
         return instance.renderTo(
             getRenderWindow(),
             TARGET_ELEMENT.BODY,
