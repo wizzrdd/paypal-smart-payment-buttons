@@ -407,25 +407,6 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
                 throw err;
             }
         });
-
-
-        /*
-        if ( isVenmoDesktopPay(fundingSource) ){
-            const { QRCode } = components;
-            const testURL = 'https://appswitch.url?query=params';
-            const QRCodeModal = QRCode({cspNonce: cspNonce, qrPath: testURL})
-            return QRCodeModal.renderTo(window.xprops.getParent(), TARGET_ELEMENT.BODY);
-        } else {
-            instance = init();
-            return instance.renderTo(getRenderWindow(), TARGET_ELEMENT.BODY, context).catch(err => {
-                if (checkoutOpen) {
-                    throw err;
-                }
-            });
-       }
-*/
-
-
     });
 
     const restart = memoize(() : ZalgoPromise<void> => {
@@ -436,9 +417,7 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
 
     const click = () => {
         briceLog('payment-flows/checkout.js/initCheckout-> click');
-
         if (!win && supportsPopups()) {
-            // briceLog(`isVenmoDesktopPay: ${ canUseVenmoDesktopPay(fundingSource).toString() }`, true);
             try {
                 win = openPopup({ width: CHECKOUT_POPUP_DIMENSIONS.WIDTH, height: CHECKOUT_POPUP_DIMENSIONS.HEIGHT });
             } catch (err) {
@@ -470,7 +449,6 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
 }
 
 function updateCheckoutClientConfig({ orderID, payment, userExperienceFlow }) : ZalgoPromise<void> {
-    
     return ZalgoPromise.try(() => {
         const { buyerIntent, fundingSource } = payment;
         const updateClientConfigPromise = updateButtonClientConfig({ fundingSource, orderID, inline: false, userExperienceFlow });

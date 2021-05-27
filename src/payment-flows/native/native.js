@@ -28,8 +28,6 @@ function setupNative({ props, serviceData } : SetupOptions) : ZalgoPromise<void>
 
 function initNative({ props, components, config, payment, serviceData } : InitOptions) : PaymentFlowInstance {
     briceLog('payment-flows/native.js/initNative');
-
-
     const { onApprove, onCancel, onError,
         buttonSessionID, onShippingChange } = props;
     const { fundingSource } = payment;
@@ -67,6 +65,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
 
     const onApproveCallback = ({ data: { payerID, paymentID, billingToken } }) => {
         approved = true;
+
         getLogger().info(`native_message_onapprove`, { payerID, paymentID, billingToken })
             .track({
                 [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_ON_APPROVE,
@@ -127,7 +126,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
 
     const onShippingChangeCallback = ({ data } : {| data : OnShippingChangeData |}) => {
         return ZalgoPromise.try(() => {
-            
             getLogger().info(`native_message_onshippingchange`)
                 .track({
                     [FPTI_KEY.TRANSITION]:  FPTI_TRANSITION.NATIVE_ON_SHIPPING_CHANGE
@@ -333,6 +331,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         });
         clean.register(connection.cancel);
     };
+
     const initPopupAppSwitch = ({ sessionUID } : {| sessionUID : string |}) => {
         briceLog('payment-flows/native.js/initNative -> initPopupAppSwitch ');
         return new ZalgoPromise((resolve, reject) => {
