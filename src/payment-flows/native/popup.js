@@ -136,7 +136,7 @@ type NativePopupOptions = {|
             buttonSessionID : string
         |}>,
         onClose : () => ZalgoPromise<void>,
-        onDestroy : () => ZalgoPromise<void>,
+        onDestroy : () => ZalgoPromise<void>
     |}
 |};
 

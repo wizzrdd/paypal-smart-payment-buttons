@@ -67,9 +67,9 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
 
     const onApproveCallback = ({ data: { payerID, paymentID, billingToken } }) => {
         approved = true;
-        getLogger().info(`${ isVenmoDesktopPay ? 'venmo_desktop' : 'native' }_message_onapprove`, { payerID, paymentID, billingToken })
+        getLogger().info(`native_message_onapprove`, { payerID, paymentID, billingToken })
             .track({
-                [FPTI_KEY.TRANSITION]:      isVenmoDesktopPay ? FPTI_TRANSITION.VENMO_DESKTOP_PAY_ON_APPROVE : FPTI_TRANSITION.NATIVE_ON_APPROVE,
+                [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_ON_APPROVE,
                 [FPTI_CUSTOM_KEY.INFO_MSG]: `payerID: ${ payerID }, paymentID: ${ paymentID || 'undefined' }, billingToken: ${ billingToken || 'undefined' }`
             })
             .flush();
@@ -78,9 +78,9 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         const actions = { restart: () => fallbackToWebCheckout() };
         return ZalgoPromise.all([
             onApprove(data, actions).catch(err => {
-                getLogger().info(`${ isVenmoDesktopPay ? 'venmo_desktop' : 'native' }_message_onapprove_error`, { payerID, paymentID, billingToken })
+                getLogger().info(`native_message_onapprove_error`, { payerID, paymentID, billingToken })
                     .track({
-                        [FPTI_KEY.TRANSITION]:      isVenmoDesktopPay ? FPTI_TRANSITION.VENMO_DESKTOP_PAY_ON_APPROVE : FPTI_TRANSITION.NATIVE_ON_APPROVE_ERROR,
+                        [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_ON_APPROVE_ERROR,
                         [FPTI_CUSTOM_KEY.INFO_MSG]: `Error: ${ stringifyError(err) }`
                     })
                     .flush();
@@ -95,9 +95,9 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     const onCancelCallback = () => {
         briceLog('payment-flows/native.js/initNative -> onCancelCallback');
         cancelled = true;
-        getLogger().info(`${ isVenmoDesktopPay ? 'venmo_desktop' : 'native' }_message_oncancel`)
+        getLogger().info(`native_message_oncancel`)
             .track({
-                [FPTI_KEY.TRANSITION]:  isVenmoDesktopPay ? FPTI_TRANSITION.VENMO_DESKTOP_PAY_ON_CANCEL : FPTI_TRANSITION.NATIVE_ON_CANCEL
+                [FPTI_KEY.TRANSITION]:  FPTI_TRANSITION.NATIVE_ON_CANCEL
             })
             .flush();
 
@@ -111,9 +111,9 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
 
     const onErrorCallback = ({ data : { message } } : {| data : {| message : string |} |}) => {
         briceLog('payment-flows/native.js/initNative -> onErrorCallback');
-        getLogger().info(`${ isVenmoDesktopPay ? 'venmo_desktop' : 'native' }_message_onerror`, { err: message })
+        getLogger().info(`native_message_onerror`, { err: message })
             .track({
-                [FPTI_KEY.TRANSITION]:       isVenmoDesktopPay ? FPTI_TRANSITION.VENMO_DESKTOP_PAY_ON_ERROR : FPTI_TRANSITION.NATIVE_ON_ERROR,
+                [FPTI_KEY.TRANSITION]:       FPTI_TRANSITION.NATIVE_ON_ERROR,
                 [FPTI_CUSTOM_KEY.INFO_MSG]: `Error message: ${ message }`
             }).flush();
 
@@ -128,9 +128,9 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     const onShippingChangeCallback = ({ data } : {| data : OnShippingChangeData |}) => {
         return ZalgoPromise.try(() => {
             
-            getLogger().info(`${ isVenmoDesktopPay ? 'venmo_desktop' : 'native' }_message_onshippingchange`)
+            getLogger().info(`native_message_onshippingchange`)
                 .track({
-                    [FPTI_KEY.TRANSITION]:  isVenmoDesktopPay ? FPTI_TRANSITION.VENMO_DESKTOP_PAY_ON_SHIPPING_CHANGE : FPTI_TRANSITION.NATIVE_ON_SHIPPING_CHANGE
+                    [FPTI_KEY.TRANSITION]:  FPTI_TRANSITION.NATIVE_ON_SHIPPING_CHANGE
                 }).flush();
 
             if (onShippingChange) {
@@ -162,9 +162,9 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
 
     const onFallbackCallback = () => {
         return ZalgoPromise.try(() => {
-            getLogger().info(`${ isVenmoDesktopPay ? 'venmo_desktop' : 'native' }_message_onfallback`)
+            getLogger().info(`native_message_onfallback`)
                 .track({
-                    [FPTI_KEY.TRANSITION]: isVenmoDesktopPay ? FPTI_TRANSITION.VENMO_DESKTOP_PAY_ON_FALLBACK : FPTI_TRANSITION.NATIVE_ON_FALLBACK
+                    [FPTI_KEY.TRANSITION]:  FPTI_TRANSITION.NATIVE_ON_FALLBACK
                 }).flush();
             fallbackToWebCheckout();
             return { buttonSessionID };
