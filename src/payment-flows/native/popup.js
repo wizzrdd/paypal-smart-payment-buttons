@@ -105,6 +105,9 @@ type NativePopupOptions = {|
     fundingSource : $Values<typeof FUNDING>,
     sessionUID : string,
     callbacks : {|
+        onDetectWebSwitch : ({|
+            win : CrossDomainWindowType
+        |}) => ZalgoPromise<void>,
         onDetectAppSwitch : ({|
             sessionUID : string
         |}) => ZalgoPromise<void>,
@@ -127,16 +130,13 @@ type NativePopupOptions = {|
         |}) => ZalgoPromise<{|
             buttonSessionID : string
         |}>,
-        onClose : () => ZalgoPromise<void>,
-        onDestroy : () => ZalgoPromise<void>,
-        onDetectWebSwitch : ({|
-            win : CrossDomainWindowType
-        |}) => ZalgoPromise<void>,
         onFallback : ({|
             win : CrossDomainWindowType
         |}) => ZalgoPromise<{|
             buttonSessionID : string
-        |}>
+        |}>,
+        onClose : () => ZalgoPromise<void>,
+        onDestroy : () => ZalgoPromise<void>,
     |}
 |};
 

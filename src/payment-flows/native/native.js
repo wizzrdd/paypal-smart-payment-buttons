@@ -361,23 +361,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         return ZalgoPromise.try(() => {
             const sessionUID = uniqueID();
             return isVenmoDesktopPay ? initQRCode({ sessionUID }) : initPopupAppSwitch({ sessionUID });
-
-            /*
-            if (isVenmoDesktopPay){
-                const { QRCode } = components;
-                const { cspNonce } = config;
-                const testURL = 'https://appswitch.url?query=params';
-                const QRCodeModal = QRCode({cspNonce: cspNonce, qrPath: testURL})
-                return QRCodeModal.renderTo(window.xprops.getParent(), TARGET_ELEMENT.BODY);
-                
-                //window.xprops.getParent()
-
-            } else {
-                return initPopupAppSwitch({ sessionUID });
-            }
-            */
-
-            
         }).catch(err => {
             return destroy().then(() => {
                 getLogger().error(`native_error`, { err: stringifyError(err) }).track({
