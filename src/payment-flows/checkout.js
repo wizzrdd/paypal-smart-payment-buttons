@@ -401,22 +401,13 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
 
     const start = memoize(() => {
         console.log('x- payment-flows/checkout.js/initCheckout-> start');
-        debugger;
+        // debugger;
 
                 
         instance = init();
         console.log(context);
 
-        return instance.renderTo(
-            getRenderWindow(),
-            TARGET_ELEMENT.BODY,
-            context
-            /*
-                canUseVenmoDesktopPay(fundingSource) ? window.xprops.getParent() : getRenderWindow(),
-                TARGET_ELEMENT.BODY,
-                canUseVenmoDesktopPay(fundingSource) ? CONTEXT.IFRAME : context
-                */
-        ).catch(err => {
+        return instance.renderTo(getRenderWindow(), TARGET_ELEMENT.BODY, context).catch(err => {
             if (checkoutOpen) {
                 throw err;
             }
@@ -444,14 +435,14 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
 
     const restart = memoize(() : ZalgoPromise<void> => {
         console.log('x- payment-flows/checkout.js/initCheckout-> restart');
-        debugger;
+        // debugger;
         return initCheckout({ props, components, serviceData, config, payment: { button, fundingSource, card, buyerIntent, isClick: false } })
             .start().finally(unresolvedPromise);
     });
 
     const click = () => {
         console.log('x- payment-flows/checkout.js/initCheckout-> click');
-        debugger;
+        // debugger;
 
         if (!canUseVenmoDesktopPay(fundingSource) && !win && supportsPopups()) {
             console.log(`x- isVenmoDesktopPay: ${ canUseVenmoDesktopPay(fundingSource).toString() }`);
