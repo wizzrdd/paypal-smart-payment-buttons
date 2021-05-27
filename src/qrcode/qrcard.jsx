@@ -8,10 +8,18 @@ import { getBody } from '../lib';
 
 import { type NodeType, InstructionIcon, Logo, VenmoMark, AuthMark, cardStyle, DemoWrapper, DemoControls } from './components';
 
+const QRCODE_STATE = {
+    ERROR:      'error',
+    SCANNED:    'scanned',
+    AUTHORIZED: 'authorized'
+};
+
 type QRCardProps = {|
     cspNonce : ?string,
     svgString : string,
-    demo : boolean
+    demo : boolean,
+    state : ?$Values<typeof QRCODE_STATE>,
+    errorText : ?string
 |};
 
 function ErrorMessage({
@@ -38,15 +46,18 @@ function QRCodeElement({ svgString } : {| svgString : string |}) : NodeType {
 function QRCard({
     cspNonce,
     svgString,
-    demo
+    demo,
+    state,
+    errorText
 } : QRCardProps) : NodeType {
-    const [ processState, setProcessState ] = useState(null);
-    const [ errorMessage, setErrorMessage ] = useState(null);
+    const [ processState, setProcessState ] = useState(state||null);
+    const [ errorMessage, setErrorMessage ] = useState(errorText||null);
 
-    const isError = () => processState === 'error';
-    const setState_error = () => setProcessState('error');
-    const setState_scanned = () => setProcessState('scanned');
-    const setState_authorized = () => setProcessState('authorized');
+    const isError = () => processState === QRCODE_STATE.ERROR;
+    const setState_error = () => setProcessState(QRCODE_STATE.ERROR);
+    const setState_scanned = () => setProcessState(QRCODE_STATE.SCANNED);
+    const setState_authorized = () => setProcessState(QRCODE_STATE.AUTHORIZED);
+
     const setState_default = () => setProcessState(null);
 
     return (
@@ -97,11 +108,19 @@ function QRCard({
 type RenderQRCodeOptions = {|
     cspNonce? : string,
     svgString : string,
-    demo? : boolean
+    demo? : boolean,
+    state? : $Values<typeof QRCODE_STATE>,
+    errorText? : string
 |};
 
-export function renderQRCode({ cspNonce = '', svgString, demo = false } : RenderQRCodeOptions) {
-    const PropedCard = <QRCard cspNonce={ cspNonce } svgString={ svgString } demo={ demo } />;
+export function renderQRCode({ cspNonce = '', svgString, demo = false, state = null, errorText = null} : RenderQRCodeOptions) {
+    const PropedCard = <QRCard 
+        cspNonce={ cspNonce } 
+        svgString={ svgString } 
+        demo={ demo }
+        state={ state } 
+        errorText={ null }
+    />;
     render(
         demo ?
             DemoWrapper(PropedCard, cspNonce) :

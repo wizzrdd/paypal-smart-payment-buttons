@@ -291,10 +291,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             return new ZalgoPromise(() => {
                 const url = getNativePopupUrl({ props, serviceData, fundingSource });
                 // const domain = getNativePopupDomain({ props });
-                const QRCodeComponentInstance = QRCode({
-                    cspNonce: config.cspNonce,
-                    qrPath:   url
-                });
                 const closeQRCode = (event : string) => {
                     getLogger().info(`VenmoDesktopPay_qrcode_closing_${ event }`).track({
                         [FPTI_KEY.STATE]:       FPTI_STATE.BUTTON,
@@ -302,6 +298,38 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                     }).flush();
                     QRCodeComponentInstance.close();
                 };
+                const onApproveQR = (data) => {
+                    closeQRCode('onApprove');
+                    return onApproveCallback(data);
+                };
+                const onCancelQR = () => {
+                    closeQRCode('onCancel');
+                    return onCancelCallback();
+                };
+                const onErrorQR = (data) => {
+                    closeQRCode('onError');
+                    return onErrorCallback(data);
+                };
+/*
+                const connection = connectNative({
+                    props, serviceData, config, fundingSource, sessionUID,
+                    callbacks: {
+                        onApprove:        onApproveQR,
+                        onCancel:         onCancelQR,
+                        onError:          onErrorQR,
+                        onFallback:       onFallbackCallback,
+                        onShippingChange: onShippingChangeCallback
+                    }
+                });
+            
+                clean.register(connection.cancel);
+            
+                                    
+*/
+                const QRCodeComponentInstance = QRCode({
+                    cspNonce: config.cspNonce,
+                    qrPath:   url
+                });
 
                 QRCodeComponentInstance.event.on(EVENT.CLOSE, () => {
                     setTimeout(() => {
@@ -324,38 +352,11 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
            
                 //                const detectQRCodeScan = ({ sessionUID } : {| sessionUID : string |}) : ZalgoPromise<void> => {
 
-                const onApproveQR = (data) => {
-                    closeQRCode('onApprove');
-                    return onApproveCallback(data);
-                };
-                const onCancelQR = () => {
-                    closeQRCode('onCancel');
-                    return onCancelCallback();
-                };
-                const onErrorQR = (data) => {
-                    closeQRCode('onError');
-                    return onErrorCallback(data);
-                };
-                    
+
             
                 getLogger().info(`VenmoDesktopPay_qrcode`).track({
                     [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.VENMO_DESKTOP_PAY_DETECT_QR_SCAN
                 }).flush();
-            
-                const connection = connectNative({
-                    props, serviceData, config, fundingSource, sessionUID,
-                    callbacks: {
-                        onApprove:        onApproveQR,
-                        onCancel:         onCancelQR,
-                        onError:          onErrorQR,
-                        onFallback:       onFallbackCallback,
-                        onShippingChange: onShippingChangeCallback
-                    }
-                });
-            
-                clean.register(connection.cancel);
-            
-                connection.setProps();
             });
         } else {
             return new ZalgoPromise((resolve, reject) => {
