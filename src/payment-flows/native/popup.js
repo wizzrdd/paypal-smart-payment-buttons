@@ -2,15 +2,13 @@
 
 import { stringifyError, noop, once } from 'belter/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
-import { EVENT } from 'zoid/src';
 import { FPTI_KEY, FUNDING } from '@paypal/sdk-constants/src';
 import { type CrossDomainWindowType, onCloseWindow } from 'cross-domain-utils/src';
 
 import { getNativeEligibility } from '../../api';
 import { getLogger, isAndroidChrome, unresolvedPromise } from '../../lib';
-import { FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY, TARGET_ELEMENT } from '../../constants';
+import { FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY } from '../../constants';
 import type { ButtonProps, ServiceData, Config } from '../../button/props';
-import type { QRCodeType } from '../../types';
 
 import { isNativeOptedIn } from './eligibility';
 import { getNativeUrl, getNativePopupUrl, getNativeDomain, getNativePopupDomain, getNativeFallbackUrl } from './url';

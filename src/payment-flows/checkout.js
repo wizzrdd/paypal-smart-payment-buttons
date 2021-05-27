@@ -398,7 +398,6 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
 
     const start = memoize(() => {
         briceLog('payment-flows/checkout.js/initCheckout-> start');
-        if (typeof context ==='string') {briceLog('context: ' + context)}
                 
         instance = init();
 
@@ -439,7 +438,7 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
         briceLog('payment-flows/checkout.js/initCheckout-> click');
 
         if (!canUseVenmoDesktopPay(fundingSource) && !win && supportsPopups()) {
-           briceLog(`isVenmoDesktopPay: ${ canUseVenmoDesktopPay(fundingSource).toString() }`, true);
+            briceLog(`isVenmoDesktopPay: ${ canUseVenmoDesktopPay(fundingSource).toString() }`, true);
             try {
                 win = openPopup({ width: CHECKOUT_POPUP_DIMENSIONS.WIDTH, height: CHECKOUT_POPUP_DIMENSIONS.HEIGHT });
             } catch (err) {

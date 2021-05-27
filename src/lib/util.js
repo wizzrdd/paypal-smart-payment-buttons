@@ -141,7 +141,7 @@ export function canUseVenmoDesktopPay(funding : string | $ReadOnlyArray<FundingT
 }
 export function briceLog (str : string, debug? : boolean) {
     // eslint-disable-next-line no-console
-    console.log('x- ' + str);
+    console.log(`x- ${ str }`);
     if (debug) {
         // eslint-disable-next-line no-debugger
         debugger;

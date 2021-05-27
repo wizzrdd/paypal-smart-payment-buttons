@@ -5,19 +5,20 @@ import { uniqueID, memoize, stringifyError,
     stringifyErrorMessage, cleanup, noop } from 'belter/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { FPTI_KEY } from '@paypal/sdk-constants/src';
-import { EVENT } from 'zoid/src';
+// import { EVENT } from 'zoid/src';
 import { type CrossDomainWindowType } from 'cross-domain-utils/src';
 
 import { updateButtonClientConfig } from '../../api';
 import { getLogger, promiseNoop, isAndroidChrome, getStorageState, canUseVenmoDesktopPay, briceLog } from '../../lib';
-import { FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY, TARGET_ELEMENT } from '../../constants';
+// import { FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY, TARGET_ELEMENT } from '../../constants';
+import { FPTI_TRANSITION, FPTI_CUSTOM_KEY, TARGET_ELEMENT } from '../../constants';
 import { type OnShippingChangeData } from '../../props/onShippingChange';
 import { checkout } from '../checkout';
 import type { PaymentFlow, PaymentFlowInstance, SetupOptions, InitOptions } from '../types';
 
 import { isNativeEligible, isNativePaymentEligible, prefetchNativeEligibility } from './eligibility';
 import { openNativePopup } from './popup';
-import { getNativePopupUrl } from './url';
+// import { getNativePopupUrl } from './url';
 import { connectNative } from './socket';
 
 let clean;
@@ -276,8 +277,13 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         getLogger().info(`VenmoDesktopPay_qrcode`).track({
             [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.VENMO_DESKTOP_PAY_QR_SHOWN
         }).flush();
+        const QRCodeComponentInstance = QRCode({
+            cspNonce: config.cspNonce,
+            qrPath:   'url'
+        });
+        QRCodeComponentInstance.renderTo(window.xprops.getParent(), TARGET_ELEMENT.BODY);
         
-        
+        /*
         return new ZalgoPromise(() => {
             const url = getNativePopupUrl({ props, serviceData, fundingSource });
             // const domain = getNativePopupDomain({ props });
@@ -300,7 +306,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                 closeQRCode('onError');
                 return onErrorCallback(data);
             };
-            /*
+            
             const connection = connectNative({
                 props, serviceData, config, fundingSource, sessionUID,
                 callbacks: {
@@ -313,9 +319,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             });
         
             clean.register(connection.cancel);
-        
-                                
-*/
+
             const QRCodeComponentInstance = QRCode({
                 cspNonce: config.cspNonce,
                 qrPath:   url
@@ -347,6 +351,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                 [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.VENMO_DESKTOP_PAY_DETECT_QR_SCAN
             }).flush();
         });
+        */
     };
     const initPopupAppSwitch = ({ sessionUID } : {| sessionUID : string |}) => {
         briceLog('payment-flows/native.js/initNative -> initPopupAppSwitch ');

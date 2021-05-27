@@ -119,7 +119,7 @@ export function renderQRCode({ cspNonce = '', svgString, demo = false, state = n
         svgString={ svgString }
         demo={ demo }
         state={ state }
-        errorText={ null }
+        errorText={ errorText }
     />);
     render(
         demo ?
