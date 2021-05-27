@@ -50,8 +50,8 @@ function QRCard({
     state,
     errorText
 } : QRCardProps) : NodeType {
-    const [ processState, setProcessState ] = useState(state||null);
-    const [ errorMessage, setErrorMessage ] = useState(errorText||null);
+    const [ processState, setProcessState ] = useState(state || null);
+    const [ errorMessage, setErrorMessage ] = useState(errorText || null);
 
     const isError = () => processState === QRCODE_STATE.ERROR;
     const setState_error = () => setProcessState(QRCODE_STATE.ERROR);
@@ -113,14 +113,14 @@ type RenderQRCodeOptions = {|
     errorText? : string
 |};
 
-export function renderQRCode({ cspNonce = '', svgString, demo = false, state = null, errorText = null} : RenderQRCodeOptions) {
-    const PropedCard = <QRCard 
-        cspNonce={ cspNonce } 
-        svgString={ svgString } 
+export function renderQRCode({ cspNonce = '', svgString, demo = false, state = null, errorText = null } : RenderQRCodeOptions) {
+    const PropedCard = (<QRCard
+        cspNonce={ cspNonce }
+        svgString={ svgString }
         demo={ demo }
-        state={ state } 
+        state={ state }
         errorText={ null }
-    />;
+    />);
     render(
         demo ?
             DemoWrapper(PropedCard, cspNonce) :

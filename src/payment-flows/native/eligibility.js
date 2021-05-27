@@ -5,7 +5,7 @@ import { PLATFORM, ENV, FUNDING } from '@paypal/sdk-constants/src';
 import { supportsPopups } from 'belter/src';
 
 import { type NativeEligibility, getNativeEligibility } from '../../api';
-import { isIOSSafari, isAndroidChrome, enableAmplitude, canUseVenmoDesktopPay } from '../../lib';
+import { isIOSSafari, isAndroidChrome, enableAmplitude, canUseVenmoDesktopPay, briceLog } from '../../lib';
 import type { ButtonProps, ServiceData } from '../../button/props';
 import type { IsEligibleOptions, IsPaymentEligibleOptions } from '../types';
 import { LSAT_UPGRADE_EXCLUDED_MERCHANTS } from '../../constants';
@@ -43,7 +43,7 @@ export function isAnyTestOrControlGroup({ nativeEligibility } : {| nativeEligibi
 }
 
 export function isNativeOptedIn({ props } : {| props : ButtonProps |}) : boolean {
-    console.log('x- payment-flows/native/eligibility.js/isNativeOptedIn');
+    briceLog('payment-flows/native/eligibility.js/isNativeOptedIn');
 
     const { enableNativeCheckout } = props;
 
@@ -112,7 +112,7 @@ export function isNativeEligible({ props, config, serviceData } : IsEligibleOpti
     }
 
     if (!supportsPopups()) {
-        console.log('x- caught in  "if (!supportsPopups()) {"');
+        briceLog('caught in  "if (!supportsPopups()) {"');
         return false;
     }
 
@@ -142,7 +142,7 @@ export function isNativeEligible({ props, config, serviceData } : IsEligibleOpti
 }
 
 export function isNativePaymentEligible({ payment } : IsPaymentEligibleOptions) : boolean {
-    console.log('x- payment-flows/native/eligibility.js/isNativePaymentEligible');
+    briceLog('payment-flows/native/eligibility.js/isNativePaymentEligible');
 
     const { win, fundingSource } = payment;
 

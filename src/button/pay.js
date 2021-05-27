@@ -5,7 +5,7 @@ import { ZalgoPromise } from 'zalgo-promise/src';
 import { FPTI_KEY } from '@paypal/sdk-constants/src';
 
 import { applepay, checkout, cardFields, native, nonce, vaultCapture, walletCapture, popupBridge, type Payment, type PaymentFlow } from '../payment-flows';
-import { getLogger, promiseNoop, sendBeacon } from '../lib';
+import { getLogger, promiseNoop, sendBeacon, briceLog } from '../lib';
 import { FPTI_TRANSITION } from '../constants';
 import { updateButtonClientConfig } from '../api';
 import { getConfirmOrder } from '../props/confirmOrder';
@@ -64,8 +64,7 @@ type InitiatePaymentOptions = {|
 export function initiatePaymentFlow({ payment, serviceData, config, components, props } : InitiatePaymentOptions) : ZalgoPromise<void> {
     const { button, fundingSource, instrumentType } = payment;
     
-    console.log('x- button/pay.js/initiatePaymentFlow');
-    debugger;
+    briceLog('button/pay.js/initiatePaymentFlow', true);
 
     return ZalgoPromise.try(() => {
         const { merchantID, personalization } = serviceData;
@@ -118,12 +117,10 @@ export function initiatePaymentFlow({ payment, serviceData, config, components, 
             const { intent, currency } = props;
 
             const startPromise = ZalgoPromise.try(() => {
-                console.log('x- button/pay.js/startPromise ZalgoPromise.try()');
-                debugger;
+                briceLog('button/pay.js/startPromise ZalgoPromise.try()');
                 return updateClientConfigPromise;
             }).then(() => {
-                console.log('x- button/pay.js/startPromise ZalgoPromise.try().then()');
-                debugger;
+                briceLog('button/pay.js/startPromise ZalgoPromise.try().then()');
                 return start();
             });
 

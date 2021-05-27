@@ -9,7 +9,7 @@ import type { ProxyWindow, ConnectOptions } from '../types';
 import { type CreateBillingAgreement, type CreateSubscription } from '../props';
 import { enableVault, exchangeAccessTokenForAuthCode, getConnectURL, getFundingEligibility, updateButtonClientConfig, getSmartWallet  } from '../api';
 import { CONTEXT, TARGET_ELEMENT, BUYER_INTENT, FPTI_TRANSITION, FPTI_CONTEXT_TYPE } from '../constants';
-import { unresolvedPromise, getLogger, canUseVenmoDesktopPay } from '../lib';
+import { unresolvedPromise, getLogger, canUseVenmoDesktopPay, briceLog } from '../lib';
 import { openPopup } from '../ui';
 import { FUNDING_SKIP_LOGIN } from '../config';
 
@@ -225,8 +225,7 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
         throw new Error(`Checkout already rendered`);
     }
 
-    console.log('x- payment-flows/checkout.js/initCheckout ');
-    debugger;
+    briceLog('payment-flows/checkout.js/initCheckout', true);
 
     const { Checkout } = components;
     const { sessionID, buttonSessionID, createOrder, onApprove, onCancel,
@@ -247,8 +246,7 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     let forceClosed = false;
 
     const init = () => {
-        console.log('x- payment-flows/checkout.js/initCheckout-> init');
-        debugger;
+        briceLog('payment-flows/checkout.js/initCheckout-> init', true);
 
         return Checkout({
             window: win,
@@ -388,8 +386,7 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     let instance;
 
     const close = () => {
-        console.log('x- payment-flows/checkout.js/initCheckout-> close');
-        debugger;
+        briceLog('payment-flows/checkout.js/initCheckout-> close');
         checkoutOpen = false;
         return ZalgoPromise.try(() => {
             if (instance) {
@@ -400,12 +397,11 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     };
 
     const start = memoize(() => {
-        console.log('x- payment-flows/checkout.js/initCheckout-> start');
-        // debugger;
-
+        briceLog('payment-flows/checkout.js/initCheckout-> start');
+        if (typeof context ==='string') {briceLog('context: ' + context)}
                 
         instance = init();
-        console.log(context);
+
 
         return instance.renderTo(getRenderWindow(), TARGET_ELEMENT.BODY, context).catch(err => {
             if (checkoutOpen) {
@@ -434,19 +430,16 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     });
 
     const restart = memoize(() : ZalgoPromise<void> => {
-        console.log('x- payment-flows/checkout.js/initCheckout-> restart');
-        // debugger;
+        briceLog('payment-flows/checkout.js/initCheckout-> restart');
         return initCheckout({ props, components, serviceData, config, payment: { button, fundingSource, card, buyerIntent, isClick: false } })
             .start().finally(unresolvedPromise);
     });
 
     const click = () => {
-        console.log('x- payment-flows/checkout.js/initCheckout-> click');
-        // debugger;
+        briceLog('payment-flows/checkout.js/initCheckout-> click');
 
         if (!canUseVenmoDesktopPay(fundingSource) && !win && supportsPopups()) {
-            console.log(`x- isVenmoDesktopPay: ${ canUseVenmoDesktopPay(fundingSource).toString() }`);
-            debugger;
+           briceLog(`isVenmoDesktopPay: ${ canUseVenmoDesktopPay(fundingSource).toString() }`, true);
             try {
                 win = openPopup({ width: CHECKOUT_POPUP_DIMENSIONS.WIDTH, height: CHECKOUT_POPUP_DIMENSIONS.HEIGHT });
             } catch (err) {
