@@ -5,14 +5,9 @@ import { h, render, Fragment } from 'preact';
 import { useState } from 'preact/hooks';
 
 import { getBody } from '../lib';
+import { QRCODE_STATE } from '../constants';
 
 import { type NodeType, InstructionIcon, Logo, VenmoMark, AuthMark, cardStyle, DemoWrapper, DemoControls } from './components';
-
-const QRCODE_STATE = {
-    ERROR:      'error',
-    SCANNED:    'scanned',
-    AUTHORIZED: 'authorized'
-};
 
 type QRCardProps = {|
     cspNonce : ?string,

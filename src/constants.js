@@ -228,6 +228,12 @@ export const AMPLITUDE_KEY = {
 
 export const VENMO_BLUE : string = '#3D93CE';
 
+export const QRCODE_STATE = {
+    ERROR:      'error',
+    SCANNED:    'scanned',
+    AUTHORIZED: 'authorized'
+};
+
 export const LSAT_UPGRADE_EXCLUDED_MERCHANTS = [
     'AQipcJ1uXz50maKgYx49lKUB8MlSOXP573M6cpsFpHqDZOqnopsJpfYY7bQC_9CtQJsEhGlk8HLs2oZz',
     'Aco-yrRKihknb5vDBbDOdtYywjYMEPaM7mQg6kev8VDAz01lLA88J4oAUnF4UV9F_InqkqX7K62_jOjx',
