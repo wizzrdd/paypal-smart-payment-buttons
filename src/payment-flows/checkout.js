@@ -9,7 +9,7 @@ import type { ProxyWindow, ConnectOptions } from '../types';
 import { type CreateBillingAgreement, type CreateSubscription } from '../props';
 import { enableVault, exchangeAccessTokenForAuthCode, getConnectURL, getFundingEligibility, updateButtonClientConfig, getSmartWallet  } from '../api';
 import { CONTEXT, TARGET_ELEMENT, BUYER_INTENT, FPTI_TRANSITION, FPTI_CONTEXT_TYPE } from '../constants';
-import { unresolvedPromise, getLogger, canUseVenmoDesktopPay, briceLog } from '../lib';
+import { unresolvedPromise, getLogger, briceLog } from '../lib';
 import { openPopup } from '../ui';
 import { FUNDING_SKIP_LOGIN } from '../config';
 
@@ -437,8 +437,8 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     const click = () => {
         briceLog('payment-flows/checkout.js/initCheckout-> click');
 
-        if (!canUseVenmoDesktopPay(fundingSource) && !win && supportsPopups()) {
-            briceLog(`isVenmoDesktopPay: ${ canUseVenmoDesktopPay(fundingSource).toString() }`, true);
+        if (!win && supportsPopups()) {
+            // briceLog(`isVenmoDesktopPay: ${ canUseVenmoDesktopPay(fundingSource).toString() }`, true);
             try {
                 win = openPopup({ width: CHECKOUT_POPUP_DIMENSIONS.WIDTH, height: CHECKOUT_POPUP_DIMENSIONS.HEIGHT });
             } catch (err) {

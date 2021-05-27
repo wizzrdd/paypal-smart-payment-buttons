@@ -2,13 +2,14 @@
 
 import type { ZalgoPromise } from 'zalgo-promise/src';
 import { PLATFORM, ENV, FUNDING } from '@paypal/sdk-constants/src';
-import { supportsPopups } from 'belter/src';
+import { supportsPopups, isIos, isAndroid } from 'belter/src';
 
 import { type NativeEligibility, getNativeEligibility } from '../../api';
-import { isIOSSafari, isAndroidChrome, enableAmplitude, canUseVenmoDesktopPay, briceLog } from '../../lib';
+import { isIOSSafari, isAndroidChrome, enableAmplitude, briceLog } from '../../lib';
+import { LSAT_UPGRADE_EXCLUDED_MERCHANTS } from '../../constants';
+import type { FundingType } from '../../types';
 import type { ButtonProps, ServiceData } from '../../button/props';
 import type { IsEligibleOptions, IsPaymentEligibleOptions } from '../types';
-import { LSAT_UPGRADE_EXCLUDED_MERCHANTS } from '../../constants';
 
 import { NATIVE_CHECKOUT_URI, NATIVE_CHECKOUT_POPUP_URI, NATIVE_CHECKOUT_FALLBACK_URI, SUPPORTED_FUNDING } from './config';
 
@@ -86,12 +87,19 @@ export function prefetchNativeEligibility({ props, serviceData } : PrefetchNativ
     });
 }
 
+export function canUseVenmoDesktopPay(funding : ?FundingType) : boolean {
+    return (!funding) ? false :
+        (funding === FUNDING.VENMO)  &&
+        !isIos() &&
+        !isAndroid();
+}
+
 export function isNativeEligible({ props, config, serviceData } : IsEligibleOptions) : boolean {
     const { clientID, platform, fundingSource, onShippingChange, createBillingAgreement, createSubscription, env, enableFunding } = props;
     const { firebase: firebaseConfig } = config;
     const { merchantID } = serviceData;
-
-    const isValidVenmoDesktopPaySituation = canUseVenmoDesktopPay(fundingSource || enableFunding);
+    const funding = fundingSource || enableFunding[0];
+    const isValidVenmoDesktopPaySituation = canUseVenmoDesktopPay(funding);
 
     if (platform !== PLATFORM.MOBILE &&
         !isIOSSafari() &&
@@ -112,7 +120,6 @@ export function isNativeEligible({ props, config, serviceData } : IsEligibleOpti
     }
 
     if (!supportsPopups()) {
-        briceLog('caught in  "if (!supportsPopups()) {"');
         return false;
     }
 

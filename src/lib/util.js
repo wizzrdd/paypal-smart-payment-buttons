@@ -2,9 +2,8 @@
 
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { noop, experiment, isAndroid, isIos, isChrome, isSafari, type Experiment } from 'belter/src';
-import { FPTI_KEY, FUNDING } from '@paypal/sdk-constants/src';
+import { FPTI_KEY } from '@paypal/sdk-constants/src';
 
-import type { FundingType } from '../types';
 import { FPTI_STATE, FPTI_TRANSITION } from '../constants';
 
 import { getLogger } from './logger';
@@ -133,12 +132,6 @@ export function isAndroidChrome() : boolean {
 }
 
 
-export function canUseVenmoDesktopPay(funding : string | $ReadOnlyArray<FundingType> | null | void) : boolean {
-    return (!funding) ? false :
-        (funding.indexOf(FUNDING.VENMO) > -1)  &&
-        !isIos() &&
-        !isAndroid();
-}
 export function briceLog (str : string, debug? : boolean) {
     // eslint-disable-next-line no-console
     console.log(`x- ${ str }`);
