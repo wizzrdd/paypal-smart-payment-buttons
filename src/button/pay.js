@@ -64,7 +64,7 @@ type InitiatePaymentOptions = {|
 export function initiatePaymentFlow({ payment, serviceData, config, components, props } : InitiatePaymentOptions) : ZalgoPromise<void> {
     const { button, fundingSource, instrumentType } = payment;
     
-    briceLog('button/pay.js/initiatePaymentFlow', true);
+    briceLog('button/pay.js/initiatePaymentFlow');
 
     return ZalgoPromise.try(() => {
         const { merchantID, personalization } = serviceData;
