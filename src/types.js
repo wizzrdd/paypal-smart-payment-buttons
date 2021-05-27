@@ -2,7 +2,8 @@
 
 import type { CrossDomainWindowType } from 'cross-domain-utils/src';
 import type { ZalgoPromise } from 'zalgo-promise/src';
-import { COUNTRY, LANG, FUNDING, CARD, WALLET_INSTRUMENT } from '@paypal/sdk-constants/src';
+import type { EventEmitterType } from 'belter/src';
+import { COUNTRY, LANG, CARD, WALLET_INSTRUMENT } from '@paypal/sdk-constants/src';
 
 import { CONTEXT } from './constants';
 
@@ -20,7 +21,6 @@ export type LocaleType = {|
 |};
 
 export type FundingType = FundingType;
-
 export type ZoidComponentInstance<P> = {|
     render : (string, ?$Values<typeof CONTEXT>) => ZalgoPromise<void>,
     renderTo : (CrossDomainWindowType, string, ?$Values<typeof CONTEXT>) => ZalgoPromise<void>,
@@ -28,14 +28,14 @@ export type ZoidComponentInstance<P> = {|
     close : () => ZalgoPromise<void>,
     show : () => ZalgoPromise<void>,
     hide : () => ZalgoPromise<void>,
-    onError : (mixed) => ZalgoPromise<void>
+    onError : (mixed) => ZalgoPromise<void>,
+    event : EventEmitterType
 |};
 
 export type ZoidComponent<P> = {|
     canRenderTo : (CrossDomainWindowType) => ZalgoPromise<boolean>,
     (P): ZoidComponentInstance<P>
 |};
-
 export type CheckoutProps = {|
     window? : ?(ProxyWindow | CrossDomainWindowType),
     sessionID : string,

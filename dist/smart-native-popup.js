@@ -823,7 +823,7 @@
         }
         function uniqueID() {
             var chars = "0123456789abcdef";
-            return "uid_" + "xxxxxxxxxx".replace(/./g, (function() {
+            return "xxxxxxxxxx".replace(/./g, (function() {
                 return chars.charAt(Math.floor(Math.random() * chars.length));
             })) + "_" + base64encode((new Date).toISOString().slice(11, 19).replace("T", ".")).replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
         }
@@ -1027,21 +1027,7 @@
             var uid = script.getAttribute("data-uid");
             if (uid && "string" == typeof uid) return uid;
             if ((uid = script.getAttribute("data-uid-auto")) && "string" == typeof uid) return uid;
-            if (script.src) {
-                var hashedString = function(str) {
-                    var hash = "";
-                    for (var i = 0; i < str.length; i++) {
-                        var total = str[i].charCodeAt(0) * i;
-                        str[i + 1] && (total += str[i + 1].charCodeAt(0) * (i - 1));
-                        hash += String.fromCharCode(97 + Math.abs(total) % 26);
-                    }
-                    return hash;
-                }(JSON.stringify({
-                    src: script.src,
-                    dataset: script.dataset
-                }));
-                uid = "uid_" + hashedString.slice(hashedString.length - 30);
-            } else uid = uniqueID();
+            uid = uniqueID();
             script.setAttribute("data-uid-auto", uid);
             return uid;
         }));
@@ -1112,6 +1098,64 @@
             } ]);
         }
         var http_headerBuilders = [];
+        var FPTI_KEY = {
+            FEED: "feed_name",
+            STATE: "state_name",
+            TRANSITION: "transition_name",
+            BUTTON_TYPE: "button_type",
+            SESSION_UID: "page_session_id",
+            BUTTON_SESSION_UID: "button_session_id",
+            TOKEN: "token",
+            CONTEXT_ID: "context_id",
+            CONTEXT_TYPE: "context_type",
+            REFERER: "referer_url",
+            MERCHANT_DOMAIN: "merchant_domain",
+            PAY_ID: "pay_id",
+            SELLER_ID: "seller_id",
+            CLIENT_ID: "client_id",
+            DATA_SOURCE: "serverside_data_source",
+            BUTTON_SOURCE: "button_source",
+            ERROR_CODE: "ext_error_code",
+            ERROR_DESC: "ext_error_desc",
+            PAGE_LOAD_TIME: "page_load_time",
+            EXPERIMENT_NAME: "pxp_exp_id",
+            TREATMENT_NAME: "pxp_trtmnt_id",
+            TRANSITION_TIME: "transition_time",
+            FUNDING_LIST: "eligible_payment_methods",
+            FUNDING_COUNT: "eligible_payment_count",
+            CHOSEN_FUNDING: "selected_payment_method",
+            BUTTON_LAYOUT: "button_layout",
+            VERSION: "checkoutjs_version",
+            LOCALE: "locale",
+            BUYER_COUNTRY: "buyer_cntry",
+            INTEGRATION_IDENTIFIER: "integration_identifier",
+            PARTNER_ATTRIBUTION_ID: "bn_code",
+            PAGE_TYPE: "pp_placement",
+            SDK_NAME: "sdk_name",
+            SDK_VERSION: "sdk_version",
+            MOBILE_APP_VERSION: "mobile_app_version",
+            MOBILE_BUNDLE_IDENTIFIER: "mapv",
+            USER_AGENT: "user_agent",
+            USER_ACTION: "user_action",
+            CONTEXT_CORRID: "context_correlation_id",
+            SDK_CACHE: "sdk_cache",
+            SDK_LOAD_TIME: "sdk_load_time",
+            IS_VAULT: "is_vault",
+            DISABLE_FUNDING: "disable_funding",
+            DISABLE_CARD: "disable_card",
+            RESPONSE_DURATION: "response_duration",
+            SDK_INTEGRATION_SOURCE: "sdk_integration_source",
+            PAYMENT_FLOW: "payment_flow",
+            BUTTON_VERSION: "button_version",
+            FI_LIST: "fi_list",
+            CHOSEN_FI_TYPE: "chosen_fi_type",
+            SELECTED_FI: "merchant_selected_funding_source",
+            POTENTIAL_PAYMENT_METHODS: "potential_payment_methods",
+            PAY_NOW: "pay_now",
+            STICKINESS_ID: "stickiness_id",
+            TIMESTAMP: "t",
+            OPTION_SELECTED: "optsel"
+        };
         function getPayPal() {
             if (!window.paypal) throw new Error("paypal not found");
             return window.paypal;
@@ -1425,24 +1469,25 @@
                             referer: window.location.host,
                             sdkCorrelationID: sdkCorrelationID,
                             sessionID: sessionID,
+                            clientID: clientID,
                             env: env
                         };
                     }));
                     logger.addTrackingBuilder((function() {
                         var _ref3;
                         var lang = locale.lang, country = locale.country;
-                        return (_ref3 = {}).feed_name = "payments_sdk", _ref3.serverside_data_source = "checkout", 
-                        _ref3.client_id = clientID, _ref3.page_session_id = sessionID, _ref3.referer_url = window.location.host, 
-                        _ref3.buyer_cntry = buyerCountry, _ref3.locale = lang + "_" + country, _ref3.integration_identifier = clientID, 
-                        _ref3.sdk_environment = isIos() ? "ios" : isAndroid() ? "android" : null, _ref3.sdk_name = "payments_sdk", 
-                        _ref3.sdk_version = sdkVersion, _ref3.user_agent = window.navigator && window.navigator.userAgent, 
-                        _ref3.context_correlation_id = sdkCorrelationID, _ref3.t = Date.now().toString(), 
-                        _ref3;
+                        return (_ref3 = {})[FPTI_KEY.FEED] = "payments_sdk", _ref3[FPTI_KEY.DATA_SOURCE] = "checkout", 
+                        _ref3[FPTI_KEY.CLIENT_ID] = clientID, _ref3[FPTI_KEY.SESSION_UID] = sessionID, _ref3[FPTI_KEY.REFERER] = window.location.host, 
+                        _ref3[FPTI_KEY.BUYER_COUNTRY] = buyerCountry, _ref3[FPTI_KEY.LOCALE] = lang + "_" + country, 
+                        _ref3[FPTI_KEY.INTEGRATION_IDENTIFIER] = clientID, _ref3[FPTI_KEY.SDK_ENVIRONMENT] = isIos() ? (void 0).IOS : isAndroid() ? (void 0).ANDROID : null, 
+                        _ref3[FPTI_KEY.SDK_NAME] = "payments_sdk", _ref3[FPTI_KEY.SDK_VERSION] = sdkVersion, 
+                        _ref3[FPTI_KEY.USER_AGENT] = window.navigator && window.navigator.userAgent, _ref3[FPTI_KEY.CONTEXT_CORRID] = sdkCorrelationID, 
+                        _ref3[FPTI_KEY.TIMESTAMP] = Date.now().toString(), _ref3;
                     }));
                     promise_ZalgoPromise.onPossiblyUnhandledException((function(err) {
                         var _logger$track;
-                        logger.track(((_logger$track = {}).ext_error_code = "payments_sdk_error", _logger$track.ext_error_desc = stringifyErrorMessage(err), 
-                        _logger$track));
+                        logger.track(((_logger$track = {})[FPTI_KEY.ERROR_CODE] = "payments_sdk_error", 
+                        _logger$track[FPTI_KEY.ERROR_DESC] = stringifyErrorMessage(err), _logger$track));
                         logger.error("unhandled_error", {
                             err: stringifyError(err)
                         });
@@ -1470,9 +1515,9 @@
                 }));
                 logger.addTrackingBuilder((function() {
                     var _ref3;
-                    return (_ref3 = {}).state_name = "smart_button", _ref3.context_type = "button_session_id", 
-                    _ref3.context_id = buttonSessionID, _ref3.button_session_id = buttonSessionID, _ref3.button_version = "5.0.31", 
-                    _ref3.user_id = buttonSessionID, _ref3;
+                    return (_ref3 = {})[FPTI_KEY.STATE] = "smart_button", _ref3[FPTI_KEY.CONTEXT_TYPE] = "button_session_id", 
+                    _ref3[FPTI_KEY.CONTEXT_ID] = buttonSessionID, _ref3[FPTI_KEY.BUTTON_SESSION_UID] = buttonSessionID, 
+                    _ref3[FPTI_KEY.BUTTON_VERSION] = "5.0.32", _ref3.user_id = buttonSessionID, _ref3;
                 }));
                 (function() {
                     if (window.document.documentMode) try {
@@ -1499,8 +1544,8 @@
                 }).then((function(_ref4) {
                     var _logger$track;
                     var pageRenderTime = _ref4.pageRenderTime;
-                    logger.track(((_logger$track = {}).transition_name = "process_button_load", _logger$track.merchant_selected_funding_source = fundingSource, 
-                    _logger$track.page_load_time = pageRenderTime ? pageRenderTime.toString() : "", 
+                    logger.track(((_logger$track = {})[FPTI_KEY.TRANSITION] = "process_button_load", 
+                    _logger$track[FPTI_KEY.SELECTED_FI] = fundingSource, _logger$track[FPTI_KEY.PAGE_LOAD_TIME] = pageRenderTime ? pageRenderTime.toString() : "", 
                     _logger$track));
                     logger.flush();
                 }));
@@ -1519,7 +1564,7 @@
             logger.info("native_popup_init", {
                 buttonSessionID: buttonSessionID,
                 href: base64encode(window.location.href)
-            }).track((_logger$info$track = {}, _logger$info$track.transition_name = "native_popup_init", 
+            }).track((_logger$info$track = {}, _logger$info$track[FPTI_KEY.TRANSITION] = "native_popup_init", 
             _logger$info$track.info_msg = base64encode(window.location.href), _logger$info$track)).flush();
             var sfvc = isSFVC();
             var sfvcOrSafari = !sfvc && function(ua) {
@@ -1545,23 +1590,23 @@
                 var scale = Math.round(window.screen.width / window.innerWidth * 100) / 100;
                 var computedHeight = Math.round(height * scale);
                 var log = "native_popup_init_" + logMessage;
-                logger.info(log).track((_logger$info$track2 = {}, _logger$info$track2.transition_name = log, 
+                logger.info(log).track((_logger$info$track2 = {}, _logger$info$track2[FPTI_KEY.TRANSITION] = log, 
                 _logger$info$track2.info_msg = "computed height: " + computedHeight + ", height: " + window.outerHeight + ", width: " + window.outerWidth + ", innerHeight: " + height + ", scale: " + scale, 
                 _logger$info$track2)).flush();
             }
             window.addEventListener("beforeunload", (function() {
                 var _logger$info$track3;
-                logger.info("native_popup_beforeunload").track((_logger$info$track3 = {}, _logger$info$track3.transition_name = "native_popup_beforeunload", 
+                logger.info("native_popup_beforeunload").track((_logger$info$track3 = {}, _logger$info$track3[FPTI_KEY.TRANSITION] = "native_popup_beforeunload", 
                 _logger$info$track3)).flush();
             }));
             window.addEventListener("unload", (function() {
                 var _logger$info$track4;
-                logger.info("native_popup_unload").track((_logger$info$track4 = {}, _logger$info$track4.transition_name = "native_popup_unload", 
+                logger.info("native_popup_unload").track((_logger$info$track4 = {}, _logger$info$track4[FPTI_KEY.TRANSITION] = "native_popup_unload", 
                 _logger$info$track4)).flush();
             }));
             window.addEventListener("pagehide", (function() {
                 var _logger$info$track5;
-                logger.info("native_popup_pagehide").track((_logger$info$track5 = {}, _logger$info$track5.transition_name = "native_popup_pagehide", 
+                logger.info("native_popup_pagehide").track((_logger$info$track5 = {}, _logger$info$track5[FPTI_KEY.TRANSITION] = "native_popup_pagehide", 
                 _logger$info$track5)).flush();
             }));
             isAndroid() && isChrome() && ("paypal" === fundingSource ? appInstalledPromise = isAndroidAppInstalled("com.paypal.android.p2pmobile").then((function(app) {
@@ -1569,7 +1614,7 @@
             })).catch((function(err) {
                 var _logger$info$track6;
                 logger.info("native_popup_android_paypal_app_installed_error").track((_logger$info$track6 = {}, 
-                _logger$info$track6.transition_name = "native_popup_android_paypal_app_installed_error", 
+                _logger$info$track6[FPTI_KEY.TRANSITION] = "native_popup_android_paypal_app_installed_error", 
                 _logger$info$track6.int_error_desc = "Error: " + stringifyErrorMessage(err), _logger$info$track6)).flush();
                 return {
                     installed: !0
@@ -1579,7 +1624,7 @@
             })).catch((function(err) {
                 var _logger$info$track7;
                 logger.info("native_popup_android_venmo_app_installed_error").track((_logger$info$track7 = {}, 
-                _logger$info$track7.transition_name = "native_popup_android_venmo_app_installed_error", 
+                _logger$info$track7[FPTI_KEY.TRANSITION] = "native_popup_android_venmo_app_installed_error", 
                 _logger$info$track7.int_error_desc = "Error: " + stringifyErrorMessage(err), _logger$info$track7)).flush();
                 return {
                     installed: !0
@@ -1598,14 +1643,14 @@
                 if (isIOSSafari()) {
                     var _logger$info$track8;
                     var _log = "popup_no_opener_hash_" + getRawHash() + "_" + logMessage;
-                    logger.info(_log).track((_logger$info$track8 = {}, _logger$info$track8.transition_name = _log, 
+                    logger.info(_log).track((_logger$info$track8 = {}, _logger$info$track8[FPTI_KEY.TRANSITION] = _log, 
                     _logger$info$track8)).flush();
                 }
                 logger.info("native_popup_no_opener", {
                     buttonSessionID: buttonSessionID,
                     href: base64encode(window.location.href)
                 }).info("native_popup_no_opener_hash_" + getRawHash()).track((_logger$info$info$tra = {}, 
-                _logger$info$info$tra.transition_name = "popup_no_opener_hash_" + getRawHash(), 
+                _logger$info$info$tra[FPTI_KEY.TRANSITION] = "popup_no_opener_hash_" + getRawHash(), 
                 _logger$info$info$tra.info_msg = "location: " + base64encode(window.location.href), 
                 _logger$info$info$tra)).flush().then(closeWindow);
                 throw new Error("Expected window to have opener");
@@ -1618,7 +1663,7 @@
                     if (isWindowClosed(win)) {
                         timeout && clearTimeout(timeout);
                         logger.info("native_popup_opener_detect_close").track((_logger$info$track9 = {}, 
-                        _logger$info$track9.transition_name = "native_popup_opener_detect_close", _logger$info$track9)).flush().then(closeWindow);
+                        _logger$info$track9[FPTI_KEY.TRANSITION] = "native_popup_opener_detect_close", _logger$info$track9)).flush().then(closeWindow);
                     } else {
                         var _logger$info$track9;
                         if (maxtime <= 0) clearTimeout(timeout); else {
@@ -1684,8 +1729,8 @@
                     logger.info("native_popup_hashchange", {
                         hash: hash,
                         queryString: queryString
-                    }).track((_logger$info$track10 = {}, _logger$info$track10.transition_name = "popup_hashchange", 
-                    _logger$info$track10.mobile_app_version = appVersion, _logger$info$track10.mapv = bundleIdentifier, 
+                    }).track((_logger$info$track10 = {}, _logger$info$track10[FPTI_KEY.TRANSITION] = "popup_hashchange", 
+                    _logger$info$track10[FPTI_KEY.MOBILE_APP_VERSION] = appVersion, _logger$info$track10[FPTI_KEY.MOBILE_BUNDLE_IDENTIFIER] = bundleIdentifier, 
                     _logger$info$track10.info_msg = "" + window.location.href, _logger$info$track10)).flush();
                     switch (hash) {
                       case "init":

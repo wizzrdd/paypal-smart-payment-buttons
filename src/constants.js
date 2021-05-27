@@ -126,6 +126,17 @@ export const FPTI_TRANSITION = {
     APPLEPAY_GET_DETAILS_ERROR:                         ('applepay_get_details_error' : 'applepay_get_details_error'),
     APPLEPAY_PAYMENT_ERROR:                             ('applepay_payment_error' : 'applepay_payment_error'),
 
+    VENMO_DESKTOP_PAY_EVENT:                ('venmo_desktop_pay_event' : 'venmo_desktop_pay_event'),
+    VENMO_DESKTOP_PAY_QR_SHOWN:             ('venmo_desktop_pay_qr_shown' : 'venmo_desktop_pay_qr_shown'),
+    VENMO_DESKTOP_PAY_DETECT_QR_SCAN:       ('venmo_desktop_pay_detect_qr_scan' : 'venmo_desktop_pay_detect_qr_scan'),
+    VENMO_DESKTOP_PAY_CLOSING_QR:           ('venmo_desktop_pay_closing_qr' : 'venmo_desktop_pay_closing_qr'),
+    VENMO_DESKTOP_PAY_ON_APPROVE:           ('venmo_desktop_pay_onapprove' : 'venmo_desktop_pay_onapprove'),
+    VENMO_DESKTOP_PAY_ON_APPROVE_ERROR:     ('venmo_desktop_pay_onapprove_error' : 'venmo_desktop_pay_onapprove_error'),
+    VENMO_DESKTOP_PAY_ON_CANCEL:            ('venmo_desktop_pay_oncancel' : 'venmo_desktop_pay_oncancel'),
+    VENMO_DESKTOP_PAY_ON_ERROR:             ('venmo_desktop_pay_onerror' : 'venmo_desktop_pay_onerror'),
+    VENMO_DESKTOP_PAY_ON_SHIPPING_CHANGE:   ('venmo_desktop_pay_onshippingchange' : 'venmo_desktop_pay_onshippingchange'),
+    VENMO_DESKTOP_PAY_ON_FALLBACK:          ('venmo_desktop_pay_onfallback' : 'venmo_desktop_pay_onfallback'),
+
     NATIVE_DETECT_APP_SWITCH:               ('native_detect_app_switch' : 'native_detect_app_switch'),
     NATIVE_DETECT_WEB_SWITCH:               ('native_detect_web_switch' : 'native_detect_web_switch'),
     NATIVE_APP_SWITCH_ACK:                  ('native_app_switch_ack' : 'native_app_switch_ack'),

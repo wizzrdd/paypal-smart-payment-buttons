@@ -35,9 +35,6 @@ function getRenderWindow() : Object {
 }
 
 function setupCheckout({ components } : SetupOptions) : ZalgoPromise<void> {
-    console.log('x- payment-flows/checkout.js/setupCheckout');
-    debugger;
-
     const { Checkout } = components;
 
     checkoutOpen = false;
@@ -407,21 +404,26 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
         debugger;
 
                 
-            instance = init();
-            console.log(context);
-            debugger;
-            return instance.renderTo(
+        instance = init();
+        console.log(context);
+        debugger;
+        return instance.renderTo(
+            getRenderWindow(),
+            TARGET_ELEMENT.BODY,
+            context
+            /*
                 canUseVenmoDesktopPay(fundingSource) ? window.xprops.getParent() : getRenderWindow(),
                 TARGET_ELEMENT.BODY,
                 canUseVenmoDesktopPay(fundingSource) ? CONTEXT.IFRAME : context
-            ).catch(err => {
-                if (checkoutOpen) {
-                    throw err;
-                }
-            });
+                */
+        ).catch(err => {
+            if (checkoutOpen) {
+                throw err;
+            }
+        });
 
 
-/*
+        /*
         if ( isVenmoDesktopPay(fundingSource) ){
             const { QRCode } = components;
             const testURL = 'https://appswitch.url?query=params';
@@ -451,8 +453,8 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
         console.log('x- payment-flows/checkout.js/initCheckout-> click');
         debugger;
 
-        if (!isVenmoDesktopPay(fundingSource) && !win && supportsPopups()) {
-            console.log('x- isVenmoDesktopPay: '+ isVenmoDesktopPay(fundingSource).toString());
+        if (!canUseVenmoDesktopPay(fundingSource) && !win && supportsPopups()) {
+            console.log(`x- isVenmoDesktopPay: ${ canUseVenmoDesktopPay(fundingSource).toString() }`);
             debugger;
             try {
                 win = openPopup({ width: CHECKOUT_POPUP_DIMENSIONS.WIDTH, height: CHECKOUT_POPUP_DIMENSIONS.HEIGHT });

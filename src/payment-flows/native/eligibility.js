@@ -42,6 +42,8 @@ export function isAnyTestOrControlGroup({ nativeEligibility } : {| nativeEligibi
 }
 
 export function isNativeOptedIn({ props } : {| props : ButtonProps |}) : boolean {
+    console.log('x- payment-flows/native/eligibility.js/isNativeOptedIn');
+
     const { enableNativeCheckout } = props;
 
     if (enableNativeCheckout) {
@@ -90,9 +92,9 @@ export function isNativeEligible({ props, config, serviceData } : IsEligibleOpti
 
     const isValidVenmoDesktopPaySituation = canUseVenmoDesktopPay(fundingSource || enableFunding);
 
-    if (platform !== PLATFORM.MOBILE &&        
+    if (platform !== PLATFORM.MOBILE &&
         !isIOSSafari() &&
-        !isAndroidChrome() && 
+        !isAndroidChrome() &&
         !isValidVenmoDesktopPaySituation
     ) {
         return false;
@@ -109,6 +111,7 @@ export function isNativeEligible({ props, config, serviceData } : IsEligibleOpti
     }
 
     if (!supportsPopups()) {
+        console.log('x- caught in  "if (!supportsPopups()) {"');
         return false;
     }
 
@@ -120,8 +123,8 @@ export function isNativeEligible({ props, config, serviceData } : IsEligibleOpti
         return true;
     }
 
-    if (!isValidVenmoDesktopPaySituation && 
-        (env === ENV.LOCAL || env === ENV.STAGE )    
+    if (!isValidVenmoDesktopPaySituation &&
+        (env === ENV.LOCAL || env === ENV.STAGE)
     ) {
         return false;
     }
@@ -134,6 +137,8 @@ export function isNativeEligible({ props, config, serviceData } : IsEligibleOpti
 }
 
 export function isNativePaymentEligible({ payment } : IsPaymentEligibleOptions) : boolean {
+    console.log('x- payment-flows/native/eligibility.js/isNativePaymentEligible');
+
     const { win, fundingSource } = payment;
 
     if (win) {
