@@ -1515,9 +1515,15 @@
                 }));
                 logger.addTrackingBuilder((function() {
                     var _ref3;
+<<<<<<< HEAD
                     return (_ref3 = {})[FPTI_KEY.STATE] = "smart_button", _ref3[FPTI_KEY.CONTEXT_TYPE] = "button_session_id", 
                     _ref3[FPTI_KEY.CONTEXT_ID] = buttonSessionID, _ref3[FPTI_KEY.BUTTON_SESSION_UID] = buttonSessionID, 
                     _ref3[FPTI_KEY.BUTTON_VERSION] = "5.0.32", _ref3.user_id = buttonSessionID, _ref3;
+=======
+                    return (_ref3 = {}).state_name = "smart_button", _ref3.context_type = "button_session_id", 
+                    _ref3.context_id = buttonSessionID, _ref3.button_session_id = buttonSessionID, _ref3.button_version = "5.0.33", 
+                    _ref3.user_id = buttonSessionID, _ref3;
+>>>>>>> master
                 }));
                 (function() {
                     if (window.document.documentMode) try {
