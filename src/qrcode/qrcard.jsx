@@ -48,26 +48,26 @@ function QRCard({
     const [ processState, setProcessState ] = useState(state || null);
     const [ errorMessage, setErrorMessage ] = useState(errorText);
     const isError = () => processState === QRCODE_STATE.ERROR;
-    let QRCODE_STATE_EVENTS = {};
+    const QRCODE_STATE_EVENTS = {};
 
     for (const STATE in QRCODE_STATE) {
-        const stateValue = QRCODE_STATE[STATE];
-        const event = new Event(stateValue);
-
-        window.addEventListener( stateValue, () => {
-            // stateValue !== QRCODE_STATE.DEFAULT ? 
-            if ( stateValue !== QRCODE_STATE.DEFAULT) {
-                setProcessState(stateValue) 
-            } else {
-                setProcessState(null)
-            }        
-            debugger;
-        });
-        QRCODE_STATE_EVENTS[STATE] = event;    
+        if (Object.prototype.hasOwnProperty.call(QRCODE_STATE, STATE)) {
+            const stateValue = QRCODE_STATE[STATE];
+            const event = new Event(stateValue);
+    
+            window.addEventListener(stateValue, () => {
+                if (stateValue !== QRCODE_STATE.DEFAULT) {
+                    setProcessState(stateValue);
+                } else {
+                    setProcessState(null);
+                }
+            });
+            QRCODE_STATE_EVENTS[STATE] = event;
+        }
     }
 
 
-    // const errorEvent =new 
+    // const errorEvent =new
     // window.addEventListener(errorEvent, ()=>setProcessState(QRCODE_STATE.ERROR));
 
     // window.addEventListener(QRCODE_STATE.SCANNED, ()=>setProcessState(QRCODE_STATE.SCANNED));
@@ -110,18 +110,10 @@ function QRCard({
                     processState={ processState }
                     errorMessage={ errorMessage }
                     isError={ isError() }
-                    setState_error={ 
-                        ()=>{ window.dispatchEvent(QRCODE_STATE_EVENTS.ERROR); }
-                    }
-                    setState_scanned={ 
-                        ()=>{ window.dispatchEvent(QRCODE_STATE_EVENTS.SCANNED); }
-                    }
-                    setState_authorized={ 
-                        ()=>{ window.dispatchEvent(QRCODE_STATE_EVENTS.AUTHORIZED); }
-                    }
-                    setState_default={ 
-                        ()=>{ window.dispatchEvent(QRCODE_STATE_EVENTS.DEFAULT); }
-                    }
+                    setState_error={ () => { window.dispatchEvent(QRCODE_STATE_EVENTS.ERROR); } }
+                    setState_scanned={ () => { window.dispatchEvent(QRCODE_STATE_EVENTS.SCANNED); } }
+                    setState_authorized={ () => { window.dispatchEvent(QRCODE_STATE_EVENTS.AUTHORIZED); } }
+                    setState_default={ () => { window.dispatchEvent(QRCODE_STATE_EVENTS.DEFAULT); } }
                     setErrorMessage={ setErrorMessage }
                 /> : null}
         </Fragment>

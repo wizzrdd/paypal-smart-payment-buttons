@@ -114,13 +114,13 @@ export const cardStyle : string = `
         height: 100%;
         width: 100%;
     }
-    #view-boxes.${QRCODE_STATE.SCANNED} #front-view,
-    #view-boxes.${QRCODE_STATE.AUTHORIZED} #front-view {
+    #view-boxes.${ QRCODE_STATE.SCANNED } #front-view,
+    #view-boxes.${ QRCODE_STATE.AUTHORIZED } #front-view {
         transform: rotateY(180deg);
         position: absolute;
     }
-    #view-boxes.${QRCODE_STATE.SCANNED} #back-view,
-    #view-boxes.${QRCODE_STATE.AUTHORIZED} #back-view {
+    #view-boxes.${ QRCODE_STATE.SCANNED } #back-view,
+    #view-boxes.${ QRCODE_STATE.AUTHORIZED } #back-view {
         transform: rotateY(0deg);
         position: relative;
     }
@@ -128,14 +128,14 @@ export const cardStyle : string = `
     #view-boxes #back-view .success-message {
         opacity: 0;
     }
-    #view-boxes.${QRCODE_STATE.AUTHORIZED} #back-view #success-mark,
-    #view-boxes.${QRCODE_STATE.AUTHORIZED} #back-view .success-message {
+    #view-boxes.${ QRCODE_STATE.AUTHORIZED } #back-view #success-mark,
+    #view-boxes.${ QRCODE_STATE.AUTHORIZED } #back-view .success-message {
         opacity: 1;
     }
-    #view-boxes.${QRCODE_STATE.AUTHORIZED} #back-view #success-mark {
+    #view-boxes.${ QRCODE_STATE.AUTHORIZED } #back-view #success-mark {
         transform: rotate(720deg);
     }
-    #view-boxes.${QRCODE_STATE.AUTHORIZED} #back-view .auth-message {
+    #view-boxes.${ QRCODE_STATE.AUTHORIZED } #back-view .auth-message {
         opacity: 0;
     }
     #front-view {
@@ -253,20 +253,11 @@ export function DemoControls({
     setErrorMessage
 } : DemoControlsOptions) : NodeType {
     const buttonTextMap = new Map([
-        ['null', 'Scan'],
-        [QRCODE_STATE.ERROR, 'Scan'],
-        [QRCODE_STATE.AUTHORIZED, 'Reset'],
-        [QRCODE_STATE.SCANNED, 'Auth'],
+        [ 'null', 'Scan' ],
+        [ QRCODE_STATE.ERROR, 'Scan' ],
+        [ QRCODE_STATE.AUTHORIZED, 'Reset' ],
+        [ QRCODE_STATE.SCANNED, 'Auth' ]
     ]);
-
-    function triggerError () {//(msg : ?string) {
-        console.log('in triggerError');        
-        setState_error()
-        console.log(`
-errorMessage: ${ errorMessage || 'null' }
-        `);
-    }
-    
     
     return (
         <div id="controls">
@@ -290,29 +281,29 @@ errorMessage: ${ errorMessage || 'null' }
                 disabled={ isError }
                 onClick={ () => {
                     switch (processState) {
-                    case `${QRCODE_STATE.AUTHORIZED}` : setState_default();
+                    case `${ QRCODE_STATE.AUTHORIZED }` : setState_default();
                         break;
-                    case `${QRCODE_STATE.SCANNED}` : setState_authorized();
+                    case `${ QRCODE_STATE.SCANNED }` : setState_authorized();
                         break;
                     default: setState_scanned();
                     } } }>
-                {buttonTextMap.get(processState || 'null' )}
+                {buttonTextMap.get(processState || 'null')}
             </button>
                 
             <button
                 type="button"
-                onClick={ () => triggerError() }>
+                onClick={ () => setState_error() }>
                 Show Error
             </button>
             <div>
                 <button
                     type="button"
                     onClick={ () => {
-                        triggerError();
+                        setState_error();
                     } }>
                     Set Error Value
                 </button>
-                <input type="text" id="errorMsg" value={ errorMessage }  onChange={ (e) => setErrorMessage(e.target.value) }  />
+                <input type="text" id="errorMsg" value={ errorMessage } onChange={ (e) => setErrorMessage(e.target.value) }  />
             </div>
             <button
                 type="button"

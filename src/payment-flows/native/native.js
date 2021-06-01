@@ -8,8 +8,8 @@ import { FPTI_KEY } from '@paypal/sdk-constants/src';
 import { type CrossDomainWindowType } from 'cross-domain-utils/src';
 
 import { updateButtonClientConfig } from '../../api';
-import { getLogger, promiseNoop, isAndroidChrome, getStorageState, briceLog } from '../../lib';
-import { FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY, TARGET_ELEMENT, QRCODE_STATE, } from '../../constants';
+import { getLogger, promiseNoop, isAndroidChrome, getStorageState, briceLog, getPostRobot } from '../../lib';
+import { FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY, TARGET_ELEMENT, QRCODE_STATE } from '../../constants';
 import { type OnShippingChangeData } from '../../props/onShippingChange';
 import { checkout } from '../checkout';
 import type { PaymentFlow, PaymentFlowInstance, SetupOptions, InitOptions } from '../types';
@@ -17,7 +17,6 @@ import type { PaymentFlow, PaymentFlowInstance, SetupOptions, InitOptions } from
 import { isNativeEligible, isNativePaymentEligible, prefetchNativeEligibility, canUseVenmoDesktopPay } from './eligibility';
 import { openNativePopup } from './popup';
 import { getNativePopupUrl } from './url';
-import { getPostRobot } from '../../lib';
 import { connectNative } from './socket';
 
 let clean;
@@ -276,18 +275,18 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         const postRobot = getPostRobot();
         const QRCodeRenderTarget = window.xprops.getParent();
 
-        function updateQRCodeComponent (newState? : $Values<typeof QRCODE_STATE>, errorMessageText? : string ) {
-            const errorMessagePayload = (newState === QRCODE_STATE.ERROR && errorMessageText) && { errorMessage : errorMessageText }
+        function updateQRCodeComponent (newState? : $Values<typeof QRCODE_STATE>, errorMessageText? : string) : ZalgoPromise<void> {
+            const errorMessagePayload = (newState === QRCODE_STATE.ERROR && errorMessageText) && { errorMessage: errorMessageText };
                 
             return postRobot.send(
-                QRCodeRenderTarget, 
-                newState ? newState : QRCODE_STATE.DEFAULT, 
+                QRCodeRenderTarget,
+                newState ? newState : QRCODE_STATE.DEFAULT,
                 errorMessagePayload ? errorMessagePayload : {},
                 { domain: window.xprops.getParentDomain() }
             )
-            .then(({ data }) => data);
+                .then(({ data }) => data);
 
-        } 
+        }
         
 
         getLogger().info(`VenmoDesktopPay_qrcode`).track({
@@ -301,7 +300,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         });
         
         QRCodeComponentInstance.renderTo(QRCodeRenderTarget, TARGET_ELEMENT.BODY);
-
 
 
         const closeQRCode = (event : string) => {
@@ -322,7 +320,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             return onCancelCallback();
         };
         const onErrorQR = (res) => {
-            const errorMessageText = res.data.message;            
+            const errorMessageText = res.data.message;
             updateQRCodeComponent(QRCODE_STATE.ERROR, errorMessageText);
             return onErrorCallback(res);
         };
@@ -330,11 +328,11 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         const connection = connectNative({
             props, serviceData, config, fundingSource, sessionUID,
             callbacks: {
-                onApprove:        onApproveQR.then(()=>clean.register(connection.cancel)),
-                onCancel:         onCancelQR.then(()=>clean.register(connection.cancel)),
-                onError:          onErrorQR.then(()=>clean.register(connection.cancel)),
-                onFallback:       onFallbackCallback.then(()=>clean.register(connection.cancel)),
-                onShippingChange: onShippingChangeCallback.then(()=>clean.register(connection.cancel))
+                onApprove:        onApproveQR.then(() => clean.register(connection.cancel)),
+                onCancel:         onCancelQR.then(() => clean.register(connection.cancel)),
+                onError:          onErrorQR.then(() => clean.register(connection.cancel)),
+                onFallback:       onFallbackCallback.then(() => clean.register(connection.cancel)),
+                onShippingChange: onShippingChangeCallback.then(() => clean.register(connection.cancel))
             }
         });
         clean.register(connection.cancel);

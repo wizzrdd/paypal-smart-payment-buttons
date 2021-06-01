@@ -6,7 +6,7 @@ import { FUNDING } from '@paypal/sdk-constants';
 import { getNativePopupMiddleware, getNativeFallbackMiddleware, cancelWatchers } from '../../server';
 
 import { mockReq, mockRes, graphQL, tracking } from './mock';
-
+// $FlowFixMe
 jest.setTimeout(300000);
 
 afterAll(cancelWatchers);
