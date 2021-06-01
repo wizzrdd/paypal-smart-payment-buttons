@@ -9,7 +9,7 @@ import { type CrossDomainWindowType } from 'cross-domain-utils/src';
 
 import { updateButtonClientConfig } from '../../api';
 import { getLogger, promiseNoop, isAndroidChrome, getStorageState, briceLog } from '../../lib';
-import { FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY, TARGET_ELEMENT, QRCODE_STATE } from '../../constants';
+import { FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY, TARGET_ELEMENT, QRCODE_STATE, } from '../../constants';
 import { type OnShippingChangeData } from '../../props/onShippingChange';
 import { checkout } from '../checkout';
 import type { PaymentFlow, PaymentFlowInstance, SetupOptions, InitOptions } from '../types';
@@ -17,6 +17,7 @@ import type { PaymentFlow, PaymentFlowInstance, SetupOptions, InitOptions } from
 import { isNativeEligible, isNativePaymentEligible, prefetchNativeEligibility, canUseVenmoDesktopPay } from './eligibility';
 import { openNativePopup } from './popup';
 import { getNativePopupUrl } from './url';
+import { getPostRobot } from '../../lib';
 import { connectNative } from './socket';
 
 let clean;
@@ -271,16 +272,23 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     const initQRCode = ({ sessionUID } : {| sessionUID : string |}) => {
         briceLog('payment-flows/native.js/initNative -> initQRCode ');
         const { QRCode } = components;
-        let errorMessage;
-        let qrCodeState : ?$Values<typeof QRCODE_STATE>;
-        function setErrorMessage (str : string) {
-            errorMessage = str;
-        }
-        function setQRCodeState (state : ?$Values<typeof QRCODE_STATE>) {
-            qrCodeState = state ? state : null;
-        }
-
         const url = getNativePopupUrl({ props, serviceData, fundingSource });
+        const postRobot = getPostRobot();
+        const QRCodeRenderTarget = window.xprops.getParent();
+
+        function updateQRCodeComponent (newState? : $Values<typeof QRCODE_STATE>, errorMessageText? : string ) {
+            const errorMessagePayload = (newState === QRCODE_STATE.ERROR && errorMessageText) && { errorMessage : errorMessageText }
+                
+            return postRobot.send(
+                QRCodeRenderTarget, 
+                newState ? newState : QRCODE_STATE.DEFAULT, 
+                errorMessagePayload ? errorMessagePayload : {},
+                { domain: window.xprops.getParentDomain() }
+            )
+            .then(({ data }) => data);
+
+        } 
+        
 
         getLogger().info(`VenmoDesktopPay_qrcode`).track({
             [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.VENMO_DESKTOP_PAY_QR_SHOWN
@@ -289,11 +297,12 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         const QRCodeComponentInstance = QRCode({
             cspNonce:  config.cspNonce,
             qrPath:    url,
-            state:     qrCodeState,
-            errorText: errorMessage
+            state:     QRCODE_STATE.DEFAULT
         });
         
-        QRCodeComponentInstance.renderTo(window.xprops.getParent(), TARGET_ELEMENT.BODY);
+        QRCodeComponentInstance.renderTo(QRCodeRenderTarget, TARGET_ELEMENT.BODY);
+
+
 
         const closeQRCode = (event : string) => {
             getLogger().info(`VenmoDesktopPay_qrcode_closing_${ event }`).track({
@@ -304,7 +313,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             QRCodeComponentInstance.close();
         };
         const onApproveQR = (res) => {
-            setQRCodeState(QRCODE_STATE.AUTHORIZED);
+            updateQRCodeComponent(QRCODE_STATE.AUTHORIZED);
             closeQRCode('onApprove');
             return onApproveCallback(res);
         };
@@ -313,20 +322,19 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             return onCancelCallback();
         };
         const onErrorQR = (res) => {
-            const msg = res.data.message;
-            setErrorMessage(msg);
-            setQRCodeState(QRCODE_STATE.ERROR);
+            const errorMessageText = res.data.message;            
+            updateQRCodeComponent(QRCODE_STATE.ERROR, errorMessageText);
             return onErrorCallback(res);
         };
 
         const connection = connectNative({
             props, serviceData, config, fundingSource, sessionUID,
             callbacks: {
-                onApprove:        onApproveQR,
-                onCancel:         onCancelQR,
-                onError:          onErrorQR,
-                onFallback:       onFallbackCallback,
-                onShippingChange: onShippingChangeCallback
+                onApprove:        onApproveQR.then(()=>clean.register(connection.cancel)),
+                onCancel:         onCancelQR.then(()=>clean.register(connection.cancel)),
+                onError:          onErrorQR.then(()=>clean.register(connection.cancel)),
+                onFallback:       onFallbackCallback.then(()=>clean.register(connection.cancel)),
+                onShippingChange: onShippingChangeCallback.then(()=>clean.register(connection.cancel))
             }
         });
         clean.register(connection.cancel);
@@ -355,7 +363,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     
 
     const click = () => {
-        briceLog('payment-flows/native.js/initNative -> click ', true);
+        briceLog('payment-flows/native.js/initNative -> click ');
         
         return ZalgoPromise.try(() => {
             const sessionUID = uniqueID();

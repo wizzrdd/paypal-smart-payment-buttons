@@ -2,7 +2,6 @@
 
 import type { CrossDomainWindowType } from 'cross-domain-utils/src';
 import type { ZalgoPromise } from 'zalgo-promise/src';
-import type { EventEmitterType } from 'belter/src';
 import { COUNTRY, LANG, CARD, WALLET_INSTRUMENT, FUNDING } from '@paypal/sdk-constants/src';
 
 import { CONTEXT } from './constants';
@@ -29,8 +28,7 @@ export type ZoidComponentInstance<P> = {|
     close : () => ZalgoPromise<void>,
     show : () => ZalgoPromise<void>,
     hide : () => ZalgoPromise<void>,
-    onError : (mixed) => ZalgoPromise<void>,
-    event : EventEmitterType
+    onError : (mixed) => ZalgoPromise<void>
 |};
 
 export type ZoidComponent<P> = {|
@@ -125,8 +123,8 @@ export type MenuComponentInstance = ZoidComponentInstance<MenuFlowProps>;
 export type QRCodeProps = {|
     qrPath : string,
     cspNonce : ?string,
-    state : ?string,
-    errorText : ?string
+    state? : string,
+    errorText? : string
 |};
 export type QRCodeType = ZoidComponent<QRCodeProps>;
 export type QRCodeComponentInstance = ZoidComponentInstance<QRCodeProps>;

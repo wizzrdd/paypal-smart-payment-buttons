@@ -13,8 +13,8 @@ type QRCardProps = {|
     cspNonce : ?string,
     svgString : string,
     demo : boolean,
-    state : ?$Values<typeof QRCODE_STATE>,
-    errorText : ?string
+    state? : $Values<typeof QRCODE_STATE>,
+    errorText? : string
 |};
 
 function ErrorMessage({
