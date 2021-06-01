@@ -33,7 +33,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     const { fundingSource } = payment;
     const { firebase: firebaseConfig } = config;
 
-    const isVenmoDesktopPay = memoize(canUseVenmoDesktopPay(fundingSource));
+    const isVenmoDesktopPay = canUseVenmoDesktopPay(fundingSource);
 
     if (!firebaseConfig) {
         throw new Error(`Can not run native flow without firebase config`);
