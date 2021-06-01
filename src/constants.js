@@ -221,9 +221,10 @@ export const AMPLITUDE_KEY = {
 export const VENMO_BLUE : string = '#3D93CE';
 
 export const QRCODE_STATE = {
-    ERROR:      'error',
-    SCANNED:    'scanned',
-    AUTHORIZED: 'authorized'
+    ERROR:      'qr_error',
+    SCANNED:    'qr_scanned',
+    AUTHORIZED: 'qr_authorized',
+    DEFAULT:    'qr_default'
 };
 
 export const LSAT_UPGRADE_EXCLUDED_MERCHANTS = [

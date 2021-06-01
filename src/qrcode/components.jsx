@@ -5,7 +5,7 @@ import { preact } from 'jsx-pragmatic';
 import { h, Fragment, Node } from 'preact';
 import { VenmoLogo, LOGO_COLOR } from '@paypal/sdk-logos/src';
 
-import { VENMO_BLUE } from '../constants';
+import { VENMO_BLUE, QRCODE_STATE } from '../constants';
 
 export type NodeType = typeof Node;
 
@@ -114,13 +114,13 @@ export const cardStyle : string = `
         height: 100%;
         width: 100%;
     }
-    #view-boxes.scanned #front-view,
-    #view-boxes.authorized #front-view {
+    #view-boxes.${QRCODE_STATE.SCANNED} #front-view,
+    #view-boxes.${QRCODE_STATE.AUTHORIZED} #front-view {
         transform: rotateY(180deg);
         position: absolute;
     }
-    #view-boxes.scanned #back-view,
-    #view-boxes.authorized #back-view {
+    #view-boxes.${QRCODE_STATE.SCANNED} #back-view,
+    #view-boxes.${QRCODE_STATE.AUTHORIZED} #back-view {
         transform: rotateY(0deg);
         position: relative;
     }
@@ -128,14 +128,14 @@ export const cardStyle : string = `
     #view-boxes #back-view .success-message {
         opacity: 0;
     }
-    #view-boxes.authorized #back-view #success-mark,
-    #view-boxes.authorized #back-view .success-message {
+    #view-boxes.${QRCODE_STATE.AUTHORIZED} #back-view #success-mark,
+    #view-boxes.${QRCODE_STATE.AUTHORIZED} #back-view .success-message {
         opacity: 1;
     }
-    #view-boxes.authorized #back-view #success-mark {
+    #view-boxes.${QRCODE_STATE.AUTHORIZED} #back-view #success-mark {
         transform: rotate(720deg);
     }
-    #view-boxes.authorized #back-view .auth-message {
+    #view-boxes.${QRCODE_STATE.AUTHORIZED} #back-view .auth-message {
         opacity: 0;
     }
     #front-view {
@@ -252,6 +252,22 @@ export function DemoControls({
     setState_default,
     setErrorMessage
 } : DemoControlsOptions) : NodeType {
+    const buttonTextMap = new Map([
+        ['null', 'Scan'],
+        [QRCODE_STATE.ERROR, 'Scan'],
+        [QRCODE_STATE.AUTHORIZED, 'Reset'],
+        [QRCODE_STATE.SCANNED, 'Auth'],
+    ]);
+
+    function triggerError () {//(msg : ?string) {
+        console.log('in triggerError');        
+        setState_error()
+        console.log(`
+errorMessage: ${ errorMessage || 'null' }
+        `);
+    }
+    
+    
     return (
         <div id="controls">
             <style nonce={ cspNonce }> {`
@@ -271,36 +287,32 @@ export function DemoControls({
             </style>
             <button
                 type="button"
-                disabled={ isError() }
+                disabled={ isError }
                 onClick={ () => {
                     switch (processState) {
-                    case 'authorized': setState_default();
+                    case `${QRCODE_STATE.AUTHORIZED}` : setState_default();
                         break;
-                    case 'scanned' : setState_authorized();
+                    case `${QRCODE_STATE.SCANNED}` : setState_authorized();
                         break;
                     default: setState_scanned();
                     } } }>
-                {{ 'null':       'Scan',
-                    'error':      'Scan',
-                    'authorized': 'Reset',
-                    'scanned':    'Auth'
-                }[processState || 'null' ]}
+                {buttonTextMap.get(processState || 'null' )}
             </button>
                 
             <button
                 type="button"
-                onClick={ () => setState_error() }>
+                onClick={ () => triggerError() }>
                 Show Error
             </button>
             <div>
                 <button
                     type="button"
                     onClick={ () => {
-                        setState_error();
+                        triggerError();
                     } }>
                     Set Error Value
                 </button>
-                <input type="text" id="errorMsg" value={ errorMessage } onChange={ (e) => setErrorMessage(e.target.value) } />
+                <input type="text" id="errorMsg" value={ errorMessage }  onChange={ (e) => setErrorMessage(e.target.value) }  />
             </div>
             <button
                 type="button"
@@ -318,10 +330,10 @@ export function DemoControls({
                         errorMessage: ${ errorMessage || 'null' }
                         processState: ${ processState || 'null' }
                         possible states: 
-                        null,
-                        scanned,
-                        authorized,
-                        error
+                            null,
+                            scanned,
+                            authorized,
+                            error
                     `); } }>
                 Observe State
             </button>

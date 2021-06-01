@@ -43,24 +43,43 @@ function QRCard({
     svgString,
     demo,
     state,
-    errorText
+    errorText = 'An issue has occurred'
 } : QRCardProps) : NodeType {
     const [ processState, setProcessState ] = useState(state || null);
-    const [ errorMessage, setErrorMessage ] = useState(errorText || null);
-
+    const [ errorMessage, setErrorMessage ] = useState(errorText);
     const isError = () => processState === QRCODE_STATE.ERROR;
-    const setState_error = () => setProcessState(QRCODE_STATE.ERROR);
-    const setState_scanned = () => setProcessState(QRCODE_STATE.SCANNED);
-    const setState_authorized = () => setProcessState(QRCODE_STATE.AUTHORIZED);
+    let QRCODE_STATE_EVENTS = {};
 
-    const setState_default = () => setProcessState(null);
+    for (const STATE in QRCODE_STATE) {
+        const stateValue = QRCODE_STATE[STATE];
+        const event = new Event(stateValue);
+
+        window.addEventListener( stateValue, () => {
+            // stateValue !== QRCODE_STATE.DEFAULT ? 
+            if ( stateValue !== QRCODE_STATE.DEFAULT) {
+                setProcessState(stateValue) 
+            } else {
+                setProcessState(null)
+            }        
+            debugger;
+        });
+        QRCODE_STATE_EVENTS[STATE] = event;    
+    }
+
+
+    // const errorEvent =new 
+    // window.addEventListener(errorEvent, ()=>setProcessState(QRCODE_STATE.ERROR));
+
+    // window.addEventListener(QRCODE_STATE.SCANNED, ()=>setProcessState(QRCODE_STATE.SCANNED));
+    // window.addEventListener(QRCODE_STATE.AUTHORIZED, ()=>setProcessState(QRCODE_STATE.AUTHORIZED));
+    // window.addEventListener(QRCODE_STATE.DEFAULT, ()=>setProcessState(null));
 
     return (
         <Fragment>
             <style nonce={ cspNonce }> { cardStyle } </style>
             <div id="view-boxes" className={ processState }>
                 { isError() ?
-                    <ErrorMessage message={ errorMessage } resetFunc={ () => setState_default() } /> :
+                    <ErrorMessage message={ errorMessage } resetFunc={ () => setProcessState(null) } /> :
                     <div id="front-view" className="card">
                         <QRCodeElement svgString={ svgString } />
                         <Logo />
@@ -89,11 +108,20 @@ function QRCard({
                 <DemoControls
                     cspNonce={ cspNonce }
                     processState={ processState }
-                    isError={ isError }
-                    setState_error={ setState_error }
-                    setState_scanned={ setState_scanned }
-                    setState_authorized={ setState_authorized }
-                    setState_default={ setState_default }
+                    errorMessage={ errorMessage }
+                    isError={ isError() }
+                    setState_error={ 
+                        ()=>{ window.dispatchEvent(QRCODE_STATE_EVENTS.ERROR); }
+                    }
+                    setState_scanned={ 
+                        ()=>{ window.dispatchEvent(QRCODE_STATE_EVENTS.SCANNED); }
+                    }
+                    setState_authorized={ 
+                        ()=>{ window.dispatchEvent(QRCODE_STATE_EVENTS.AUTHORIZED); }
+                    }
+                    setState_default={ 
+                        ()=>{ window.dispatchEvent(QRCODE_STATE_EVENTS.DEFAULT); }
+                    }
                     setErrorMessage={ setErrorMessage }
                 /> : null}
         </Fragment>
