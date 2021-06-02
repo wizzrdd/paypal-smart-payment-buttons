@@ -3,10 +3,12 @@
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { noop, experiment, isAndroid, isIos, isChrome, isSafari, type Experiment } from 'belter/src';
 import { FPTI_KEY } from '@paypal/sdk-constants/src';
+import type { CrossDomainWindowType } from 'cross-domain-utils/src';
 
 import { FPTI_STATE, FPTI_TRANSITION } from '../constants';
 
 import { getLogger } from './logger';
+import { getPayPal, getPostRobot } from './sdk';
 
 export function unresolvedPromise<T>() : ZalgoPromise<T> {
     return new ZalgoPromise(noop);
@@ -141,3 +143,12 @@ export function briceLog (str : string, debug? : boolean) {
     }
 
 }
+
+type PostMessageListener<T> = ZalgoPromise<T> & {|
+    cancel : () => void
+|};
+
+export function onPostMessage<D, R>(win : CrossDomainWindowType, domain : string, event : string, handler : (D) => R) : PostMessageListener<R> {
+    return paypal.postRobot.once(event, { window: win, domain }, handler);
+}
+    

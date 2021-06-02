@@ -3,11 +3,33 @@
 
 import { preact } from 'jsx-pragmatic';
 import { h, Fragment, Node } from 'preact';
+import { useState } from 'preact/hooks';
 import { VenmoLogo, LOGO_COLOR } from '@paypal/sdk-logos/src';
 
 import { VENMO_BLUE, QRCODE_STATE } from '../constants';
 
 export type NodeType = typeof Node;
+
+
+export function ErrorMessage({
+    message,
+    resetFunc
+} : {|
+    message? : string,
+    resetFunc : () => void
+|}) : NodeType {
+    return (
+        <div id="error-view">
+            <div className="error-message">{message || 'An issue has occurred' }</div>
+            <button className="reset-button" type="button" onClick={ resetFunc }>Try scanning again</button>
+        </div>
+    );
+}
+
+export function QRCodeElement({ svgString } : {| svgString : string |}) : NodeType {
+    const src = `data:image/svg+xml;base64,${ btoa(svgString) }`;
+    return (<img id="qr-code" src={ src } alt="QR Code" />);
+}
 
 export function Logo() : NodeType {
     return VenmoLogo({ logoColor: LOGO_COLOR.DEFAULT }).render(preact({ Preact: { h } }));
@@ -229,17 +251,15 @@ export function DemoWrapper(component : NodeType, cspNonce : ?string) : NodeType
     
 }
 
-
 type DemoControlsOptions = {|
     cspNonce? : string,
     processState : string | null,
     errorMessage : string | null,
     isError : () => boolean,
-    setState_error : () => void,
+    setState_error : ( str?: string ) => void,
     setState_scanned : () => void,
     setState_authorized : () => void,
-    setState_default : () => void,
-    setErrorMessage : (string) => void
+    setState_default : () => void
 |};
 
 export function DemoControls({
@@ -251,8 +271,9 @@ export function DemoControls({
     setState_scanned,
     setState_authorized,
     setState_default,
-    setErrorMessage
 } : DemoControlsOptions) : NodeType {
+    const [ errorMessageText, setErrorMessageText ] = useState(errorMessage);
+    
     const buttonTextMap = new Map([
         [ 'null', 'Scan' ],
         [ QRCODE_STATE.ERROR, 'Scan' ],
@@ -292,28 +313,23 @@ export function DemoControls({
             </button> */}
             <button type="button" onClick={ () => { setState_default() }}> Default </button>
             <button type="button" onClick={ () => { setState_scanned() }}> Scanned </button>
-            <button type="button" onClick={ () => { setState_authorized() }}> Authorized </button>           
-            <button
-                type="button"
-                onClick={ () => setState_error() }>
-                Show Error
-            </button>
+            <button type="button" onClick={ () => { setState_authorized() }}> Authorized </button>
             <div>
                 <button
                     type="button"
                     onClick={ () => {
-                        setState_error();
+                        setState_error(errorMessageText);
                     } }>
-                    Set Error Value
+                    Show Error
                 </button>
-                <input type="text" id="errorMsg" value={ errorMessage } onChange={ (e) => setErrorMessage(e.target.value) }  />
+                <input type="text" id="errorMsg" value={ errorMessageText } onChange={ (e) => setErrorMessageText(e.target.value) }  />
             </div>
             <button
                 type="button"
                 style={ { fontWeight: '700' } }
                 onClick={ () => {
                     setState_default();
-                    setErrorMessage('An issue has occurred');
+                    setErrorMessageText('An issue has occurred');
                 } }> Reset
             </button>
             <button

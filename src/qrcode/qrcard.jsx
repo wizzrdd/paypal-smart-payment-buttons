@@ -3,40 +3,51 @@
 
 import { h, render, Fragment } from 'preact';
 import { useState } from 'preact/hooks';
+import type { ZalgoPromise } from 'zalgo-promise/src';
+import { type CrossDomainWindowType, getDomain, getParent } from 'cross-domain-utils/src';
 
-import { getBody } from '../lib';
+import { 
+    getBody,
+    onPostMessage,
+    getPostRobot,
+    briceLog
+} from '../lib';
 import { QRCODE_STATE } from '../constants';
 
-import { type NodeType, InstructionIcon, Logo, VenmoMark, AuthMark, cardStyle, DemoWrapper, DemoControls } from './components';
+import { type NodeType,
+    ErrorMessage,
+    QRCodeElement,
+    InstructionIcon,
+    Logo,
+    VenmoMark,
+    AuthMark,
+    cardStyle,
+    DemoWrapper,
+    DemoControls
+} from './components';
 
-type QRCardProps = {|
-    cspNonce : ?string,
-    svgString : string,
-    demo : boolean,
-    state? : $Values<typeof QRCODE_STATE>,
-    errorText? : string
-|};
 
-function ErrorMessage({
-    message,
-    resetFunc
+export function updateQRCodeComponent ({
+    componentWindow,
+    newState,
+    errorMessageText
 } : {|
-    message? : string,
-    resetFunc : () => void
-|}) : NodeType {
-    return (
-        <div id="error-view">
-            <div className="error-message">{message || 'An issue has occurred' }</div>
-            <button className="reset-button" type="button" onClick={ resetFunc }>Try scanning again</button>
-        </div>
-    );
+    componentWindow : CrossDomainWindowType,
+    newState? : $Values<typeof QRCODE_STATE>,
+    errorMessageText? : string
+|}) : ZalgoPromise<void> {
+    const errorMessagePayload = (newState === QRCODE_STATE.ERROR && errorMessageText) && { errorMessage: errorMessageText };
+    const postRobot = getPostRobot();
+
+    return postRobot.send(
+        componentWindow,
+        newState ? newState : QRCODE_STATE.DEFAULT,
+        errorMessagePayload ? errorMessagePayload : {},
+        { domain: window.xprops.getParentDomain() }
+    ).then(({ data }) => data);
+
 }
 
-function QRCodeElement({ svgString } : {| svgString : string |}) : NodeType {
-    
-    const src = `data:image/svg+xml;base64,${ btoa(svgString) }`;
-    return (<img id="qr-code" src={ src } alt="QR Code" />);
-}
 
 function QRCard({
     cspNonce,
@@ -44,27 +55,48 @@ function QRCard({
     demo,
     state,
     errorText = 'An issue has occurred'
-} : QRCardProps) : NodeType {
+} : {|
+    cspNonce : ?string,
+    svgString : string,
+    demo : boolean,
+    state? : $Values<typeof QRCODE_STATE>,
+    errorText? : string
+|}) : NodeType {
     const [ processState, setProcessState ] = useState(state || null);
     const [ errorMessage, setErrorMessage ] = useState(errorText);
     const isError = () => processState === QRCODE_STATE.ERROR;
-    const QRCODE_STATE_EVENTS = {};
+    const postRobot = getPostRobot();
+    const win =  window.xprops.getParent();
+    const domain = window.xprops.getParentDomain();
+
+    const listeners = [];
 
     for (const STATE in QRCODE_STATE) {
         if (Object.prototype.hasOwnProperty.call(QRCODE_STATE, STATE)) {
             const stateValue = QRCODE_STATE[STATE];
-            const event = new Event(stateValue);
-    
-            window.addEventListener(stateValue, () => {
+            const listener = onPostMessage(win, domain, stateValue, (data) => {
+                briceLog('in onPostMessage listener');
+                briceLog(stateValue);                
+                console.log(data)
+
+                if (stateValue === QRCODE_STATE.ERROR && data.errorMessagePayload) {
+                        setErrorMessage(data.errorMessagePayload);                    
+                }
+
                 if (stateValue !== QRCODE_STATE.DEFAULT) {
                     setProcessState(stateValue);
                 } else {
                     setProcessState(null);
                 }
             });
-            QRCODE_STATE_EVENTS[STATE] = event;
+            listeners.push(listener);
+
+            // window.addEventListener(stateValue, () => {
+            //     if (stateValue !== QRCODE_STATE.DEFAULT) { setProcessState(stateValue); } else { setProcessState(null);}
+            // });
+            // QRCODE_STATE_EVENTS[STATE] = event;
         }
-    }
+    }    
 
 
     // const errorEvent =new
@@ -110,11 +142,10 @@ function QRCard({
                     processState={ processState }
                     errorMessage={ errorMessage }
                     isError={ isError() }
-                    setState_error={ () => { window.dispatchEvent(QRCODE_STATE_EVENTS.ERROR); } }
-                    setState_scanned={ () => { window.dispatchEvent(QRCODE_STATE_EVENTS.SCANNED); } }
-                    setState_authorized={ () => { window.dispatchEvent(QRCODE_STATE_EVENTS.AUTHORIZED); } }
-                    setState_default={ () => { window.dispatchEvent(QRCODE_STATE_EVENTS.DEFAULT); } }
-                    setErrorMessage={ setErrorMessage }
+                    setState_error={ (str) => { updateQRCodeComponent({componentWindow: win, newState: QRCODE_STATE.ERROR, errorMessageText: str }); } }
+                    setState_scanned={ () => { updateQRCodeComponent({componentWindow: win, newState: QRCODE_STATE.SCANNED}) } }
+                    setState_authorized={ () => { updateQRCodeComponent({componentWindow: win, newState: QRCODE_STATE.AUTHORIZED}) } }
+                    setState_default={ () => { updateQRCodeComponent({componentWindow: win, newState: QRCODE_STATE.DEFAULT}) } }
                 /> : null}
         </Fragment>
     );

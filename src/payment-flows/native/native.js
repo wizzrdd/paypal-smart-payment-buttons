@@ -13,6 +13,7 @@ import { FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY, TARGET_ELEMENT, QRCODE_ST
 import { type OnShippingChangeData } from '../../props/onShippingChange';
 import { checkout } from '../checkout';
 import type { PaymentFlow, PaymentFlowInstance, SetupOptions, InitOptions } from '../types';
+import { updateQRCodeComponent } from '../../qrcode';
 
 import { isNativeEligible, isNativePaymentEligible, prefetchNativeEligibility, canUseVenmoDesktopPay } from './eligibility';
 import { openNativePopup } from './popup';
@@ -215,8 +216,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         clean.register(connection.cancel);
 
         return connection.setProps();
-    };
-    
+    };    
 
     const detectWebSwitch = ({ win } : {| win : CrossDomainWindowType |}) : ZalgoPromise<void> => {
         getStorageState(state => {
@@ -272,22 +272,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         briceLog('payment-flows/native.js/initNative -> initQRCode ');
         const { QRCode } = components;
         const url = getNativePopupUrl({ props, serviceData, fundingSource });
-        const postRobot = getPostRobot();
         const QRCodeRenderTarget = window.xprops.getParent();
-
-        function updateQRCodeComponent (newState? : $Values<typeof QRCODE_STATE>, errorMessageText? : string) : ZalgoPromise<void> {
-            const errorMessagePayload = (newState === QRCODE_STATE.ERROR && errorMessageText) && { errorMessage: errorMessageText };
-                
-            return postRobot.send(
-                QRCodeRenderTarget,
-                newState ? newState : QRCODE_STATE.DEFAULT,
-                errorMessagePayload ? errorMessagePayload : {},
-                { domain: window.xprops.getParentDomain() }
-            )
-                .then(({ data }) => data);
-
-        }
-        
 
         getLogger().info(`VenmoDesktopPay_qrcode`).track({
             [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.VENMO_DESKTOP_PAY_QR_SHOWN
@@ -311,7 +296,10 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             QRCodeComponentInstance.close();
         };
         const onApproveQR = (res) => {
-            updateQRCodeComponent(QRCODE_STATE.AUTHORIZED);
+            updateQRCodeComponent({
+                componentWindow: QRCodeRenderTarget, 
+                newState: QRCODE_STATE.AUTHORIZED
+            });
             closeQRCode('onApprove');
             return onApproveCallback(res);
         };
@@ -321,7 +309,11 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         };
         const onErrorQR = (res) => {
             const errorMessageText = res.data.message;
-            updateQRCodeComponent(QRCODE_STATE.ERROR, errorMessageText);
+            updateQRCodeComponent({
+                componentWindow: QRCodeRenderTarget,
+                newState: QRCODE_STATE.ERROR,
+                errorMessageText
+            });
             return onErrorCallback(res);
         };
 
