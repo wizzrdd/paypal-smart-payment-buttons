@@ -4,7 +4,7 @@
 import { h, render, Fragment } from 'preact';
 import { useState } from 'preact/hooks';
 import type { ZalgoPromise } from 'zalgo-promise/src';
-import { type CrossDomainWindowType } from 'cross-domain-utils/src';
+import { type CrossDomainWindowType, getDomain } from 'cross-domain-utils/src';
 
 import {
     getBody,
@@ -27,6 +27,10 @@ import { type NodeType,
 } from './components';
 
 
+
+function discernWindow () { return (window.xprops && window.xprops.getParent()) || window; }
+function discernDomain () { return (window.xprops && window.xprops.getParentDomain()) || getDomain(window) || getDomain() }
+
 export function updateQRCodeComponent ({
     componentWindow,
     newState,
@@ -43,7 +47,7 @@ export function updateQRCodeComponent ({
         componentWindow,
         newState ? newState : QRCODE_STATE.DEFAULT,
         errorMessagePayload ? errorMessagePayload : {},
-        { domain: window.xprops.getParentDomain() }
+        { domain: discernDomain()  }
     ).then(({ data }) => data);
 
 }
@@ -65,10 +69,33 @@ function QRCard({
     const [ processState, setProcessState ] = useState(state || null);
     const [ errorMessage, setErrorMessage ] = useState(errorText);
     const isError = () => processState === QRCODE_STATE.ERROR;
-    const win =  window.xprops.getParent();
-    const domain = window.xprops.getParentDomain();
+    const win = discernWindow();
+    const domain = discernDomain();
 
     const listeners = [];
+
+
+
+function setIt (newStateValue: $Values<typeof QRCODE_STATE>, data) {
+    if (stateValue === QRCODE_STATE.ERROR && data.errorMessagePayload) {
+        setErrorMessage(data.errorMessagePayload);
+    }
+
+    if (stateValue !== QRCODE_STATE.DEFAULT) {
+        setProcessState(stateValue);
+    } else {
+        setProcessState(null);
+    }
+}
+
+
+
+
+    const onAuthorizedListener = onPostMessage(win, domain, QRCODE_STATE.AUTHORIZED, (data) => {
+        briceLog('in onPostMessage listener - onAuthorizedListener');
+        console.log(data); // eslint-disable-line no-console
+        setProcessState(QRCODE_STATE.AUTHORIZED);
+    })
 
     for (const STATE in QRCODE_STATE) {
         if (Object.prototype.hasOwnProperty.call(QRCODE_STATE, STATE)) {
@@ -87,6 +114,20 @@ function QRCard({
                 } else {
                     setProcessState(null);
                 }
+
+                
+                // $FlowFixMe
+                for (const listener in listeners) {
+                    listeners[listener].cancel
+                    cancelArray.push();
+                    
+
+                }
+
+                ZalgoPromise.all(cancelArray).then(noop);
+
+
+
             });
             listeners.push(listener);
 
