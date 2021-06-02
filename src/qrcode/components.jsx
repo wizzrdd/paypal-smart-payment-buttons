@@ -255,8 +255,7 @@ type DemoControlsOptions = {|
     cspNonce? : string,
     processState : string | null,
     errorMessage : string | null,
-    isError : () => boolean,
-    setState_error : ( str?: string ) => void,
+    setState_error : (str? : string) => void,
     setState_scanned : () => void,
     setState_authorized : () => void,
     setState_default : () => void
@@ -266,21 +265,13 @@ export function DemoControls({
     cspNonce,
     processState,
     errorMessage,
-    isError,
     setState_error,
     setState_scanned,
     setState_authorized,
-    setState_default,
+    setState_default
 } : DemoControlsOptions) : NodeType {
     const [ errorMessageText, setErrorMessageText ] = useState(errorMessage);
-    
-    const buttonTextMap = new Map([
-        [ 'null', 'Scan' ],
-        [ QRCODE_STATE.ERROR, 'Scan' ],
-        [ QRCODE_STATE.AUTHORIZED, 'Reset' ],
-        [ QRCODE_STATE.SCANNED, 'Auth' ]
-    ]);
-    
+     
     return (
         <div id="controls">
             <style nonce={ cspNonce }> {`
@@ -298,22 +289,9 @@ export function DemoControls({
                     #controls div {display: flex; flex-direction: column;}
                 `}
             </style>
-            {/* <button
-                type="button"
-                disabled={ isError }
-                onClick={ () => {
-                    switch (processState) {
-                    case `${ QRCODE_STATE.AUTHORIZED }` : setState_default();
-                        break;
-                    case `${ QRCODE_STATE.SCANNED }` : setState_authorized();
-                        break;
-                    default: setState_scanned();
-                    } } }>
-                {buttonTextMap.get(processState || 'null')}
-            </button> */}
-            <button type="button" onClick={ () => { setState_default() }}> Default </button>
-            <button type="button" onClick={ () => { setState_scanned() }}> Scanned </button>
-            <button type="button" onClick={ () => { setState_authorized() }}> Authorized </button>
+            <button type="button" onClick={ () => { setState_default(); } }> Default </button>
+            <button type="button" onClick={ () => { setState_scanned(); } }> Scanned </button>
+            <button type="button" onClick={ () => { setState_authorized(); } }> Authorized </button>
             <div>
                 <button
                     type="button"

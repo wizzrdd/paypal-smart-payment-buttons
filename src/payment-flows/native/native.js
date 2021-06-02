@@ -8,7 +8,7 @@ import { FPTI_KEY } from '@paypal/sdk-constants/src';
 import { type CrossDomainWindowType } from 'cross-domain-utils/src';
 
 import { updateButtonClientConfig } from '../../api';
-import { getLogger, promiseNoop, isAndroidChrome, getStorageState, briceLog, getPostRobot } from '../../lib';
+import { getLogger, promiseNoop, isAndroidChrome, getStorageState, briceLog } from '../../lib';
 import { FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY, TARGET_ELEMENT, QRCODE_STATE } from '../../constants';
 import { type OnShippingChangeData } from '../../props/onShippingChange';
 import { checkout } from '../checkout';
@@ -216,7 +216,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         clean.register(connection.cancel);
 
         return connection.setProps();
-    };    
+    };
 
     const detectWebSwitch = ({ win } : {| win : CrossDomainWindowType |}) : ZalgoPromise<void> => {
         getStorageState(state => {
@@ -297,8 +297,8 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         };
         const onApproveQR = (res) => {
             updateQRCodeComponent({
-                componentWindow: QRCodeRenderTarget, 
-                newState: QRCODE_STATE.AUTHORIZED
+                componentWindow: QRCodeRenderTarget,
+                newState:        QRCODE_STATE.AUTHORIZED
             });
             closeQRCode('onApprove');
             return onApproveCallback(res);
@@ -311,7 +311,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             const errorMessageText = res.data.message;
             updateQRCodeComponent({
                 componentWindow: QRCodeRenderTarget,
-                newState: QRCODE_STATE.ERROR,
+                newState:        QRCODE_STATE.ERROR,
                 errorMessageText
             });
             return onErrorCallback(res);

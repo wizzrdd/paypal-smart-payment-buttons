@@ -4,9 +4,9 @@
 import { h, render, Fragment } from 'preact';
 import { useState } from 'preact/hooks';
 import type { ZalgoPromise } from 'zalgo-promise/src';
-import { type CrossDomainWindowType, getDomain, getParent } from 'cross-domain-utils/src';
+import { type CrossDomainWindowType } from 'cross-domain-utils/src';
 
-import { 
+import {
     getBody,
     onPostMessage,
     getPostRobot,
@@ -65,7 +65,6 @@ function QRCard({
     const [ processState, setProcessState ] = useState(state || null);
     const [ errorMessage, setErrorMessage ] = useState(errorText);
     const isError = () => processState === QRCODE_STATE.ERROR;
-    const postRobot = getPostRobot();
     const win =  window.xprops.getParent();
     const domain = window.xprops.getParentDomain();
 
@@ -76,11 +75,11 @@ function QRCard({
             const stateValue = QRCODE_STATE[STATE];
             const listener = onPostMessage(win, domain, stateValue, (data) => {
                 briceLog('in onPostMessage listener');
-                briceLog(stateValue);                
-                console.log(data)
+                briceLog(stateValue);
+                console.log(data); // eslint-disable-line no-console
 
                 if (stateValue === QRCODE_STATE.ERROR && data.errorMessagePayload) {
-                        setErrorMessage(data.errorMessagePayload);                    
+                    setErrorMessage(data.errorMessagePayload);
                 }
 
                 if (stateValue !== QRCODE_STATE.DEFAULT) {
@@ -96,7 +95,7 @@ function QRCard({
             // });
             // QRCODE_STATE_EVENTS[STATE] = event;
         }
-    }    
+    }
 
 
     // const errorEvent =new
@@ -142,10 +141,10 @@ function QRCard({
                     processState={ processState }
                     errorMessage={ errorMessage }
                     isError={ isError() }
-                    setState_error={ (str) => { updateQRCodeComponent({componentWindow: win, newState: QRCODE_STATE.ERROR, errorMessageText: str }); } }
-                    setState_scanned={ () => { updateQRCodeComponent({componentWindow: win, newState: QRCODE_STATE.SCANNED}) } }
-                    setState_authorized={ () => { updateQRCodeComponent({componentWindow: win, newState: QRCODE_STATE.AUTHORIZED}) } }
-                    setState_default={ () => { updateQRCodeComponent({componentWindow: win, newState: QRCODE_STATE.DEFAULT}) } }
+                    setState_error={ (str) => { updateQRCodeComponent({ componentWindow: win, newState: QRCODE_STATE.ERROR, errorMessageText: str }); } }
+                    setState_scanned={ () => { updateQRCodeComponent({ componentWindow: win, newState: QRCODE_STATE.SCANNED }); } }
+                    setState_authorized={ () => { updateQRCodeComponent({ componentWindow: win, newState: QRCODE_STATE.AUTHORIZED }); } }
+                    setState_default={ () => { updateQRCodeComponent({ componentWindow: win, newState: QRCODE_STATE.DEFAULT }); } }
                 /> : null}
         </Fragment>
     );

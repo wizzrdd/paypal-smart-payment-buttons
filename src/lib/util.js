@@ -8,7 +8,6 @@ import type { CrossDomainWindowType } from 'cross-domain-utils/src';
 import { FPTI_STATE, FPTI_TRANSITION } from '../constants';
 
 import { getLogger } from './logger';
-import { getPayPal, getPostRobot } from './sdk';
 
 export function unresolvedPromise<T>() : ZalgoPromise<T> {
     return new ZalgoPromise(noop);
