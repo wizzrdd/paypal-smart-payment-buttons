@@ -201,6 +201,7 @@ export const cardStyle : string = `
         left: 50%;
         bottom: -10%;
         transition: transform 500ms, opacity 500ms;
+        transition-delay: 350ms;
     }
     `;
 
@@ -276,7 +277,7 @@ export function DemoControls({
                     #controls div {display: flex; flex-direction: column;}
                 `}
             </style>
-            <button
+            {/* <button
                 type="button"
                 disabled={ isError }
                 onClick={ () => {
@@ -288,8 +289,10 @@ export function DemoControls({
                     default: setState_scanned();
                     } } }>
                 {buttonTextMap.get(processState || 'null')}
-            </button>
-                
+            </button> */}
+            <button type="button" onClick={ () => { setState_default() }}> Default </button>
+            <button type="button" onClick={ () => { setState_scanned() }}> Scanned </button>
+            <button type="button" onClick={ () => { setState_authorized() }}> Authorized </button>           
             <button
                 type="button"
                 onClick={ () => setState_error() }>
