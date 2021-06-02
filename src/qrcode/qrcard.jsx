@@ -2,9 +2,10 @@
 /** @jsx h */
 
 import { h, render, Fragment } from 'preact';
-import { useState } from 'preact/hooks';
-import type { ZalgoPromise } from 'zalgo-promise/src';
+import { useState, useEffect } from 'preact/hooks';
+import { ZalgoPromise } from 'zalgo-promise/src';
 import { type CrossDomainWindowType, getDomain } from 'cross-domain-utils/src';
+import { cleanup } from 'belter/src';
 
 import {
     getBody,
@@ -27,9 +28,12 @@ import { type NodeType,
 } from './components';
 
 
-
-function discernWindow () { return (window.xprops && window.xprops.getParent()) || window; }
-function discernDomain () { return (window.xprops && window.xprops.getParentDomain()) || getDomain(window) || getDomain() }
+function discernWindow () : CrossDomainWindowType {
+    return (window.xprops && window.xprops.getParent()) || window;
+}
+function discernDomain () : string {
+    return (window.xprops && window.xprops.getParentDomain()) || getDomain(window) || getDomain();
+}
 
 export function updateQRCodeComponent ({
     componentWindow,
@@ -68,35 +72,64 @@ function QRCard({
 |}) : NodeType {
     const [ processState, setProcessState ] = useState(state || null);
     const [ errorMessage, setErrorMessage ] = useState(errorText);
+    const clean = cleanup();
     const isError = () => processState === QRCODE_STATE.ERROR;
     const win = discernWindow();
     const domain = discernDomain();
-
-    const listeners = [];
-
-
-
-function setIt (newStateValue: $Values<typeof QRCODE_STATE>, data) {
-    if (stateValue === QRCODE_STATE.ERROR && data.errorMessagePayload) {
-        setErrorMessage(data.errorMessagePayload);
+    function setupListeners () {
+        const onAuthorizedListener = onPostMessage(win, domain, QRCODE_STATE.AUTHORIZED, (data) => {
+            briceLog('in onPostMessage listener - onAuthorizedListener');
+            console.log(data); // eslint-disable-line no-console
+            clean.all();
+            if (processState !== QRCODE_STATE.AUTHORIZED) {
+                setProcessState(QRCODE_STATE.AUTHORIZED);
+            } else {
+                setupListeners();
+            }
+        });
+        const onScannedListener = onPostMessage(win, domain, QRCODE_STATE.SCANNED, (data) => {
+            briceLog('in onPostMessage listener - onScannedListener');
+            console.log(data); // eslint-disable-line no-console
+            clean.all();
+            if (processState !== QRCODE_STATE.SCANNED) {
+                setProcessState(QRCODE_STATE.SCANNED);
+            } else {
+                setupListeners();
+            }
+        });
+        const onDefaultListener = onPostMessage(win, domain, QRCODE_STATE.DEFAULT, (data) => {
+            briceLog('in onPostMessage listener - onDefaultListener');
+            console.log(data); // eslint-disable-line no-console
+            clean.all();
+            if (processState && processState !== QRCODE_STATE.DEFAULT) {
+                setProcessState(QRCODE_STATE.DEFAULT);
+            } else {
+                setupListeners();
+            }
+        });
+        const onErrorListener = onPostMessage(win, domain, QRCODE_STATE.ERROR, (data) => {
+            briceLog('in onPostMessage listener - onErrorListener');
+            console.log(data); // eslint-disable-line no-console
+            const postedErrorMessage = data.data.errorMessage;
+            clean.all();
+            if (processState !== QRCODE_STATE.ERROR || errorMessage !== postedErrorMessage) {
+                setProcessState(QRCODE_STATE.ERROR);
+                setErrorMessage(postedErrorMessage);
+            } else {
+                setupListeners();
+            }
+        });
+        clean.register(onAuthorizedListener.cancel);
+        clean.register(onScannedListener.cancel);
+        clean.register(onDefaultListener.cancel);
+        clean.register(onErrorListener.cancel);
     }
 
-    if (stateValue !== QRCODE_STATE.DEFAULT) {
-        setProcessState(stateValue);
-    } else {
-        setProcessState(null);
-    }
-}
+    useEffect(() => {
+        setupListeners();
+    });
 
-
-
-
-    const onAuthorizedListener = onPostMessage(win, domain, QRCODE_STATE.AUTHORIZED, (data) => {
-        briceLog('in onPostMessage listener - onAuthorizedListener');
-        console.log(data); // eslint-disable-line no-console
-        setProcessState(QRCODE_STATE.AUTHORIZED);
-    })
-
+    /* -- looped style of implementation
     for (const STATE in QRCODE_STATE) {
         if (Object.prototype.hasOwnProperty.call(QRCODE_STATE, STATE)) {
             const stateValue = QRCODE_STATE[STATE];
@@ -126,8 +159,6 @@ function setIt (newStateValue: $Values<typeof QRCODE_STATE>, data) {
 
                 ZalgoPromise.all(cancelArray).then(noop);
 
-
-
             });
             listeners.push(listener);
 
@@ -137,7 +168,7 @@ function setIt (newStateValue: $Values<typeof QRCODE_STATE>, data) {
             // QRCODE_STATE_EVENTS[STATE] = event;
         }
     }
-
+*/
 
     // const errorEvent =new
     // window.addEventListener(errorEvent, ()=>setProcessState(QRCODE_STATE.ERROR));
