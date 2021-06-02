@@ -53,7 +53,6 @@ export function updateQRCodeComponent ({
         errorMessagePayload ? errorMessagePayload : {},
         { domain: discernDomain()  }
     ).then(({ data }) => data);
-
 }
 
 
@@ -126,6 +125,7 @@ function QRCard({
     }
 
     useEffect(() => {
+        briceLog('in useEffect');
         setupListeners();
     });
 
@@ -182,7 +182,7 @@ function QRCard({
             <style nonce={ cspNonce }> { cardStyle } </style>
             <div id="view-boxes" className={ processState }>
                 { isError() ?
-                    <ErrorMessage message={ errorMessage } resetFunc={ () => setProcessState(null) } /> :
+                    <ErrorMessage message={ errorMessage } resetFunc={ () => updateQRCodeComponent({ componentWindow: win, newState: QRCODE_STATE.DEFAULT }) } /> :
                     <div id="front-view" className="card">
                         <QRCodeElement svgString={ svgString } />
                         <Logo />
