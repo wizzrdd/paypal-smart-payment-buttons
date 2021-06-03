@@ -317,17 +317,19 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             return onErrorCallback(res);
         };
 
-        const connection = connectNative({
-            props, serviceData, config, fundingSource, sessionUID,
-            callbacks: {
-                onApprove:        onApproveQR.then(() => clean.register(connection.cancel)),
-                onCancel:         onCancelQR.then(() => clean.register(connection.cancel)),
-                onError:          onErrorQR.then(() => clean.register(connection.cancel)),
-                onFallback:       onFallbackCallback.then(() => clean.register(connection.cancel)),
-                onShippingChange: onShippingChangeCallback.then(() => clean.register(connection.cancel))
-            }
-        });
-        clean.register(connection.cancel);
+        return new ZalgoPromise((resolve, reject) => {
+            const connection = connectNative({
+                props, serviceData, config, fundingSource, sessionUID,
+                callbacks: {
+                    onApprove:        onApproveQR,
+                    onCancel:         onCancelQR,
+                    onError:          onErrorQR,
+                    onFallback:       onFallbackCallback,
+                    onShippingChange: onShippingChangeCallback
+                }
+            });
+            clean.register(connection.cancel);
+        })
     };
 
     const initPopupAppSwitch = ({ sessionUID } : {| sessionUID : string |}) => {
