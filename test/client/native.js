@@ -101,6 +101,10 @@ describe('native ios cases', () => {
                             throw new Error(`Expected env to be passed in url`);
                         }
 
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
+                        }
+
                         sessionUID = redirectQuery.sessionUID;
 
                         postRobotMock.receive({
@@ -279,6 +283,10 @@ describe('native ios cases', () => {
                             throw new Error(`Expected env to be passed in url`);
                         }
 
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
+                        }
+
                         postRobotMock.receive({
                             win,
                             name:   'detectWebSwitch',
@@ -392,6 +400,10 @@ describe('native ios cases', () => {
 
                         if (!redirectQuery.env) {
                             throw new Error(`Expected env to be passed in url`);
+                        }
+
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
                         }
 
                         sessionUID = redirectQuery.sessionUID;
@@ -586,6 +598,10 @@ describe('native ios cases', () => {
                             throw new Error(`Expected env to be passed in url`);
                         }
 
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
+                        }
+
                         postRobotMock.receive({
                             win,
                             name:   'detectWebSwitch',
@@ -716,6 +732,10 @@ describe('native ios cases', () => {
 
                         if (!redirectQuery.env) {
                             throw new Error(`Expected env to be passed in url`);
+                        }
+
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
                         }
 
                         sessionUID = redirectQuery.sessionUID;
@@ -875,6 +895,10 @@ describe('native ios cases', () => {
                             throw new Error(`Expected env to be passed in url`);
                         }
 
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
+                        }
+
                         sessionUID = redirectQuery.sessionUID;
 
                         postRobotMock.receive({
@@ -1016,6 +1040,10 @@ describe('native ios cases', () => {
 
                         if (!redirectQuery.buttonSessionID) {
                             throw new Error(`Expected sdkMeta to be passed in url`);
+                        }
+
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
                         }
 
                         sessionUID = redirectQuery.sessionUID;
@@ -1168,6 +1196,10 @@ describe('native ios cases', () => {
 
                         if (!redirectQuery.env) {
                             throw new Error(`Expected env to be passed in url`);
+                        }
+
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
                         }
 
                         sessionUID = redirectQuery.sessionUID;
@@ -1446,6 +1478,10 @@ describe('native ios cases', () => {
                             throw new Error(`Expected env to be passed in url`);
                         }
 
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
+                        }
+
                         postRobotMock.receive({
                             win,
                             name:   'detectWebSwitch',
@@ -1575,6 +1611,10 @@ describe('native ios cases', () => {
 
                         if (!redirectQuery.env) {
                             throw new Error(`Expected env to be passed in url`);
+                        }
+
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
                         }
 
                         postRobotMock.receive({
@@ -1782,6 +1822,10 @@ describe('native ios cases', () => {
                             throw new Error(`Expected env to be passed in url`);
                         }
 
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
+                        }
+
                         sessionUID = redirectQuery.sessionUID;
 
                         postRobotMock.receive({
@@ -1949,6 +1993,10 @@ describe('native ios cases', () => {
 
                         if (!redirectQuery.env) {
                             throw new Error(`Expected env to be passed in url`);
+                        }
+
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
                         }
 
                         sessionUID = redirectQuery.sessionUID;
@@ -2146,6 +2194,10 @@ describe('native ios cases', () => {
                             throw new Error(`Expected env to be passed in url`);
                         }
 
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
+                        }
+
                         sessionUID = redirectQuery.sessionUID;
 
                         postRobotMock.receive({
@@ -2313,6 +2365,10 @@ describe('native chrome cases', () => {
 
                         if (!redirectQuery.env) {
                             throw new Error(`Expected env to be passed in url`);
+                        }
+
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
                         }
 
                         sessionUID = redirectQuery.sessionUID;
@@ -2483,6 +2539,10 @@ describe('native chrome cases', () => {
                             throw new Error(`Expected env to be passed in url`);
                         }
 
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
+                        }
+
                         postRobotMock.receive({
                             win,
                             name:   'detectWebSwitch',
@@ -2597,6 +2657,10 @@ describe('native chrome cases', () => {
 
                         if (!redirectQuery.env) {
                             throw new Error(`Expected env to be passed in url`);
+                        }
+
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
                         }
 
                         sessionUID = redirectQuery.sessionUID;
@@ -2781,6 +2845,10 @@ describe('native chrome cases', () => {
                             throw new Error(`Expected env to be passed in url`);
                         }
 
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
+                        }
+
                         postRobotMock.receive({
                             win,
                             name:   'detectWebSwitch',
@@ -2912,6 +2980,10 @@ describe('native chrome cases', () => {
 
                         if (!redirectQuery.env) {
                             throw new Error(`Expected env to be passed in url`);
+                        }
+
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
                         }
 
                         sessionUID = redirectQuery.sessionUID;
@@ -3051,6 +3123,10 @@ describe('native chrome cases', () => {
 
                         if (!redirectQuery.buttonSessionID) {
                             throw new Error(`Expected sdkMeta to be passed in url`);
+                        }
+
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
                         }
 
                         sessionUID = redirectQuery.sessionUID;
@@ -3194,6 +3270,10 @@ describe('native chrome cases', () => {
 
                         if (!redirectQuery.env) {
                             throw new Error(`Expected env to be passed in url`);
+                        }
+
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
                         }
 
                         sessionUID = redirectQuery.sessionUID;
@@ -3462,6 +3542,10 @@ describe('native chrome cases', () => {
                             throw new Error(`Expected env to be passed in url`);
                         }
 
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
+                        }
+
                         postRobotMock.receive({
                             win,
                             name:   'detectWebSwitch',
@@ -3591,6 +3675,10 @@ describe('native chrome cases', () => {
 
                         if (!redirectQuery.env) {
                             throw new Error(`Expected env to be passed in url`);
+                        }
+
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
                         }
 
                         postRobotMock.receive({
@@ -3799,6 +3887,10 @@ describe('native chrome cases', () => {
                             throw new Error(`Expected env to be passed in url`);
                         }
 
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
+                        }
+
                         sessionUID = redirectQuery.sessionUID;
 
                         popupWin.close();
@@ -3957,6 +4049,10 @@ describe('native chrome cases', () => {
 
                         if (!redirectQuery.env) {
                             throw new Error(`Expected env to be passed in url`);
+                        }
+
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
                         }
 
                         sessionUID = redirectQuery.sessionUID;
@@ -4142,6 +4238,10 @@ describe('native chrome cases', () => {
 
                         if (!redirectQuery.env) {
                             throw new Error(`Expected env to be passed in url`);
+                        }
+
+                        if (!redirectQuery.channel) {
+                            throw new Error(`Expected channel to be passed in url`);
                         }
 
                         sessionUID = redirectQuery.sessionUID;

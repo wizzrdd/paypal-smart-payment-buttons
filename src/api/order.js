@@ -2,13 +2,14 @@
 
 /* @flow */
 import type { ZalgoPromise } from 'zalgo-promise/src';
-import { FPTI_KEY, FUNDING, WALLET_INSTRUMENT, INTENT } from '@paypal/sdk-constants/src';
-import { request, noop, memoize } from 'belter/src';
+import { CURRENCY, FPTI_KEY, FUNDING, WALLET_INSTRUMENT, INTENT } from '@paypal/sdk-constants/src';
+import { request, noop, memoize, stringifyError } from 'belter/src';
 
 import { SMART_API_URI, ORDERS_API_URL, VALIDATE_PAYMENT_METHOD_API } from '../config';
 import { getLogger } from '../lib';
 import { FPTI_TRANSITION, FPTI_CONTEXT_TYPE, HEADERS, SMART_PAYMENT_BUTTONS,
     INTEGRATION_ARTIFACT, USER_EXPERIENCE_FLOW, PRODUCT_FLOW, PREFER } from '../constants';
+import type { ShippingMethod, ShippingAddress } from '../payment-flows/types';
 
 import { callSmartAPI, callGraphQL, callRestAPI } from './api';
 
@@ -69,21 +70,11 @@ export function createOrderID(order : OrderCreateRequest, { facilitatorAccessTok
 }
 
 const handleRestAPIResponse = (err, orderID : string, action : string) => {
-    // $FlowFixMe
-    const { headers } = err.response;
-    const corrID = headers[HEADERS.PAYPAL_DEBUG_ID];
-    getLogger().info(`call_rest_api_failure_${ action }`, { corrID, orderID });
+    getLogger().info(`call_rest_api_failure_${ action }`, { err: stringifyError(err), orderID });
 };
 
 const handleSmartResponse = (response, orderID : string, restAPIError, action : string) => {
-    const { headers } = response;
-    const corrID = headers[HEADERS.PAYPAL_DEBUG_ID];
-
-    // $FlowFixMe
-    const { apiHeaders } = restAPIError.response;
-    const apiCorrID = apiHeaders[HEADERS.PAYPAL_DEBUG_ID];
-    
-    getLogger().info(`lsat_uprade_shadow_success_get_${ action }`, { corrID, apiCorrID, orderID });
+    getLogger().info(`lsat_uprade_shadow_success_get_${ action }`, { orderID });
 
     return response;
 };
@@ -554,7 +545,6 @@ export const getSupplementalOrderInfo : GetSupplementalOrderInfo = memoize(order
                                 currencyValue
                                 currencyCode
                                 currencyFormatSymbolISOCurrency
-                                currencyValue
                             }
                         }
                         supplementary {
@@ -574,6 +564,92 @@ export const getSupplementalOrderInfo : GetSupplementalOrderInfo = memoize(order
             }
         `,
         variables: { orderID },
+        headers:   {
+            [HEADERS.CLIENT_CONTEXT]: orderID
+        }
+    });
+});
+
+export type DetailedOrderInfo = {|
+    checkoutSession : {|
+        allowedCardIssuers : $ReadOnlyArray<string>,
+        cart : {|
+            amounts : {|
+                shippingAndHandling : {|
+                    currencyFormatSymbolISOCurrency : string,
+                    currencyValue : string,
+                    currencyCode : $Values<typeof CURRENCY>
+                |},
+
+                tax : {|
+                    currencyFormatSymbolISOCurrency : string,
+                    currencyValue : string,
+                    currencyCode : $Values<typeof CURRENCY>
+                |},
+                
+                total : {|
+                    currencyFormatSymbolISOCurrency : string,
+                    currencyValue : string,
+                    currencyCode : $Values<typeof CURRENCY>
+                |}
+            |},
+            shippingAddress? : ShippingAddress,
+            shippingMethods? : $ReadOnlyArray<ShippingMethod>
+        |}
+    |}
+|};
+
+export type GetDetailedOrderInfo = (string, string) => ZalgoPromise<DetailedOrderInfo>;
+
+export const getDetailedOrderInfo : GetDetailedOrderInfo = memoize((orderID, country) => {
+    return callGraphQL({
+        name:  'GetCheckoutDetails',
+        query: `
+            query GetCheckoutDetails($orderID: String!, $country: CountryCodes!) {
+                checkoutSession(token: $orderID) {
+                    allowedCardIssuers(country: $country)
+                    cart {
+                        amounts {
+                            shippingAndHandling {
+                                currencyValue
+                                currencySymbol
+                                currencyFormat
+                            }
+                            tax {
+                                currencyValue
+                                currencySymbol
+                                currencyFormat
+                            }
+                            total {
+                                currencyValue
+                                currencyCode
+                                currencyFormatSymbolISOCurrency
+                            }
+                        }
+                        shippingAddress {
+                            firstName
+                            lastName
+                            line1
+                            line2
+                            city
+                            state
+                            postalCode
+                            country
+                        }
+                        shippingMethods {
+                            amount {
+                                currencyCode
+                                currencyValue
+                            }
+                            label
+                            selected
+                            type
+                        }
+                    }
+                }
+            }
+        `,
+        variables: { orderID, country },
         headers:   {
             [HEADERS.CLIENT_CONTEXT]: orderID
         }
