@@ -104,7 +104,7 @@ type OnShippingChangeXProps = {|
 |};
 
 export function getOnShippingChange({ onShippingChange, partnerAttributionID, clientID, upgradeLSAT = false } : OnShippingChangeXProps, { facilitatorAccessToken, createOrder } : {| facilitatorAccessToken : string, createOrder : CreateOrder |}) : ?OnShippingChange {
-    upgradeLSAT = (upgradeLSAT ||  upgradeLSATExperiment.isEnabled()) && LSAT_UPGRADE_EXCLUDED_MERCHANTS.indexOf(clientID) === -1;
+    upgradeLSAT = upgradeLSAT && upgradeLSATExperiment.isEnabled() && LSAT_UPGRADE_EXCLUDED_MERCHANTS.indexOf(clientID) === -1;
 
     if (onShippingChange) {
         return ({ buyerAccessToken, forceRestAPI = upgradeLSAT, ...data }, actions) => {

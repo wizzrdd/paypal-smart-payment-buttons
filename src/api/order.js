@@ -111,6 +111,7 @@ export function getOrder(orderID : string, { facilitatorAccessToken, buyerAccess
         });
     }
 
+    getLogger().info(`lsat_upgrade_false`);
     return callSmartAPI({
         accessToken: buyerAccessToken,
         url:         `${ SMART_API_URI.ORDER }/${ orderID }`,
@@ -148,6 +149,7 @@ export function captureOrder(orderID : string, { facilitatorAccessToken, buyerAc
         });
     }
 
+    getLogger().info(`lsat_upgrade_false`);
     return callSmartAPI({
         accessToken: buyerAccessToken,
         method:      'post',
@@ -186,6 +188,7 @@ export function authorizeOrder(orderID : string, { facilitatorAccessToken, buyer
         });
     }
 
+    getLogger().info(`lsat_upgrade_false`);
     return callSmartAPI({
         accessToken: buyerAccessToken,
         method:      'post',
@@ -230,6 +233,7 @@ export function patchOrder(orderID : string, data : PatchData, { facilitatorAcce
         });
     }
 
+    getLogger().info(`lsat_upgrade_false`);
     return callSmartAPI({
         accessToken: buyerAccessToken,
         method:      'post',

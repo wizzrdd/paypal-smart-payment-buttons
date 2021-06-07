@@ -25,7 +25,7 @@ type GetOnAuthOptions = {|
 |};
 
 export function getOnAuth({ facilitatorAccessToken, createOrder, upgradeLSAT, userIDToken, clientID } : GetOnAuthOptions) : OnAuth {
-    upgradeLSAT = (upgradeLSAT || Boolean(userIDToken) || upgradeLSATExperiment.isEnabled()) && LSAT_UPGRADE_EXCLUDED_MERCHANTS.indexOf(clientID) === -1;
+    upgradeLSAT = upgradeLSAT && (Boolean(userIDToken) || upgradeLSATExperiment.isEnabled()) && LSAT_UPGRADE_EXCLUDED_MERCHANTS.indexOf(clientID) === -1;
 
     return ({ accessToken } : XOnAuthDataType) => {
         getLogger().info(`spb_onauth_access_token_${ accessToken ? 'present' : 'not_present' }`);

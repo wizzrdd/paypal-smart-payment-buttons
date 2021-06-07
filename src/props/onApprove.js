@@ -235,7 +235,7 @@ export function getOnApprove({ intent, onApprove = getDefaultOnApprove(intent), 
     if (!onApprove) {
         throw new Error(`Expected onApprove`);
     }
-    upgradeLSAT = (upgradeLSAT || Boolean(userIDToken) || upgradeLSATExperiment.isEnabled()) && LSAT_UPGRADE_EXCLUDED_MERCHANTS.indexOf(clientID) === -1;
+    upgradeLSAT = upgradeLSAT && (Boolean(userIDToken) || upgradeLSATExperiment.isEnabled()) && LSAT_UPGRADE_EXCLUDED_MERCHANTS.indexOf(clientID) === -1;
 
     return memoize(({ payerID, paymentID, billingToken, subscriptionID, buyerAccessToken, authCode, forceRestAPI = upgradeLSAT } : OnApproveData, { restart } : OnApproveActions) => {
         return ZalgoPromise.try(() => {
