@@ -1,12 +1,8 @@
 /* @flow */
 
-import type { CrossDomainWindowType } from 'cross-domain-utils/src';
-import type { ZalgoPromise } from 'zalgo-promise/src';
+import postRobot from 'post-robot';
 
-type PostRobot = {|
-    // eslint-disable-next-line no-undef
-    send : <D, R>(CrossDomainWindowType, string, D, {| domain : string |}) => ZalgoPromise<R>
-|};
+export type PostRobot = typeof postRobot;
 
 type PayPal = {|
     postRobot : PostRobot,
@@ -22,13 +18,18 @@ export function getPayPal() : PayPal {
 }
 
 export function getPostRobot() : PostRobot {
-    const paypal = getPayPal();
-
-    if (!paypal.postRobot) {
-        throw new Error(`paypal.postRobot not found`);
+    let robot;
+    try {
+        const paypal = getPayPal();
+        if (!paypal.postRobot) {
+            throw new Error(`paypal.postRobot not found`);
+        }
+        robot = paypal.postRobot;
+    } catch (error) {
+        robot = postRobot;
     }
-
-    return paypal.postRobot;
+    return robot;
+    
 }
 
 export function getSDKVersion() : string {

@@ -125,7 +125,7 @@ function QRCard({
     }
 
     useEffect(() => {
-        briceLog('in useEffect');
+        briceLog('in QRCard.useEffect()');
         setupListeners();
     });
 

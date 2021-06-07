@@ -317,7 +317,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             return onErrorCallback(res);
         };
 
-        return new ZalgoPromise((resolve, reject) => {
+        return new ZalgoPromise(() => {
             const connection = connectNative({
                 props, serviceData, config, fundingSource, sessionUID,
                 callbacks: {
@@ -329,7 +329,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                 }
             });
             clean.register(connection.cancel);
-        })
+        });
     };
 
     const initPopupAppSwitch = ({ sessionUID } : {| sessionUID : string |}) => {

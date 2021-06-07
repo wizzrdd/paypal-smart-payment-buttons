@@ -8,6 +8,8 @@ import type { CrossDomainWindowType } from 'cross-domain-utils/src';
 import { FPTI_STATE, FPTI_TRANSITION } from '../constants';
 
 import { getLogger } from './logger';
+import { getPostRobot } from './sdk';
+
 
 export function unresolvedPromise<T>() : ZalgoPromise<T> {
     return new ZalgoPromise(noop);
@@ -148,6 +150,7 @@ type PostMessageListener<T> = ZalgoPromise<T> & {|
 |};
 
 export function onPostMessage<D, R>(win : CrossDomainWindowType, domain : string, event : string, handler : (D) => R) : PostMessageListener<R> {
-    return paypal.postRobot.once(event, { window: win, domain }, handler);
+    const postRobot = getPostRobot();
+    return postRobot.once(event, { window: win, domain }, handler);
 }
     
