@@ -9,7 +9,7 @@ import type { ProxyWindow, ConnectOptions } from '../types';
 import { type CreateBillingAgreement, type CreateSubscription } from '../props';
 import { enableVault, exchangeAccessTokenForAuthCode, getConnectURL, getFundingEligibility, updateButtonClientConfig, getSmartWallet  } from '../api';
 import { CONTEXT, TARGET_ELEMENT, BUYER_INTENT, FPTI_TRANSITION, FPTI_CONTEXT_TYPE } from '../constants';
-import { unresolvedPromise, getLogger, briceLog } from '../lib';
+import { unresolvedPromise, getLogger } from '../lib';
 import { openPopup } from '../ui';
 import { FUNDING_SKIP_LOGIN } from '../config';
 
@@ -225,8 +225,6 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
         throw new Error(`Checkout already rendered`);
     }
 
-    briceLog('payment-flows/checkout.js/initCheckout', true);
-
     const { Checkout } = components;
     const { sessionID, buttonSessionID, createOrder, onApprove, onCancel,
         onShippingChange, locale, commit, onError, vault, clientAccessToken,
@@ -246,7 +244,6 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     let forceClosed = false;
 
     const init = () => {
-        briceLog('payment-flows/checkout.js/initCheckout-> init', true);
 
         return Checkout({
             window: win,
@@ -385,7 +382,6 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     let instance;
 
     const close = () => {
-        briceLog('payment-flows/checkout.js/initCheckout-> close');
         checkoutOpen = false;
         return ZalgoPromise.try(() => {
             if (instance) {
@@ -396,7 +392,6 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     };
 
     const start = memoize(() => {
-        briceLog('payment-flows/checkout.js/initCheckout-> start');
                 
         instance = init();
 
@@ -409,13 +404,11 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     });
 
     const restart = memoize(() : ZalgoPromise<void> => {
-        briceLog('payment-flows/checkout.js/initCheckout-> restart');
         return initCheckout({ props, components, serviceData, config, payment: { button, fundingSource, card, buyerIntent, isClick: false } })
             .start().finally(unresolvedPromise);
     });
 
     const click = () => {
-        briceLog('payment-flows/checkout.js/initCheckout-> click');
         if (!win && supportsPopups()) {
             try {
                 win = openPopup({ width: CHECKOUT_POPUP_DIMENSIONS.WIDTH, height: CHECKOUT_POPUP_DIMENSIONS.HEIGHT });

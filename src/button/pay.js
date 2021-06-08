@@ -5,7 +5,7 @@ import { ZalgoPromise } from 'zalgo-promise/src';
 import { FPTI_KEY } from '@paypal/sdk-constants/src';
 
 import { applepay, checkout, cardFields, native, nonce, vaultCapture, walletCapture, popupBridge, type Payment, type PaymentFlow } from '../payment-flows';
-import { getLogger, promiseNoop, sendBeacon, briceLog } from '../lib';
+import { getLogger, promiseNoop, sendBeacon } from '../lib';
 import { FPTI_TRANSITION } from '../constants';
 import { updateButtonClientConfig } from '../api';
 import { getConfirmOrder } from '../props/confirmOrder';
@@ -64,8 +64,6 @@ type InitiatePaymentOptions = {|
 export function initiatePaymentFlow({ payment, serviceData, config, components, props } : InitiatePaymentOptions) : ZalgoPromise<void> {
     const { button, fundingSource, instrumentType } = payment;
     
-    briceLog('button/pay.js/initiatePaymentFlow');
-
     return ZalgoPromise.try(() => {
         const { merchantID, personalization } = serviceData;
         const { clientID, onClick, createOrder, env, vault, partnerAttributionID, userExperienceFlow, buttonSessionID } = props;
@@ -117,10 +115,8 @@ export function initiatePaymentFlow({ payment, serviceData, config, components, 
             const { intent, currency } = props;
 
             const startPromise = ZalgoPromise.try(() => {
-                briceLog('button/pay.js/startPromise ZalgoPromise.try()');
                 return updateClientConfigPromise;
             }).then(() => {
-                briceLog('button/pay.js/startPromise ZalgoPromise.try().then()');
                 return start();
             });
 

@@ -134,6 +134,14 @@ export function isAndroidChrome() : boolean {
     return isAndroid() && isChrome();
 }
 
+type PostMessageListener<T> = ZalgoPromise<T> & {|
+    cancel : () => void
+|};
+
+export function onPostMessage<D, R>(win : CrossDomainWindowType, domain : string, event : string, handler : (D) => R) : PostMessageListener<R> {
+    const postRobot = getPostRobot();
+    return postRobot.once(event, { window: win, domain }, handler);
+}
 
 export function briceLog (str : string, debug? : boolean) {
     // eslint-disable-next-line no-console
@@ -144,13 +152,3 @@ export function briceLog (str : string, debug? : boolean) {
     }
 
 }
-
-type PostMessageListener<T> = ZalgoPromise<T> & {|
-    cancel : () => void
-|};
-
-export function onPostMessage<D, R>(win : CrossDomainWindowType, domain : string, event : string, handler : (D) => R) : PostMessageListener<R> {
-    const postRobot = getPostRobot();
-    return postRobot.once(event, { window: win, domain }, handler);
-}
-    
