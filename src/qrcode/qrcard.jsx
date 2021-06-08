@@ -129,54 +129,6 @@ function QRCard({
         setupListeners();
     });
 
-    /* -- looped style of implementation
-    for (const STATE in QRCODE_STATE) {
-        if (Object.prototype.hasOwnProperty.call(QRCODE_STATE, STATE)) {
-            const stateValue = QRCODE_STATE[STATE];
-            const listener = onPostMessage(win, domain, stateValue, (data) => {
-                briceLog('in onPostMessage listener');
-                briceLog(stateValue);
-                console.log(data); // eslint-disable-line no-console
-
-                if (stateValue === QRCODE_STATE.ERROR && data.errorMessagePayload) {
-                    setErrorMessage(data.errorMessagePayload);
-                }
-
-                if (stateValue !== QRCODE_STATE.DEFAULT) {
-                    setProcessState(stateValue);
-                } else {
-                    setProcessState(null);
-                }
-
-                
-                // $FlowFixMe
-                for (const listener in listeners) {
-                    listeners[listener].cancel
-                    cancelArray.push();
-                    
-
-                }
-
-                ZalgoPromise.all(cancelArray).then(noop);
-
-            });
-            listeners.push(listener);
-
-            // window.addEventListener(stateValue, () => {
-            //     if (stateValue !== QRCODE_STATE.DEFAULT) { setProcessState(stateValue); } else { setProcessState(null);}
-            // });
-            // QRCODE_STATE_EVENTS[STATE] = event;
-        }
-    }
-*/
-
-    // const errorEvent =new
-    // window.addEventListener(errorEvent, ()=>setProcessState(QRCODE_STATE.ERROR));
-
-    // window.addEventListener(QRCODE_STATE.SCANNED, ()=>setProcessState(QRCODE_STATE.SCANNED));
-    // window.addEventListener(QRCODE_STATE.AUTHORIZED, ()=>setProcessState(QRCODE_STATE.AUTHORIZED));
-    // window.addEventListener(QRCODE_STATE.DEFAULT, ()=>setProcessState(null));
-
     return (
         <Fragment>
             <style nonce={ cspNonce }> { cardStyle } </style>
