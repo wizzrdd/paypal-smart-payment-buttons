@@ -9,6 +9,7 @@ import { WEB_CHECKOUT_URI } from '../../config';
 import { isIOSSafari } from '../../lib';
 import { USER_ACTION } from '../../constants';
 import { HASH } from '../../native/popup/constants';
+import { CHANNEL } from '../../../server/components/native/constants';
 import type { FirebaseConfig } from '../../api';
 import type { ButtonProps, ServiceData } from '../../button/props';
 import type { NativePopupInputParams } from '../../../server/components/native/params';
@@ -69,10 +70,7 @@ type GetNativeUrlOptions = {|
 |};
 
 type NativeUrlQuery = {|
-<<<<<<< HEAD
-=======
     channel : string,
->>>>>>> dfa732a6306721dbbf03d0ac74572e973b9e5340
     sdkMeta? : string,
     sessionUID : string,
     orderID : string,
@@ -93,11 +91,6 @@ type NativeUrlQuery = {|
     domain : string,
     rtdbInstanceID : string
 |};
-
-const CHANNEL = {
-    DESKTOP: 'desktop-web',
-    MOBILE:  'mobile-web'
-};
 
 function getNativeUrlQueryParams({ props, serviceData, fundingSource, sessionUID, firebaseConfig, pageUrl, orderID, stickinessID } : GetNativeUrlOptions) : NativeUrlQuery {
     const { env, clientID, commit, buttonSessionID, stageHost, apiStageHost, enableFunding, merchantDomain } = props;
@@ -166,17 +159,35 @@ type GetNativePopupUrlOptions = {|
     fundingSource : $Values<typeof FUNDING>
 |};
 
-const getNativePopupQueryParams = ({ props, serviceData } : GetNativePopupUrlOptions) : NativePopupInputParams => {
+const getNativePopupQueryParams = ({ props, serviceData, fundingSource } : GetNativePopupUrlOptions) : NativePopupInputParams => {
     const { buttonSessionID, env, clientID, sessionID, sdkCorrelationID } = props;
     const { sdkMeta, buyerCountry } = serviceData;
     const parentDomain = getDomain();
-    return {
-        sdkMeta, buttonSessionID, parentDomain, env, clientID, sessionID, sdkCorrelationID, buyerCountry
+    const channel = isDevice() ? CHANNEL.MOBILE : CHANNEL.DESKTOP;
+    const queryParams = {
+        buttonSessionID,
+        buyerCountry,
+        clientID,
+        channel,
+        env,
+        parentDomain,
+        sdkCorrelationID,
+        sdkMeta,
+        sessionID,
     };
+
+    if (queryParams.channel === CHANNEL.DESKTOP) {
+        delete queryParams.sdkMeta;
+    }
+    return queryParams; 
 };
 
 export function getNativePopupUrl({ props, serviceData, fundingSource } : GetNativePopupUrlOptions) : string {
     const queryParams = getNativePopupQueryParams({ props, serviceData, fundingSource });
+    
+    if (fundingSource === FUNDING.VENMO) {
+        delete queryParams.sdkMeta;
+    }
 
     const baseURL = extendUrl(`${ getNativePopupDomain({ props }) }${ NATIVE_CHECKOUT_POPUP_URI[fundingSource] }`, {
         // $FlowFixMe
