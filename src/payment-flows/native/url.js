@@ -159,7 +159,7 @@ type GetNativePopupUrlOptions = {|
     fundingSource : $Values<typeof FUNDING>
 |};
 
-const getNativePopupQueryParams = ({ props, serviceData, fundingSource } : GetNativePopupUrlOptions) : NativePopupInputParams => {
+const getNativePopupQueryParams = ({ props, serviceData } : GetNativePopupUrlOptions) : NativePopupInputParams => {
     const { buttonSessionID, env, clientID, sessionID, sdkCorrelationID } = props;
     const { sdkMeta, buyerCountry } = serviceData;
     const parentDomain = getDomain();
@@ -173,13 +173,13 @@ const getNativePopupQueryParams = ({ props, serviceData, fundingSource } : GetNa
         parentDomain,
         sdkCorrelationID,
         sdkMeta,
-        sessionID,
+        sessionID
     };
 
     if (queryParams.channel === CHANNEL.DESKTOP) {
         delete queryParams.sdkMeta;
     }
-    return queryParams; 
+    return queryParams;
 };
 
 export function getNativePopupUrl({ props, serviceData, fundingSource } : GetNativePopupUrlOptions) : string {

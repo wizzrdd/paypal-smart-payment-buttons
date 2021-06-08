@@ -6,6 +6,7 @@ import { ENV, DEFAULT_COUNTRY, COUNTRY_LANGS, COUNTRY } from '@paypal/sdk-consta
 import type { ExpressRequest, ExpressResponse, LocaleType } from '../../types';
 import { getCSPNonce, makeError } from '../../lib';
 import { ERROR_CODE, HTTP_HEADER } from '../../config';
+
 import { CHANNEL } from './constants';
 
 export type NativePopupInputParams = {|
