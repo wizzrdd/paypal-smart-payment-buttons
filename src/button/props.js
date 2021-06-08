@@ -12,6 +12,7 @@ import type { CreateOrder, XCreateOrder, CreateBillingAgreement, XCreateBillingA
     XOnInit, OnApprove, XOnApprove, OnCancel, XOnCancel, OnClick, XOnClick, OnShippingChange, XOnShippingChange, XOnError,
     OnError, XGetPopupBridge, GetPopupBridge, XCreateSubscription, RememberFunding, GetPageURL, OnAuth, GetQueriedEligibleFunding
 } from '../props';
+import { LSAT_UPGRADE_RESULT_KEY } from '../constants';
 import { type FirebaseConfig } from '../api';
 import { getNonce, getStorageID, isStorageStateFresh } from '../lib';
 import { getOnInit } from '../props/onInit';
@@ -177,6 +178,7 @@ export type ButtonProps = {|
 
 // eslint-disable-next-line complexity
 export function getProps({ facilitatorAccessToken, brandedDefault } : {| facilitatorAccessToken : string, brandedDefault : boolean | null |}) : ButtonProps {
+    window[LSAT_UPGRADE_RESULT_KEY] = true;
 
     const xprops : ButtonXProps = window.xprops;
 
