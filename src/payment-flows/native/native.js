@@ -352,7 +352,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             clean.register(nativePopup.cancel);
         });
     };
-    
 
     const click = () => {
         briceLog('payment-flows/native.js/initNative -> click ');

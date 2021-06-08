@@ -63,7 +63,7 @@ type InitiatePaymentOptions = {|
 
 export function initiatePaymentFlow({ payment, serviceData, config, components, props } : InitiatePaymentOptions) : ZalgoPromise<void> {
     const { button, fundingSource, instrumentType } = payment;
-    
+
     return ZalgoPromise.try(() => {
         const { merchantID, personalization } = serviceData;
         const { clientID, onClick, createOrder, env, vault, partnerAttributionID, userExperienceFlow, buttonSessionID } = props;

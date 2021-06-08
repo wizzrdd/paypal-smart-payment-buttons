@@ -96,7 +96,6 @@ function getEligibility({ fundingSource, props, serviceData, sfvc, validatePromi
     });
 }
 
-
 type NativePopupOptions = {|
     props : ButtonProps,
     serviceData : ServiceData,

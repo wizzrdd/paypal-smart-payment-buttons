@@ -244,7 +244,6 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     let forceClosed = false;
 
     const init = () => {
-
         return Checkout({
             window: win,
             sessionID,
@@ -392,10 +391,7 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     };
 
     const start = memoize(() => {
-                
         instance = init();
-
-
         return instance.renderTo(getRenderWindow(), TARGET_ELEMENT.BODY, context).catch(err => {
             if (checkoutOpen) {
                 throw err;
