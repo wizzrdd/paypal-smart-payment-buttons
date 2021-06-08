@@ -5,6 +5,8 @@ import { wrapPromise } from 'belter/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { FUNDING, INTENT, COUNTRY } from '@paypal/sdk-constants/src';
 
+import { LSAT_UPGRADE_RESULT_KEY } from '../../src/constants';
+
 import {
     mockAsyncProp,
     createButtonHTML,
@@ -30,6 +32,9 @@ import {
 } from './mocks';
 
 describe('actions cases', () => {
+    beforeEach(() => {
+        window[LSAT_UPGRADE_RESULT_KEY] = true;
+    });
 
     it('should render a button, click the button, and render checkout, then pass onApprove callback to the parent with actions.order.create', async () => {
         return await wrapPromise(async ({ expect }) => {
@@ -169,7 +174,6 @@ describe('actions cases', () => {
             const orderID = generateOrderID();
             const payerID = 'YYYYYYYYYY';
 
-            window.xprops.upgradeLSAT = true;
             window.xprops.createOrder = mockAsyncProp(expect('createOrder', async () => {
                 return ZalgoPromise.try(() => {
                     return orderID;
@@ -232,7 +236,6 @@ describe('actions cases', () => {
             const orderID = generateOrderID();
             const payerID = 'YYYYYYYYYY';
 
-            window.xprops.upgradeLSAT = true;
             window.xprops.createOrder = mockAsyncProp(expect('createOrder', async () => {
                 return ZalgoPromise.try(() => {
                     return orderID;
@@ -357,7 +360,6 @@ describe('actions cases', () => {
             const orderID = generateOrderID();
             const payerID = 'YYYYYYYYYY';
 
-            window.xprops.upgradeLSAT = true;
             window.xprops.createOrder = mockAsyncProp(expect('createOrder', async () => {
                 return ZalgoPromise.try(() => {
                     return orderID;
@@ -420,7 +422,6 @@ describe('actions cases', () => {
             const orderID = generateOrderID();
             const payerID = 'YYYYYYYYYY';
 
-            window.xprops.upgradeLSAT = true;
             window.xprops.createOrder = mockAsyncProp(expect('createOrder', async () => {
                 return ZalgoPromise.try(() => {
                     return orderID;
@@ -592,7 +593,6 @@ describe('actions cases', () => {
             const payerID = 'YYYYYYYYYY';
 
             window.xprops.intent = INTENT.AUTHORIZE;
-            window.xprops.upgradeLSAT = true;
 
             const gqlMock = getGraphQLApiMock({
                 extraHandler: expect('GetCheckoutDetailsGQLCall', ({ data }) => {
@@ -701,7 +701,6 @@ describe('actions cases', () => {
             const payerID = 'YYYYYYYYYY';
 
             window.xprops.intent = INTENT.AUTHORIZE;
-            window.xprops.upgradeLSAT = true;
 
             const gqlMock = getGraphQLApiMock({
                 extraHandler: expect('GetCheckoutDetailsGQLCall', ({ data }) => {
