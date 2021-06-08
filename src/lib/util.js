@@ -142,13 +142,3 @@ export function onPostMessage<D, R>(win : CrossDomainWindowType, domain : string
     const postRobot = getPostRobot();
     return postRobot.once(event, { window: win, domain }, handler);
 }
-
-export function briceLog (str : string, debug? : boolean) {
-    // eslint-disable-next-line no-console
-    console.log(`x- ${ str }`);
-    if (debug) {
-        // eslint-disable-next-line no-debugger
-        debugger;
-    }
-
-}

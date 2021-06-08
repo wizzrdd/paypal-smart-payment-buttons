@@ -5,7 +5,7 @@ import { PLATFORM, ENV, FUNDING } from '@paypal/sdk-constants/src';
 import { supportsPopups, isIos, isAndroid } from 'belter/src';
 
 import { type NativeEligibility, getNativeEligibility } from '../../api';
-import { isIOSSafari, isAndroidChrome, enableAmplitude, briceLog } from '../../lib';
+import { isIOSSafari, isAndroidChrome, enableAmplitude } from '../../lib';
 import { LSAT_UPGRADE_EXCLUDED_MERCHANTS } from '../../constants';
 import type { FundingType } from '../../types';
 import type { ButtonProps, ServiceData } from '../../button/props';
@@ -44,8 +44,6 @@ export function isAnyTestOrControlGroup({ nativeEligibility } : {| nativeEligibi
 }
 
 export function isNativeOptedIn({ props } : {| props : ButtonProps |}) : boolean {
-    briceLog('payment-flows/native/eligibility.js/isNativeOptedIn');
-
     const { enableNativeCheckout } = props;
 
     if (enableNativeCheckout) {
@@ -149,7 +147,6 @@ export function isNativeEligible({ props, config, serviceData } : IsEligibleOpti
 }
 
 export function isNativePaymentEligible({ payment } : IsPaymentEligibleOptions) : boolean {
-    briceLog('payment-flows/native/eligibility.js/isNativePaymentEligible');
 
     const { win, fundingSource } = payment;
 

@@ -10,8 +10,7 @@ import { cleanup } from 'belter/src';
 import {
     getBody,
     onPostMessage,
-    getPostRobot,
-    briceLog
+    getPostRobot
 } from '../lib';
 import { QRCODE_STATE } from '../constants';
 
@@ -77,7 +76,6 @@ function QRCard({
     const domain = discernDomain();
     function setupListeners () {
         const onAuthorizedListener = onPostMessage(win, domain, QRCODE_STATE.AUTHORIZED, (data) => {
-            briceLog('in onPostMessage listener - onAuthorizedListener');
             console.log(data); // eslint-disable-line no-console
             clean.all();
             if (processState !== QRCODE_STATE.AUTHORIZED) {
@@ -87,7 +85,6 @@ function QRCard({
             }
         });
         const onScannedListener = onPostMessage(win, domain, QRCODE_STATE.SCANNED, (data) => {
-            briceLog('in onPostMessage listener - onScannedListener');
             console.log(data); // eslint-disable-line no-console
             clean.all();
             if (processState !== QRCODE_STATE.SCANNED) {
@@ -97,7 +94,6 @@ function QRCard({
             }
         });
         const onDefaultListener = onPostMessage(win, domain, QRCODE_STATE.DEFAULT, (data) => {
-            briceLog('in onPostMessage listener - onDefaultListener');
             console.log(data); // eslint-disable-line no-console
             clean.all();
             if (processState && processState !== QRCODE_STATE.DEFAULT) {
@@ -107,7 +103,6 @@ function QRCard({
             }
         });
         const onErrorListener = onPostMessage(win, domain, QRCODE_STATE.ERROR, (data) => {
-            briceLog('in onPostMessage listener - onErrorListener');
             console.log(data); // eslint-disable-line no-console
             const postedErrorMessage = data.data.errorMessage;
             clean.all();
@@ -125,7 +120,6 @@ function QRCard({
     }
 
     useEffect(() => {
-        briceLog('in QRCard.useEffect()');
         setupListeners();
     });
 

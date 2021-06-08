@@ -8,7 +8,7 @@ import { FPTI_KEY } from '@paypal/sdk-constants/src';
 import { type CrossDomainWindowType } from 'cross-domain-utils/src';
 
 import { updateButtonClientConfig } from '../../api';
-import { getLogger, promiseNoop, isAndroidChrome, getStorageState, briceLog } from '../../lib';
+import { getLogger, promiseNoop, isAndroidChrome, getStorageState } from '../../lib';
 import { FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY, TARGET_ELEMENT, QRCODE_STATE } from '../../constants';
 import { type OnShippingChangeData } from '../../props/onShippingChange';
 import { checkout } from '../checkout';
@@ -23,12 +23,10 @@ import { connectNative } from './socket';
 let clean;
 
 function setupNative({ props, serviceData } : SetupOptions) : ZalgoPromise<void> {
-    briceLog('payment-flows/native.js/setupNative');
     return prefetchNativeEligibility({ props, serviceData }).then(noop);
 }
 
 function initNative({ props, components, config, payment, serviceData } : InitOptions) : PaymentFlowInstance {
-    briceLog('payment-flows/native.js/initNative');
     const { onApprove, onCancel, onError,
         buttonSessionID, onShippingChange } = props;
     const { fundingSource } = payment;
@@ -55,8 +53,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     });
 
     const fallbackToWebCheckout = (fallbackWin? : ?CrossDomainWindowType) => {
-        briceLog('payment-flows/native.js/initNative -> fallbackToWebCheckout');
-
         didFallback = true;
         const checkoutPayment = { ...payment, win: fallbackWin, isClick: false, isNativeFallback: true };
         const instance = checkout.init({ props, components, payment: checkoutPayment, config, serviceData });
@@ -93,7 +89,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     };
 
     const onCancelCallback = () => {
-        briceLog('payment-flows/native.js/initNative -> onCancelCallback');
         cancelled = true;
         getLogger().info(`native_message_oncancel`)
             .track({
@@ -110,7 +105,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     };
 
     const onErrorCallback = ({ data : { message } } : {| data : {| message : string |} |}) => {
-        briceLog('payment-flows/native.js/initNative -> onErrorCallback');
         getLogger().info(`native_message_onerror`, { err: message })
             .track({
                 [FPTI_KEY.TRANSITION]:       FPTI_TRANSITION.NATIVE_ON_ERROR,
@@ -254,10 +248,8 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     };
 
     const onCloseCallback = () => {
-        briceLog('payment-flows/native.js/initNative -> onCloseCallback');
 
         return ZalgoPromise.delay(1000).then(() => {
-            briceLog('payment-flows/native.js/initNative -> onCloseCallback -> in promise', true);
             
             if (!approved && !cancelled && !didFallback && !isAndroidChrome()) {
                 return ZalgoPromise.all([
@@ -269,7 +261,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     };
 
     const initQRCode = ({ sessionUID } : {| sessionUID : string |}) => {
-        briceLog('payment-flows/native.js/initNative -> initQRCode ');
         const { QRCode } = components;
         const url = getNativePopupUrl({ props, serviceData, fundingSource });
         const QRCodeRenderTarget = window.xprops.getParent();
@@ -333,7 +324,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     };
 
     const initPopupAppSwitch = ({ sessionUID } : {| sessionUID : string |}) => {
-        briceLog('payment-flows/native.js/initNative -> initPopupAppSwitch ');
         return new ZalgoPromise((resolve, reject) => {
             const nativePopup = openNativePopup({
                 props, serviceData, config, fundingSource, sessionUID,
@@ -354,7 +344,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     };
 
     const click = () => {
-        briceLog('payment-flows/native.js/initNative -> click ');
         
         return ZalgoPromise.try(() => {
             const sessionUID = uniqueID();
@@ -382,7 +371,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
 }
 
 function updateNativeClientConfig({ orderID, payment, userExperienceFlow, buttonSessionID }) : ZalgoPromise<void> {
-    briceLog('payment-flows/native.js/updateNativeClientConfig');
 
     return ZalgoPromise.try(() => {
         const { fundingSource } = payment;
