@@ -92,7 +92,9 @@ export function upgradeFacilitatorAccessToken(facilitatorAccessToken : string, {
             }
         `,
         variables: { facilitatorAccessToken, buyerAccessToken, orderID }
-    }).then(noop);
+    }).then(data => {
+        return data;
+    });
 }
 
 export function exchangeAccessTokenForAuthCode(buyerAccessToken : string) : ZalgoPromise<string> {

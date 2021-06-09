@@ -5,7 +5,7 @@ import { wrapPromise } from 'belter/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { FUNDING, INTENT } from '@paypal/sdk-constants/src';
 
-import { mockSetupButton, generateOrderID, mockAsyncProp, createButtonHTML, getCaptureOrderApiMock, getAuthorizeOrderApiMock, DEFAULT_FUNDING_ELIGIBILITY, mockFunction, clickButton, getGraphQLApiMock } from './mocks';
+import { mockSetupButton, generateOrderID, mockAsyncProp, createButtonHTML, getCaptureOrderApiMock, getAuthorizeOrderApiMock, DEFAULT_FUNDING_ELIGIBILITY, MOCK_BUYER_ACCESS_TOKEN, mockFunction, clickButton, getGraphQLApiMock } from './mocks';
 
 describe('contingency cases', () => {
 
@@ -14,6 +14,60 @@ describe('contingency cases', () => {
 
             const orderID = generateOrderID();
             const payerID = 'YYYYYYYYYY';
+            const accessToken = MOCK_BUYER_ACCESS_TOKEN;
+            const upgradeLSATMock = getGraphQLApiMock({
+                extraHandler: expect('upgradeLSATGQLCall', ({ data }) => {
+
+                    if (data.query.includes('query GetCheckoutDetails')) {
+                        return {
+                            data: {
+                                checkoutSession: {
+                                    cart: {
+                                        intent:  'capture',
+                                        amounts: {
+                                            total: {
+                                                currencyCode: 'USD'
+                                            }
+                                        }
+                                    },
+                                    payees: [
+                                        {
+                                            merchantId: 'XYZ12345',
+                                            email:       {
+                                                stringValue: 'xyz-us-b1@paypal.com'
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        };
+                    }
+
+                    if (data.query.includes('mutation UpgradeFacilitatorAccessToken')) {
+                        if (!data.variables.facilitatorAccessToken) {
+                            throw new Error(`We haven't received the facilitatorAccessToken`);
+                        }
+
+                        if (!data.variables.buyerAccessToken) {
+                            throw new Error(`We haven't received the buyer's access token`);
+                        }
+
+                        if (!data.variables.orderID) {
+                            throw new Error(`We haven't received the orderID`);
+                        }
+
+                        return {
+                            data: {
+                                upgradeLowScopeAccessToken: false
+                            }
+                        };
+                    }
+
+                    return {};
+
+
+                })
+            }).expectCalls();
 
             window.xprops.createOrder = mockAsyncProp(expect('createOrder', async () => {
                 return ZalgoPromise.try(() => {
@@ -68,7 +122,7 @@ describe('contingency cases', () => {
             window.xprops.onApprove = mockAsyncProp(expect('onApprove', (data, actions) => onApprove(data, actions)));
 
             mockFunction(window.paypal, 'Checkout', expect('Checkout', ({ original: CheckoutOriginal, args: [ props ] }) => {
-
+                props.onAuth({ accessToken });
                 mockFunction(props, 'onApprove', expect('onApprove', ({ original: onApproveOriginal, args: [ data, actions ] }) => {
                     return onApproveOriginal({ ...data, payerID }, actions);
                 }));
@@ -93,6 +147,7 @@ describe('contingency cases', () => {
             await mockSetupButton({ merchantID: [ 'XYZ12345' ], fundingEligibility: DEFAULT_FUNDING_ELIGIBILITY });
 
             await clickButton(FUNDING.PAYPAL);
+            upgradeLSATMock.done();
         });
     });
 
@@ -101,6 +156,60 @@ describe('contingency cases', () => {
 
             const orderID = generateOrderID();
             const payerID = 'YYYYYYYYYY';
+            const accessToken = MOCK_BUYER_ACCESS_TOKEN;
+            const upgradeLSATMock = getGraphQLApiMock({
+                extraHandler: expect('upgradeLSATGQLCall', ({ data }) => {
+
+                    if (data.query.includes('query GetCheckoutDetails')) {
+                        return {
+                            data: {
+                                checkoutSession: {
+                                    cart: {
+                                        intent:  'capture',
+                                        amounts: {
+                                            total: {
+                                                currencyCode: 'USD'
+                                            }
+                                        }
+                                    },
+                                    payees: [
+                                        {
+                                            merchantId: 'XYZ12345',
+                                            email:       {
+                                                stringValue: 'xyz-us-b1@paypal.com'
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        };
+                    }
+
+                    if (data.query.includes('mutation UpgradeFacilitatorAccessToken')) {
+                        if (!data.variables.facilitatorAccessToken) {
+                            throw new Error(`We haven't received the facilitatorAccessToken`);
+                        }
+
+                        if (!data.variables.buyerAccessToken) {
+                            throw new Error(`We haven't received the buyer's access token`);
+                        }
+
+                        if (!data.variables.orderID) {
+                            throw new Error(`We haven't received the orderID`);
+                        }
+
+                        return {
+                            data: {
+                                upgradeLowScopeAccessToken: false
+                            }
+                        };
+                    }
+
+                    return {};
+
+
+                })
+            }).expectCalls();
 
             window.xprops.createOrder = mockAsyncProp(expect('createOrder', async () => {
                 return ZalgoPromise.try(() => {
@@ -155,7 +264,7 @@ describe('contingency cases', () => {
             window.xprops.onApprove = mockAsyncProp(expect('onApprove', (data, actions) => onApprove(data, actions)));
 
             mockFunction(window.paypal, 'Checkout', expect('Checkout', ({ original: CheckoutOriginal, args: [ props ] }) => {
-
+                props.onAuth({ accessToken });
                 mockFunction(props, 'onApprove', expect('onApprove', ({ original: onApproveOriginal, args: [ data, actions ] }) => {
                     return onApproveOriginal({ ...data, payerID }, actions);
                 }));
@@ -180,6 +289,7 @@ describe('contingency cases', () => {
             await mockSetupButton({ merchantID: [ 'XYZ12345' ], fundingEligibility: DEFAULT_FUNDING_ELIGIBILITY });
 
             await clickButton(FUNDING.PAYPAL);
+            upgradeLSATMock.done();
         });
     });
 
@@ -191,29 +301,59 @@ describe('contingency cases', () => {
 
             window.xprops.intent = INTENT.AUTHORIZE;
 
-            const gqlMock = getGraphQLApiMock({
-                data: {
-                    data: {
-                        checkoutSession: {
-                            cart: {
-                                intent:  INTENT.AUTHORIZE,
-                                amounts: {
-                                    total: {
-                                        currencyCode: 'USD'
-                                    }
+            const accessToken = MOCK_BUYER_ACCESS_TOKEN;
+            const upgradeLSATMock = getGraphQLApiMock({
+                extraHandler: expect('upgradeLSATGQLCall', ({ data }) => {
+
+                    if (data.query.includes('query GetCheckoutDetails')) {
+                        return {
+                            data: {
+                                checkoutSession: {
+                                    cart: {
+                                        intent:  'authorize',
+                                        amounts: {
+                                            total: {
+                                                currencyCode: 'USD'
+                                            }
+                                        }
+                                    },
+                                    payees: [
+                                        {
+                                            merchantId: 'XYZ12345',
+                                            email:       {
+                                                stringValue: 'xyz-us-b1@paypal.com'
+                                            }
+                                        }
+                                    ]
                                 }
-                            },
-                            payees: [
-                                {
-                                    merchantId: 'XYZ12345',
-                                    email:      {
-                                        stringValue: 'xyz-us-b1@paypal.com'
-                                    }
-                                }
-                            ]
-                        }
+                            }
+                        };
                     }
-                }
+
+                    if (data.query.includes('mutation UpgradeFacilitatorAccessToken')) {
+                        if (!data.variables.facilitatorAccessToken) {
+                            throw new Error(`We haven't received the facilitatorAccessToken`);
+                        }
+
+                        if (!data.variables.buyerAccessToken) {
+                            throw new Error(`We haven't received the buyer's access token`);
+                        }
+
+                        if (!data.variables.orderID) {
+                            throw new Error(`We haven't received the orderID`);
+                        }
+
+                        return {
+                            data: {
+                                upgradeLowScopeAccessToken: false
+                            }
+                        };
+                    }
+
+                    return {};
+
+
+                })
             }).expectCalls();
 
             window.xprops.createOrder = mockAsyncProp(expect('createOrder', async () => {
@@ -269,7 +409,7 @@ describe('contingency cases', () => {
             window.xprops.onApprove = mockAsyncProp(expect('onApprove', (data, actions) => onApprove(data, actions)));
 
             mockFunction(window.paypal, 'Checkout', expect('Checkout', ({ original: CheckoutOriginal, args: [ props ] }) => {
-
+                props.onAuth({ accessToken });
                 mockFunction(props, 'onApprove', expect('onApprove', ({ original: onApproveOriginal, args: [ data, actions ] }) => {
                     return onApproveOriginal({ ...data, payerID }, actions);
                 }));
@@ -295,7 +435,7 @@ describe('contingency cases', () => {
 
             await clickButton(FUNDING.PAYPAL);
 
-            gqlMock.done();
+            upgradeLSATMock.done();
         });
     });
 
@@ -307,29 +447,59 @@ describe('contingency cases', () => {
 
             window.xprops.intent = INTENT.AUTHORIZE;
 
-            const gqlMock = getGraphQLApiMock({
-                data: {
-                    data: {
-                        checkoutSession: {
-                            cart: {
-                                intent:  INTENT.AUTHORIZE,
-                                amounts: {
-                                    total: {
-                                        currencyCode: 'USD'
-                                    }
+            const accessToken = MOCK_BUYER_ACCESS_TOKEN;
+            const upgradeLSATMock = getGraphQLApiMock({
+                extraHandler: expect('upgradeLSATGQLCall', ({ data }) => {
+
+                    if (data.query.includes('query GetCheckoutDetails')) {
+                        return {
+                            data: {
+                                checkoutSession: {
+                                    cart: {
+                                        intent:  'authorize',
+                                        amounts: {
+                                            total: {
+                                                currencyCode: 'USD'
+                                            }
+                                        }
+                                    },
+                                    payees: [
+                                        {
+                                            merchantId: 'XYZ12345',
+                                            email:       {
+                                                stringValue: 'xyz-us-b1@paypal.com'
+                                            }
+                                        }
+                                    ]
                                 }
-                            },
-                            payees: [
-                                {
-                                    merchantId: 'XYZ12345',
-                                    email:      {
-                                        stringValue: 'xyz-us-b1@paypal.com'
-                                    }
-                                }
-                            ]
-                        }
+                            }
+                        };
                     }
-                }
+
+                    if (data.query.includes('mutation UpgradeFacilitatorAccessToken')) {
+                        if (!data.variables.facilitatorAccessToken) {
+                            throw new Error(`We haven't received the facilitatorAccessToken`);
+                        }
+
+                        if (!data.variables.buyerAccessToken) {
+                            throw new Error(`We haven't received the buyer's access token`);
+                        }
+
+                        if (!data.variables.orderID) {
+                            throw new Error(`We haven't received the orderID`);
+                        }
+
+                        return {
+                            data: {
+                                upgradeLowScopeAccessToken: false
+                            }
+                        };
+                    }
+
+                    return {};
+
+
+                })
             }).expectCalls();
 
             window.xprops.createOrder = mockAsyncProp(expect('createOrder', async () => {
@@ -385,7 +555,7 @@ describe('contingency cases', () => {
             window.xprops.onApprove = mockAsyncProp(expect('onApprove', (data, actions) => onApprove(data, actions)));
 
             mockFunction(window.paypal, 'Checkout', expect('Checkout', ({ original: CheckoutOriginal, args: [ props ] }) => {
-
+                props.onAuth({ accessToken });
                 mockFunction(props, 'onApprove', expect('onApprove', ({ original: onApproveOriginal, args: [ data, actions ] }) => {
                     return onApproveOriginal({ ...data, payerID }, actions);
                 }));
@@ -411,7 +581,7 @@ describe('contingency cases', () => {
 
             await clickButton(FUNDING.PAYPAL);
 
-            gqlMock.done();
+            upgradeLSATMock.done();
         });
     });
 });

@@ -13,7 +13,60 @@ describe('auth cases', () => {
     it('should render a button, call onAuth, and pass the access token to order get', async () => {
         return await wrapPromise(async ({ expect }) => {
             const accessToken = MOCK_BUYER_ACCESS_TOKEN;
+            const upgradeLSATMock = getGraphQLApiMock({
+                extraHandler: expect('upgradeLSATGQLCall', ({ data }) => {
 
+                    if (data.query.includes('query GetCheckoutDetails')) {
+                        return {
+                            data: {
+                                checkoutSession: {
+                                    cart: {
+                                        intent:  'authorize',
+                                        amounts: {
+                                            total: {
+                                                currencyCode: 'USD'
+                                            }
+                                        }
+                                    },
+                                    payees: [
+                                        {
+                                            merchantId: 'XYZ12345',
+                                            email:       {
+                                                stringValue: 'xyz-us-b1@paypal.com'
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        };
+                    }
+
+                    if (data.query.includes('mutation UpgradeFacilitatorAccessToken')) {
+                        if (!data.variables.facilitatorAccessToken) {
+                            throw new Error(`We haven't received the facilitatorAccessToken`);
+                        }
+
+                        if (!data.variables.buyerAccessToken) {
+                            throw new Error(`We haven't received the buyer's access token`);
+                        }
+
+                        if (!data.variables.orderID) {
+                            throw new Error(`We haven't received the orderID`);
+                        }
+
+                        return {
+                            data: {
+                                upgradeLowScopeAccessToken: false
+                            }
+                        };
+                    }
+
+                    return {};
+
+
+                })
+            }).expectCalls();
+            
             window.xprops.onApprove = mockAsyncProp(expect('onApprove', async (data, actions) => {
                 const getOrderMock = getGetOrderApiMock({
                     handler: expect('getOrder', ({ headers }) => {
@@ -58,6 +111,7 @@ describe('auth cases', () => {
             await mockSetupButton({ merchantID: [ 'XYZ12345' ], fundingEligibility: DEFAULT_FUNDING_ELIGIBILITY });
 
             await clickButton(FUNDING.PAYPAL);
+            upgradeLSATMock.done();
         });
     });
 
@@ -311,7 +365,11 @@ describe('auth cases', () => {
                             throw new Error(`We haven't received the orderID`);
                         }
 
-                        return new Error();
+                        return {
+                            data: {
+                                upgradeLowScopeAccessToken: false
+                            }
+                        };
                     }
 
                     return {};
