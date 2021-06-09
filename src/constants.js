@@ -227,4 +227,4 @@ export const LSAT_UPGRADE_EXCLUDED_MERCHANTS = [
     'AQXD7-m_2yMo-5AxJ1fQaPeEWYDE7NZ9XrLzEXeiPLTHDu9vfe_T0foF8BoX8K5cMfXuRDysUEmhw-8Z'
 ];
 
-export const LSAT_UPGRADE_RESULT_KEY = '__pp_lsat_upgrade__';
+export const LSAT_UPGRADE_SUCCEEDED = '__pp_lsat_upgrade_success__';

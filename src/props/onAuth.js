@@ -5,7 +5,7 @@ import { stringifyError } from 'belter/src';
 
 import { upgradeFacilitatorAccessToken } from '../api';
 import { getLogger } from '../lib';
-import { LSAT_UPGRADE_EXCLUDED_MERCHANTS, LSAT_UPGRADE_RESULT_KEY } from '../constants';
+import { LSAT_UPGRADE_EXCLUDED_MERCHANTS, LSAT_UPGRADE_SUCCEEDED } from '../constants';
 
 import type { CreateOrder } from './createOrder';
 
@@ -45,7 +45,7 @@ export function getOnAuth({ facilitatorAccessToken, createOrder, clientID } : Ge
                         })
                         .catch(err => {
                             getLogger().warn('upgrade_lsat_failure', { error: stringifyError(err) });
-                            window[LSAT_UPGRADE_RESULT_KEY] = false;
+                            window[LSAT_UPGRADE_SUCCEEDED] = false;
 
                             return accessToken;
                         });
