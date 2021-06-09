@@ -4,11 +4,16 @@
 import { wrapPromise } from 'belter/src';
 import { FUNDING } from '@paypal/sdk-constants/src';
 
+import { LSAT_UPGRADE_FAILED } from '../../src/constants';
+
 import { mockSetupButton, mockAsyncProp, createButtonHTML, getGetOrderApiMock, getCaptureOrderApiMock,
     DEFAULT_FUNDING_ELIGIBILITY, mockFunction, clickButton, MOCK_BUYER_ACCESS_TOKEN, getRestfulCapturedOrderApiMock,
     getRestfulGetOrderApiMock, getGraphQLApiMock } from './mocks';
 
 describe('auth cases', () => {
+    beforeEach(() => {
+        window[LSAT_UPGRADE_FAILED] = false;
+    });
 
     it('should render a button, call onAuth, and pass the access token to order get', async () => {
         return await wrapPromise(async ({ expect }) => {
@@ -102,6 +107,7 @@ describe('auth cases', () => {
             }));
 
             mockFunction(window.paypal, 'Checkout', expect('Checkout', ({ original: CheckoutOriginal, args: [ props ] }) => {
+                window[LSAT_UPGRADE_FAILED] = true;
                 props.onAuth({ accessToken });
                 return CheckoutOriginal(props);
             }));
@@ -307,6 +313,7 @@ describe('auth cases', () => {
             }));
 
             mockFunction(window.paypal, 'Checkout', expect('Checkout', ({ original: CheckoutOriginal, args: [ props ] }) => {
+                window[LSAT_UPGRADE_FAILED] = true;
                 props.onAuth({ accessToken });
                 return CheckoutOriginal(props);
             }));
@@ -405,6 +412,7 @@ describe('auth cases', () => {
             }));
 
             mockFunction(window.paypal, 'Checkout', expect('Checkout', ({ original: CheckoutOriginal, args: [ props ] }) => {
+                window[LSAT_UPGRADE_FAILED] = true;
                 props.onAuth({ accessToken });
                 return CheckoutOriginal(props);
             }));

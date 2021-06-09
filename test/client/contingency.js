@@ -5,9 +5,14 @@ import { wrapPromise } from 'belter/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { FUNDING, INTENT } from '@paypal/sdk-constants/src';
 
+import { LSAT_UPGRADE_FAILED } from '../../src/constants';
+
 import { mockSetupButton, generateOrderID, mockAsyncProp, createButtonHTML, getCaptureOrderApiMock, getAuthorizeOrderApiMock, DEFAULT_FUNDING_ELIGIBILITY, MOCK_BUYER_ACCESS_TOKEN, mockFunction, clickButton, getGraphQLApiMock } from './mocks';
 
 describe('contingency cases', () => {
+    beforeEach(() => {
+        window[LSAT_UPGRADE_FAILED] = false;
+    });
 
     it('should render a button, click the button, and render checkout, then pass onApprove callback to the parent with actions.order.capture and auto restart with INSTRUMENT_DECLINED', async () => {
         return await wrapPromise(async ({ expect }) => {
@@ -15,59 +20,6 @@ describe('contingency cases', () => {
             const orderID = generateOrderID();
             const payerID = 'YYYYYYYYYY';
             const accessToken = MOCK_BUYER_ACCESS_TOKEN;
-            const upgradeLSATMock = getGraphQLApiMock({
-                extraHandler: expect('upgradeLSATGQLCall', ({ data }) => {
-
-                    if (data.query.includes('query GetCheckoutDetails')) {
-                        return {
-                            data: {
-                                checkoutSession: {
-                                    cart: {
-                                        intent:  'capture',
-                                        amounts: {
-                                            total: {
-                                                currencyCode: 'USD'
-                                            }
-                                        }
-                                    },
-                                    payees: [
-                                        {
-                                            merchantId: 'XYZ12345',
-                                            email:       {
-                                                stringValue: 'xyz-us-b1@paypal.com'
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        };
-                    }
-
-                    if (data.query.includes('mutation UpgradeFacilitatorAccessToken')) {
-                        if (!data.variables.facilitatorAccessToken) {
-                            throw new Error(`We haven't received the facilitatorAccessToken`);
-                        }
-
-                        if (!data.variables.buyerAccessToken) {
-                            throw new Error(`We haven't received the buyer's access token`);
-                        }
-
-                        if (!data.variables.orderID) {
-                            throw new Error(`We haven't received the orderID`);
-                        }
-
-                        return {
-                            data: {
-                                upgradeLowScopeAccessToken: false
-                            }
-                        };
-                    }
-
-                    return {};
-
-
-                })
-            }).expectCalls();
 
             window.xprops.createOrder = mockAsyncProp(expect('createOrder', async () => {
                 return ZalgoPromise.try(() => {
@@ -122,6 +74,7 @@ describe('contingency cases', () => {
             window.xprops.onApprove = mockAsyncProp(expect('onApprove', (data, actions) => onApprove(data, actions)));
 
             mockFunction(window.paypal, 'Checkout', expect('Checkout', ({ original: CheckoutOriginal, args: [ props ] }) => {
+                window[LSAT_UPGRADE_FAILED] = true;
                 props.onAuth({ accessToken });
                 mockFunction(props, 'onApprove', expect('onApprove', ({ original: onApproveOriginal, args: [ data, actions ] }) => {
                     return onApproveOriginal({ ...data, payerID }, actions);
@@ -147,7 +100,6 @@ describe('contingency cases', () => {
             await mockSetupButton({ merchantID: [ 'XYZ12345' ], fundingEligibility: DEFAULT_FUNDING_ELIGIBILITY });
 
             await clickButton(FUNDING.PAYPAL);
-            upgradeLSATMock.done();
         });
     });
 
@@ -157,59 +109,6 @@ describe('contingency cases', () => {
             const orderID = generateOrderID();
             const payerID = 'YYYYYYYYYY';
             const accessToken = MOCK_BUYER_ACCESS_TOKEN;
-            const upgradeLSATMock = getGraphQLApiMock({
-                extraHandler: expect('upgradeLSATGQLCall', ({ data }) => {
-
-                    if (data.query.includes('query GetCheckoutDetails')) {
-                        return {
-                            data: {
-                                checkoutSession: {
-                                    cart: {
-                                        intent:  'capture',
-                                        amounts: {
-                                            total: {
-                                                currencyCode: 'USD'
-                                            }
-                                        }
-                                    },
-                                    payees: [
-                                        {
-                                            merchantId: 'XYZ12345',
-                                            email:       {
-                                                stringValue: 'xyz-us-b1@paypal.com'
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        };
-                    }
-
-                    if (data.query.includes('mutation UpgradeFacilitatorAccessToken')) {
-                        if (!data.variables.facilitatorAccessToken) {
-                            throw new Error(`We haven't received the facilitatorAccessToken`);
-                        }
-
-                        if (!data.variables.buyerAccessToken) {
-                            throw new Error(`We haven't received the buyer's access token`);
-                        }
-
-                        if (!data.variables.orderID) {
-                            throw new Error(`We haven't received the orderID`);
-                        }
-
-                        return {
-                            data: {
-                                upgradeLowScopeAccessToken: false
-                            }
-                        };
-                    }
-
-                    return {};
-
-
-                })
-            }).expectCalls();
 
             window.xprops.createOrder = mockAsyncProp(expect('createOrder', async () => {
                 return ZalgoPromise.try(() => {
@@ -264,6 +163,7 @@ describe('contingency cases', () => {
             window.xprops.onApprove = mockAsyncProp(expect('onApprove', (data, actions) => onApprove(data, actions)));
 
             mockFunction(window.paypal, 'Checkout', expect('Checkout', ({ original: CheckoutOriginal, args: [ props ] }) => {
+                window[LSAT_UPGRADE_FAILED] = true;
                 props.onAuth({ accessToken });
                 mockFunction(props, 'onApprove', expect('onApprove', ({ original: onApproveOriginal, args: [ data, actions ] }) => {
                     return onApproveOriginal({ ...data, payerID }, actions);
@@ -289,7 +189,6 @@ describe('contingency cases', () => {
             await mockSetupButton({ merchantID: [ 'XYZ12345' ], fundingEligibility: DEFAULT_FUNDING_ELIGIBILITY });
 
             await clickButton(FUNDING.PAYPAL);
-            upgradeLSATMock.done();
         });
     });
 
@@ -326,26 +225,6 @@ describe('contingency cases', () => {
                                         }
                                     ]
                                 }
-                            }
-                        };
-                    }
-
-                    if (data.query.includes('mutation UpgradeFacilitatorAccessToken')) {
-                        if (!data.variables.facilitatorAccessToken) {
-                            throw new Error(`We haven't received the facilitatorAccessToken`);
-                        }
-
-                        if (!data.variables.buyerAccessToken) {
-                            throw new Error(`We haven't received the buyer's access token`);
-                        }
-
-                        if (!data.variables.orderID) {
-                            throw new Error(`We haven't received the orderID`);
-                        }
-
-                        return {
-                            data: {
-                                upgradeLowScopeAccessToken: false
                             }
                         };
                     }
@@ -409,6 +288,7 @@ describe('contingency cases', () => {
             window.xprops.onApprove = mockAsyncProp(expect('onApprove', (data, actions) => onApprove(data, actions)));
 
             mockFunction(window.paypal, 'Checkout', expect('Checkout', ({ original: CheckoutOriginal, args: [ props ] }) => {
+                window[LSAT_UPGRADE_FAILED] = true;
                 props.onAuth({ accessToken });
                 mockFunction(props, 'onApprove', expect('onApprove', ({ original: onApproveOriginal, args: [ data, actions ] }) => {
                     return onApproveOriginal({ ...data, payerID }, actions);
@@ -434,7 +314,6 @@ describe('contingency cases', () => {
             await mockSetupButton({ merchantID: [ 'XYZ12345' ], fundingEligibility: DEFAULT_FUNDING_ELIGIBILITY });
 
             await clickButton(FUNDING.PAYPAL);
-
             upgradeLSATMock.done();
         });
     });
@@ -476,26 +355,6 @@ describe('contingency cases', () => {
                         };
                     }
 
-                    if (data.query.includes('mutation UpgradeFacilitatorAccessToken')) {
-                        if (!data.variables.facilitatorAccessToken) {
-                            throw new Error(`We haven't received the facilitatorAccessToken`);
-                        }
-
-                        if (!data.variables.buyerAccessToken) {
-                            throw new Error(`We haven't received the buyer's access token`);
-                        }
-
-                        if (!data.variables.orderID) {
-                            throw new Error(`We haven't received the orderID`);
-                        }
-
-                        return {
-                            data: {
-                                upgradeLowScopeAccessToken: false
-                            }
-                        };
-                    }
-
                     return {};
 
 
@@ -555,6 +414,7 @@ describe('contingency cases', () => {
             window.xprops.onApprove = mockAsyncProp(expect('onApprove', (data, actions) => onApprove(data, actions)));
 
             mockFunction(window.paypal, 'Checkout', expect('Checkout', ({ original: CheckoutOriginal, args: [ props ] }) => {
+                window[LSAT_UPGRADE_FAILED] = true;
                 props.onAuth({ accessToken });
                 mockFunction(props, 'onApprove', expect('onApprove', ({ original: onApproveOriginal, args: [ data, actions ] }) => {
                     return onApproveOriginal({ ...data, payerID }, actions);
@@ -580,7 +440,6 @@ describe('contingency cases', () => {
             await mockSetupButton({ merchantID: [ 'XYZ12345' ], fundingEligibility: DEFAULT_FUNDING_ELIGIBILITY });
 
             await clickButton(FUNDING.PAYPAL);
-
             upgradeLSATMock.done();
         });
     });
