@@ -32,14 +32,8 @@ export function getOnAuth({ facilitatorAccessToken, createOrder, clientID } : Ge
                 if (upgradeLSAT) {
                     return createOrder()
                         .then(orderID => upgradeFacilitatorAccessToken(facilitatorAccessToken, { buyerAccessToken: accessToken, orderID }))
-                        .then(data => {
+                        .then(() => {
                             getLogger().info('upgrade_lsat_success');
-
-                            if (data && data.upgradeLowScopeAccessToken) {
-                                window[LSAT_UPGRADE_RESULT_KEY] = true;
-                            } else {
-                                window[LSAT_UPGRADE_RESULT_KEY] = false;
-                            }
 
                             return accessToken;
                         })
