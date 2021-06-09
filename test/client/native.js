@@ -78,7 +78,6 @@ describe('native ios cases', () => {
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
 
 
-
                         if (!redirectQuery.sessionUID) {
                             throw new Error(`Expected sessionUID to be passed in url`);
                         }
@@ -258,7 +257,6 @@ describe('native ios cases', () => {
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
 
 
-
                         if (!redirectQuery.sessionUID) {
                             throw new Error(`Expected sessionUID to be passed in url`);
                         }
@@ -373,7 +371,6 @@ describe('native ios cases', () => {
                         }
 
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
-
 
 
                         if (!redirectQuery.sessionUID) {
@@ -569,7 +566,6 @@ describe('native ios cases', () => {
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
 
 
-
                         if (!redirectQuery.sessionUID) {
                             throw new Error(`Expected sessionUID to be passed in url`);
                         }
@@ -701,7 +697,6 @@ describe('native ios cases', () => {
                         }
 
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
-
 
 
                         if (!redirectQuery.sessionUID) {
@@ -862,7 +857,6 @@ describe('native ios cases', () => {
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
 
 
-
                         if (!redirectQuery.sessionUID) {
                             throw new Error(`Expected sessionUID to be passed in url`);
                         }
@@ -1015,7 +1009,6 @@ describe('native ios cases', () => {
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
 
 
-
                         if (!redirectQuery.sessionUID) {
                             throw new Error(`Expected sessionUID to be passed in url`);
                         }
@@ -1159,7 +1152,6 @@ describe('native ios cases', () => {
                         }
 
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
-
 
 
                         if (!redirectQuery.sessionUID) {
@@ -1439,7 +1431,6 @@ describe('native ios cases', () => {
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
 
 
-
                         if (!redirectQuery.sessionUID) {
                             throw new Error(`Expected sessionUID to be passed in url`);
                         }
@@ -1572,7 +1563,6 @@ describe('native ios cases', () => {
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
 
 
-
                         if (!redirectQuery.sessionUID) {
                             throw new Error(`Expected sessionUID to be passed in url`);
                         }
@@ -1674,7 +1664,7 @@ describe('native ios cases', () => {
 
             const mockWindow = getMockWindowOpen({
                 expectedUrl:        'https://history.paypal.com/smart/checkout/native/popup',
-                expectedQuery:      ['buttonSessionID', 'parentDomain' ],
+                expectedQuery:      [ 'buttonSessionID', 'parentDomain' ],
                 onOpen:             ({ win }) => {
                     postRobotMock.receive({
                         win,
@@ -2147,7 +2137,6 @@ describe('native ios cases', () => {
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
 
 
-
                         if (!redirectQuery.sessionUID) {
                             throw new Error(`Expected sessionUID to be passed in url`);
                         }
@@ -2316,7 +2305,6 @@ describe('native chrome cases', () => {
                         }
 
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
-
 
 
                         if (!redirectQuery.sessionUID) {
@@ -2488,7 +2476,6 @@ describe('native chrome cases', () => {
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
 
 
-
                         if (!redirectQuery.sessionUID) {
                             throw new Error(`Expected sessionUID to be passed in url`);
                         }
@@ -2604,7 +2591,6 @@ describe('native chrome cases', () => {
                         }
 
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
-
 
 
                         if (!redirectQuery.sessionUID) {
@@ -2790,7 +2776,6 @@ describe('native chrome cases', () => {
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
 
 
-
                         if (!redirectQuery.sessionUID) {
                             throw new Error(`Expected sessionUID to be passed in url`);
                         }
@@ -2923,7 +2908,6 @@ describe('native chrome cases', () => {
                         }
 
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
-
 
 
                         if (!redirectQuery.sessionUID) {
@@ -3074,7 +3058,6 @@ describe('native chrome cases', () => {
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
 
 
-
                         if (!redirectQuery.sessionUID) {
                             throw new Error(`Expected sessionUID to be passed in url`);
                         }
@@ -3209,7 +3192,6 @@ describe('native chrome cases', () => {
                         }
 
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
-
 
 
                         if (!redirectQuery.sessionUID) {
@@ -3479,7 +3461,6 @@ describe('native chrome cases', () => {
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
 
 
-
                         if (!redirectQuery.sessionUID) {
                             throw new Error(`Expected sessionUID to be passed in url`);
                         }
@@ -3610,7 +3591,6 @@ describe('native chrome cases', () => {
                         }
 
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
-
 
 
                         if (!redirectQuery.sessionUID) {
@@ -3984,7 +3964,6 @@ describe('native chrome cases', () => {
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
 
 
-
                         if (!redirectQuery.sessionUID) {
                             throw new Error(`Expected sessionUID to be passed in url`);
                         }
@@ -4169,7 +4148,6 @@ describe('native chrome cases', () => {
                         }
 
                         const redirectQuery = parseQuery(res.redirectUrl.split('?')[1]);
-
 
 
                         if (!redirectQuery.sessionUID) {

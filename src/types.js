@@ -28,7 +28,8 @@ export type ZoidComponentInstance<P> = {|
     close : () => ZalgoPromise<void>,
     show : () => ZalgoPromise<void>,
     hide : () => ZalgoPromise<void>,
-    onError : (mixed) => ZalgoPromise<void>
+    onError : (mixed) => ZalgoPromise<void>,
+    onClose : () => ZalgoPromise<void>
 |};
 
 export type ZoidComponent<P> = {|
@@ -124,10 +125,10 @@ export type QRCodeProps = {|
     qrPath : string,
     cspNonce : ?string,
     state? : string,
-    errorText? : string
+    errorText? : string,
+    onClose? : () => ZalgoPromise<void>
 |};
 export type QRCodeType = ZoidComponent<QRCodeProps>;
-export type QRCodeComponentInstance = ZoidComponentInstance<QRCodeProps>;
 
 export type ContentType = {|
     instantlyPayWith : string,

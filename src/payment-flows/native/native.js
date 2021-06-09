@@ -269,23 +269,25 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.VENMO_DESKTOP_PAY_QR_SHOWN
         }).flush();
 
+
+        const closeQRCode = (event? : string = 'closeQRCode') => {
+            getLogger().info(`VenmoDesktopPay_qrcode_closing_${ event }`).track({
+                [FPTI_KEY.STATE]:       FPTI_STATE.BUTTON,
+                [FPTI_KEY.TRANSITION]:  event ? `${ FPTI_TRANSITION.VENMO_DESKTOP_PAY_CLOSING_QR }_${ event }` : FPTI_TRANSITION.VENMO_DESKTOP_PAY_CLOSING_QR
+            }).flush();
+            return onCloseCallback();
+        };
+
         const QRCodeComponentInstance = QRCode({
             cspNonce:  config.cspNonce,
             qrPath:    url,
-            state:     QRCODE_STATE.DEFAULT
+            state:     QRCODE_STATE.DEFAULT,
+            onClose:   closeQRCode
         });
         
         QRCodeComponentInstance.renderTo(QRCodeRenderTarget, TARGET_ELEMENT.BODY);
 
 
-        const closeQRCode = (event : string) => {
-            getLogger().info(`VenmoDesktopPay_qrcode_closing_${ event }`).track({
-                [FPTI_KEY.STATE]:       FPTI_STATE.BUTTON,
-                [FPTI_KEY.TRANSITION]:  event ? `${ FPTI_TRANSITION.VENMO_DESKTOP_PAY_CLOSING_QR }_${ event }` : FPTI_TRANSITION.VENMO_DESKTOP_PAY_CLOSING_QR
-            }).flush();
-            onCloseCallback();
-            QRCodeComponentInstance.close();
-        };
         const onApproveQR = (res) => {
             updateQRCodeComponent({
                 componentWindow: QRCodeRenderTarget,
