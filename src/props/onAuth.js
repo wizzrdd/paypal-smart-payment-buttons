@@ -31,11 +31,17 @@ export function getOnAuth({ facilitatorAccessToken, createOrder, clientID } : Ge
             if (accessToken) {
                 if (upgradeLSAT) {
                     return createOrder()
-                        .then(orderID => upgradeFacilitatorAccessToken(facilitatorAccessToken, { buyerAccessToken: accessToken, orderID }))
+                        .then(orderID => {
+                            if (window.xprops.createSubscription) {
+                                return null;
+                            }
+
+                            return upgradeFacilitatorAccessToken(facilitatorAccessToken, { buyerAccessToken: accessToken, orderID });
+                        })
                         .then(data => {
-                            getLogger().info('upgrade_lsat_success');
-                            
-                            if (data && !data.upgradeLowScopeAccessToken) {
+                            getLogger().info(`upgrade_lsat_success_${ data ? JSON.stringify(data) : 'null' }`);
+
+                            if (!data || (data && !data.upgradeLowScopeAccessToken)) {
                                 window[LSAT_UPGRADE_RESULT_KEY] = false;
                             }
 
