@@ -32,7 +32,7 @@ export function getOnAuth({ facilitatorAccessToken, createOrder, clientID } : Ge
                 if (upgradeLSAT) {
                     return createOrder()
                         .then(orderID => {
-                            if (window.xprops.createSubscription) {
+                            if (window?.xprops?.createSubscription) {
                                 return null;
                             }
 
