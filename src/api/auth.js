@@ -1,7 +1,7 @@
 /* @flow */
 
 import { ZalgoPromise } from 'zalgo-promise/src';
-import { inlineMemoize, base64encode, request, noop } from 'belter/src';
+import { inlineMemoize, base64encode, request } from 'belter/src';
 import { FUNDING } from '@paypal/sdk-constants/src';
 
 import type { ConnectOptions } from '../types';
