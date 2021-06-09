@@ -126,9 +126,6 @@ export const FPTI_TRANSITION = {
     APPLEPAY_GET_DETAILS_ERROR:                         ('applepay_get_details_error' : 'applepay_get_details_error'),
     APPLEPAY_PAYMENT_ERROR:                             ('applepay_payment_error' : 'applepay_payment_error'),
 
-    VENMO_DESKTOP_PAY_QR_SHOWN:             ('venmo_desktop_pay_qr_shown' : 'venmo_desktop_pay_qr_shown'),
-    VENMO_DESKTOP_PAY_CLOSING_QR:           ('venmo_desktop_pay_closing_qr' : 'venmo_desktop_pay_closing_qr'),
-
     NATIVE_DETECT_APP_SWITCH:               ('native_detect_app_switch' : 'native_detect_app_switch'),
     NATIVE_DETECT_WEB_SWITCH:               ('native_detect_web_switch' : 'native_detect_web_switch'),
     NATIVE_APP_SWITCH_ACK:                  ('native_app_switch_ack' : 'native_app_switch_ack'),
@@ -159,6 +156,9 @@ export const FPTI_TRANSITION = {
     NATIVE_POPUP_BEFORE_UNLOAD:             ('native_popup_beforeunload' : 'native_popup_beforeunload'),
     NATIVE_POPUP_PAGEHIDE:                  ('native_popup_pagehide' : 'native_popup_pagehide'),
     NATIVE_POPUP_OPENER_DETECT_CLOSE:       ('native_popup_opener_detect_close', 'native_popup_opener_detect_close'),
+    
+    QR_SHOWN:                               ('qr_shown' : 'qr_shown'),
+    QR_CLOSING:                             ('qr_closing' : 'qr_closing'),
     
     HONEY_IDENTIFY:                         ('honey_identify')
 };

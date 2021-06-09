@@ -266,14 +266,14 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         const QRCodeRenderTarget = window.xprops.getParent();
 
         getLogger().info(`VenmoDesktopPay_qrcode`).track({
-            [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.VENMO_DESKTOP_PAY_QR_SHOWN
+            [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.QR_SHOWN
         }).flush();
 
 
         const closeQRCode = (event? : string = 'closeQRCode') => {
             getLogger().info(`VenmoDesktopPay_qrcode_closing_${ event }`).track({
                 [FPTI_KEY.STATE]:       FPTI_STATE.BUTTON,
-                [FPTI_KEY.TRANSITION]:  event ? `${ FPTI_TRANSITION.VENMO_DESKTOP_PAY_CLOSING_QR }_${ event }` : FPTI_TRANSITION.VENMO_DESKTOP_PAY_CLOSING_QR
+                [FPTI_KEY.TRANSITION]:  event ? `${ FPTI_TRANSITION.QR_CLOSING }_${ event }` : FPTI_TRANSITION.QR_CLOSING
             }).flush();
             return onCloseCallback();
         };
