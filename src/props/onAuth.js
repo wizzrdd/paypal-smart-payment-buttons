@@ -38,12 +38,8 @@ export function getOnAuth({ facilitatorAccessToken, createOrder, clientID } : Ge
 
                             return upgradeFacilitatorAccessToken(facilitatorAccessToken, { buyerAccessToken: accessToken, orderID });
                         })
-                        .then(data => {
-                            getLogger().info(`upgrade_lsat_success_${ data ? JSON.stringify(data) : 'null' }`);
-
-                            if (!data || (data && !data.upgradeLowScopeAccessToken)) {
-                                window[LSAT_UPGRADE_RESULT_KEY] = false;
-                            }
+                        .then(() => {
+                            getLogger().info(`upgrade_lsat_success`);
 
                             return accessToken;
                         })

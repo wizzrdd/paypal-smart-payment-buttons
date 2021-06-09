@@ -88,6 +88,7 @@ const handleSmartResponse = (data : Object, headers : {| [$Values<typeof HEADERS
 };
 
 export function getOrder(orderID : string, { facilitatorAccessToken, buyerAccessToken, partnerAttributionID, forceRestAPI = false } : OrderAPIOptions) : ZalgoPromise<OrderResponse> {
+    console.log(`lsat_upgrade: ${window[LSAT_UPGRADE_RESULT_KEY]}`);
     if (forceRestAPI && window[LSAT_UPGRADE_RESULT_KEY]) {
         return callRestAPI({
             accessToken: facilitatorAccessToken,
