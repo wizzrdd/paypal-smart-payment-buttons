@@ -290,7 +290,7 @@ export function getProps({ facilitatorAccessToken, brandedDefault } : {| facilit
     const onApprove = getOnApprove({ onApprove: xprops.onApprove, intent, onError, partnerAttributionID, clientAccessToken, vault, clientID }, { facilitatorAccessToken, branded, createOrder });
     const onCancel = getOnCancel({ onCancel: xprops.onCancel, onError }, { createOrder });
     const onShippingChange = getOnShippingChange({ onShippingChange: xprops.onShippingChange, partnerAttributionID, clientID }, { facilitatorAccessToken, createOrder });
-    const onAuth = getOnAuth({ facilitatorAccessToken, createOrder, clientID });
+    const onAuth = getOnAuth({ facilitatorAccessToken, createOrder, createSubscription, clientID });
 
     return {
         uid,

@@ -8,6 +8,7 @@ import { getLogger } from '../lib';
 import { LSAT_UPGRADE_EXCLUDED_MERCHANTS, LSAT_UPGRADE_FAILED } from '../constants';
 
 import type { CreateOrder } from './createOrder';
+import type { CreateSubscription } from './createSubscription';
 
 export type XOnAuthDataType = {|
     accessToken : ?string
@@ -18,10 +19,11 @@ export type OnAuth = (params : XOnAuthDataType) => ZalgoPromise<string | void>;
 type GetOnAuthOptions = {|
     facilitatorAccessToken : string,
     createOrder : CreateOrder,
+    createSubscription : ?CreateSubscription,
     clientID : string
 |};
 
-export function getOnAuth({ facilitatorAccessToken, createOrder, clientID } : GetOnAuthOptions) : OnAuth {
+export function getOnAuth({ facilitatorAccessToken, createOrder, createSubscription, clientID } : GetOnAuthOptions) : OnAuth {
     const upgradeLSAT = LSAT_UPGRADE_EXCLUDED_MERCHANTS.indexOf(clientID) === -1;
 
     return ({ accessToken } : XOnAuthDataType) => {
@@ -32,8 +34,8 @@ export function getOnAuth({ facilitatorAccessToken, createOrder, clientID } : Ge
                 if (upgradeLSAT) {
                     return createOrder()
                         .then(orderID => {
-                            if (window?.xprops?.createSubscription) {
-                                return null;
+                            if (createSubscription) {
+                                return accessToken;
                             }
 
                             return upgradeFacilitatorAccessToken(facilitatorAccessToken, { buyerAccessToken: accessToken, orderID });

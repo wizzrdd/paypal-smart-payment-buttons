@@ -201,8 +201,8 @@ describe('contingency cases', () => {
             window.xprops.intent = INTENT.AUTHORIZE;
 
             const accessToken = MOCK_BUYER_ACCESS_TOKEN;
-            const upgradeLSATMock = getGraphQLApiMock({
-                extraHandler: expect('upgradeLSATGQLCall', ({ data }) => {
+            const gqlMock = getGraphQLApiMock({
+                extraHandler: expect('checkoutGQLCall', ({ data }) => {
 
                     if (data.query.includes('query GetCheckoutDetails')) {
                         return {
@@ -314,7 +314,7 @@ describe('contingency cases', () => {
             await mockSetupButton({ merchantID: [ 'XYZ12345' ], fundingEligibility: DEFAULT_FUNDING_ELIGIBILITY });
 
             await clickButton(FUNDING.PAYPAL);
-            upgradeLSATMock.done();
+            gqlMock.done();
         });
     });
 
@@ -327,8 +327,8 @@ describe('contingency cases', () => {
             window.xprops.intent = INTENT.AUTHORIZE;
 
             const accessToken = MOCK_BUYER_ACCESS_TOKEN;
-            const upgradeLSATMock = getGraphQLApiMock({
-                extraHandler: expect('upgradeLSATGQLCall', ({ data }) => {
+            const gqlMock = getGraphQLApiMock({
+                extraHandler: expect('checkoutGQLCall', ({ data }) => {
 
                     if (data.query.includes('query GetCheckoutDetails')) {
                         return {
@@ -440,7 +440,7 @@ describe('contingency cases', () => {
             await mockSetupButton({ merchantID: [ 'XYZ12345' ], fundingEligibility: DEFAULT_FUNDING_ELIGIBILITY });
 
             await clickButton(FUNDING.PAYPAL);
-            upgradeLSATMock.done();
+            gqlMock.done();
         });
     });
 });
