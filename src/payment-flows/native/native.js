@@ -13,7 +13,6 @@ import { FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY, TARGET_ELEMENT, QRCODE_ST
 import { type OnShippingChangeData } from '../../props/onShippingChange';
 import { checkout } from '../checkout';
 import type { PaymentFlow, PaymentFlowInstance, SetupOptions, InitOptions } from '../types';
-import { updateQRCodeComponent } from '../../qrcode';
 
 import { isNativeEligible, isNativePaymentEligible, prefetchNativeEligibility, canUseVenmoDesktopPay } from './eligibility';
 import { openNativePopup } from './popup';
@@ -287,12 +286,20 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         
         QRCodeComponentInstance.renderTo(QRCodeRenderTarget, TARGET_ELEMENT.BODY);
 
+        function updateQRCodeComponentState( newState : {|
+            state : $Values<typeof QRCODE_STATE>,
+            errorText? : string
+        |}) {
+            QRCodeComponentInstance.updateProps({
+                cspNonce: config.cspNonce,
+                qrPath:   url,
+                onClose: closeQRCode,
+                ...newState
+            });
+        }
 
         const onApproveQR = (res) => {
-            updateQRCodeComponent({
-                componentWindow: QRCodeRenderTarget,
-                newState:        QRCODE_STATE.AUTHORIZED
-            });
+            updateQRCodeComponentState({state: QRCODE_STATE.AUTHORIZED});
             closeQRCode('onApprove');
             return onApproveCallback(res);
         };
@@ -301,14 +308,19 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             return onCancelCallback();
         };
         const onErrorQR = (res) => {
-            const errorMessageText = res.data.message;
-            updateQRCodeComponent({
-                componentWindow: QRCodeRenderTarget,
-                newState:        QRCODE_STATE.ERROR,
-                errorMessageText
+            const errorText = res.data.message;
+            updateQRCodeComponentState({
+                state: QRCODE_STATE.AUTHORIZED,
+                errorText
             });
             return onErrorCallback(res);
         };
+        // window.setTimeout(()=>{
+        //     console.log('setTimeoutFired');
+        //     updateQRCodeComponentState({state: QRCODE_STATE.AUTHORIZED});
+        //     debugger;
+
+        // },13000);
 
         return new ZalgoPromise(() => {
             const connection = connectNative({

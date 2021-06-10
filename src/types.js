@@ -4,7 +4,7 @@ import type { CrossDomainWindowType } from 'cross-domain-utils/src';
 import type { ZalgoPromise } from 'zalgo-promise/src';
 import { COUNTRY, LANG, CARD, WALLET_INSTRUMENT, FUNDING } from '@paypal/sdk-constants/src';
 
-import { CONTEXT } from './constants';
+import { CONTEXT, QRCODE_STATE } from './constants';
 
 // export something to force webpack to see this as an ES module
 export const TYPES = true;
@@ -124,7 +124,7 @@ export type MenuComponentInstance = ZoidComponentInstance<MenuFlowProps>;
 export type QRCodeProps = {|
     qrPath : string,
     cspNonce : ?string,
-    state? : string,
+    state? : $Values<typeof QRCODE_STATE>,
     errorText? : string,
     onClose? : () => ZalgoPromise<void>
 |};

@@ -25,8 +25,6 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
 
             const { cspNonce, qrPath, demo, debug } = getParams(params, req, res);
 
-            const paypalInitalizer = `<script nonce="${ cspNonce }" src="https://www.paypal.com/sdk/js?client-id=sb"></script>`;
-
             if (!qrPath) {
                 return clientErrorResponse(res, 'Please provide a qrPath query parameter');
             }
@@ -56,16 +54,14 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
                     rel="stylesheet" 
                     href="https://www.paypalobjects.com/paypal-ui/web/fonts-and-normalize/1-1-0/fonts-and-normalize.min.css"
                 />
-                ${ (useLocal && demo) ? paypalInitalizer : '' }
             </head>
             <body data-nonce="${ cspNonce }" data-client-version="${ client.version }">
                 ${ meta.getSDKLoader({ nonce: cspNonce }) }
                 <script nonce="${ cspNonce }">${ client.script }</script>
                 <script nonce="${ cspNonce }">
-        spbQRCode.renderQRCode(${ safeJSON({
+    spbQRCode.renderQRCode(${ safeJSON({
         cspNonce,
-        svgString,
-        demo
+        svgString
     }) })
                 </script>
             </body>

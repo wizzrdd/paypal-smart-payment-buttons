@@ -6,12 +6,13 @@ import { FPTI_KEY, FUNDING } from '@paypal/sdk-constants/src';
 import { type CrossDomainWindowType, onCloseWindow } from 'cross-domain-utils/src';
 
 import { getNativeEligibility } from '../../api';
-import { getLogger, isAndroidChrome, unresolvedPromise, onPostMessage } from '../../lib';
+import { getLogger, isAndroidChrome, unresolvedPromise } from '../../lib';
 import { FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY } from '../../constants';
 import type { ButtonProps, ServiceData, Config } from '../../button/props';
 
 import { isNativeOptedIn } from './eligibility';
 import { getNativeUrl, getNativePopupUrl, getNativeDomain, getNativePopupDomain, getNativeFallbackUrl } from './url';
+import { onPostMessage } from './util';
 
 const POST_MESSAGE = {
     AWAIT_REDIRECT:     'awaitRedirect',
