@@ -31,41 +31,56 @@ function useXProps<T>() : T {
     useEffect(() => xprops.onProps(newProps => {
         setXProps({ ...newProps });
     }), []);
-    return { ...xprops };
+    return { 
+        ...xprops
+        //,setXProps 
+    };
 }
 
 
 function QRCard({
     cspNonce,
     svgString,
-    // demo,
-    state,
-    errorText = 'An issue has occurred'
+    // state,
+    // errorText = 'An issue has occurred'
 } : {|
     cspNonce : ?string,
     svgString : string,
-    state? : $Values<typeof QRCODE_STATE>,
-    errorText? : string
+    // state? : $Values<typeof QRCODE_STATE>,
+    // errorText? : string
 |}) : NodeType {
-    
-    // const { 
-    //     state, 
-    //     errorText = 'An issue has occurred'
-    // } = useXProps();
 
-    const [ processState, setProcessState ] = useState(state || null);
-    const [ errorMessage, setErrorMessage ] = useState(errorText);
+    
+
+    const { state, errorText } = useXProps();
+    // state = QRCODE_STATE.DEFAULT, 
+    // errorText = 'An issue has occurred'
+    
+    // console.log(Object.keys(window));
+
+    // const [ processState, setProcessState ] = useState(state || null);
+    // const [ errorMessage, setErrorMessage ] = useState(errorText);
     
     const isError = () => {
-        return processState === QRCODE_STATE.ERROR;
+        return state === QRCODE_STATE.ERROR;
     }
+
+    /*
+     setXProps({
+        ...xprops, 
+        state: QRCODE_STATE.DEFAULT
+    }) 
+    */
     
     return (
         <Fragment>
             <style nonce={ cspNonce }> { cardStyle } </style>
-            <div id="view-boxes" className={ processState }>
+            <div id="view-boxes" className={state }>
                 { isError() ?
-                    <ErrorMessage message={ errorMessage } resetFunc={ ()=> setProcessState(QRCODE_STATE.DEFAULT) } /> :
+                    <ErrorMessage 
+                        message={ errorText } 
+                        resetFunc={ ()=> console.log('reset')} 
+                    /> :
                     <div id="front-view" className="card">
                         <QRCodeElement svgString={ svgString } />
                         <Logo />
@@ -120,25 +135,20 @@ function QRCard({
 type RenderQRCodeOptions = {|
     cspNonce? : string,
     svgString : string,
-    demo? : boolean,
-    state? : $Values<typeof QRCODE_STATE>,
-    errorText? : string
+    // state? : $Values<typeof QRCODE_STATE>,
+    // errorText? : string
 |};
 
 export function renderQRCode({ 
     cspNonce = '', 
     svgString
 } : RenderQRCodeOptions) {
-    const { 
-        state, 
-        errorText = 'An issue has occurred'
-    } = useXProps();
+    console.log('+++++');
+    console.dir(window.xprops);
     render(
         <QRCard
             cspNonce={ cspNonce }
             svgString={ svgString }
-            state={ state }
-            errorText={ errorText }
         />,
         getBody()
     );

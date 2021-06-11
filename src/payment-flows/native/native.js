@@ -315,10 +315,11 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             });
             return onErrorCallback(res);
         };
+
         // window.setTimeout(()=>{
         //     console.log('setTimeoutFired');
-        //     updateQRCodeComponentState({state: QRCODE_STATE.AUTHORIZED});
-        //     debugger;
+        //     updateQRCodeComponentState({state: QRCODE_STATE.ERROR});
+        //     // debugger;
 
         // },13000);
 
