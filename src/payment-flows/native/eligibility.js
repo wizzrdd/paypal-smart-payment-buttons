@@ -85,7 +85,7 @@ export function prefetchNativeEligibility({ props, serviceData } : PrefetchNativ
     });
 }
 
-export function canUseVenmoDesktopPay(funding : ?FundingType) : boolean {
+export function canUseQRPay(funding : ?FundingType) : boolean {
     return (!funding) ? false :
         (funding === FUNDING.VENMO)  &&
         !isIos() &&
@@ -97,7 +97,7 @@ export function isNativeEligible({ props, config, serviceData } : IsEligibleOpti
     const { firebase: firebaseConfig } = config;
     const { merchantID } = serviceData;
     const funding = fundingSource || enableFunding[0];
-    const isValidVenmoDesktopPaySituation = canUseVenmoDesktopPay(funding);
+    const isValidVenmoDesktopPaySituation = canUseQRPay(funding);
 
     if (platform !== PLATFORM.MOBILE &&
         !isIOSSafari() &&

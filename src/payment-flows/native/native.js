@@ -14,7 +14,7 @@ import { type OnShippingChangeData } from '../../props/onShippingChange';
 import { checkout } from '../checkout';
 import type { PaymentFlow, PaymentFlowInstance, SetupOptions, InitOptions } from '../types';
 
-import { isNativeEligible, isNativePaymentEligible, prefetchNativeEligibility, canUseVenmoDesktopPay } from './eligibility';
+import { isNativeEligible, isNativePaymentEligible, prefetchNativeEligibility, canUseQRPay } from './eligibility';
 import { openNativePopup } from './popup';
 import { getNativeUrl } from './url';
 import { connectNative } from './socket';
@@ -32,7 +32,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     const { fundingSource } = payment;
     const { firebase: firebaseConfig } = config;
 
-    const isVenmoDesktopPay = canUseVenmoDesktopPay(fundingSource);
+    const isQRDesktopPay = canUseQRPay(fundingSource);
     
     const createOrderIDPromise = createOrder();
 
@@ -366,7 +366,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         
         return ZalgoPromise.try(() => {
             const sessionUID = uniqueID();
-            return isVenmoDesktopPay ? initQRCode({ sessionUID, createOrderIDPromise}) : initPopupAppSwitch({ sessionUID });
+            return isQRDesktopPay ? initQRCode({ sessionUID, createOrderIDPromise }) : initPopupAppSwitch({ sessionUID });
         }).catch(err => {
             return destroy().then(() => {
                 getLogger().error(`native_error`, { err: stringifyError(err) }).track({
