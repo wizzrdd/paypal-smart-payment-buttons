@@ -32,7 +32,8 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
             const svgString = await QRCode.toString(
                 qrPath,
                 {
-                    width:  160,
+                    // width: 160,
+                    // width:  240,                    
                     margin: 0,
                     color:  {
                         dark:  VENMO_BLUE,

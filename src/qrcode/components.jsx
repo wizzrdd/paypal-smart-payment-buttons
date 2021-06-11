@@ -121,9 +121,9 @@ export const cardStyle : string = `
         flex-direction: column;
     }
     .card {
-        border-radius: 8px;        
-        width: 280px;
-        height: 320px; 
+        border-radius: 8px;
+        min-width: 280px;
+        min-height: 320px;
         backface-visibility: hidden;
         -webkit-backface-visibility: hidden;
         transition: transform 1s;
