@@ -16,7 +16,7 @@ import { type NodeType,
     Logo,
     VenmoMark,
     AuthMark,
-    cardStyle,
+    cardStyle
 } from './components';
 
 
@@ -58,8 +58,8 @@ function QRCard({
         [ QRCODE_STATE.AUTHORIZED, QRCODE_STATE.ERROR ],
         [ QRCODE_STATE.SCANNED, QRCODE_STATE.AUTHORIZED ]
     ]);
-    function debugging_nextState(currentState:$Values<typeof QRCODE_STATE>) {
-        setState(debugging_nextStateMap.get(currentState));        
+    function debugging_nextState(currentState : $Values<typeof QRCODE_STATE>) {
+        setState(debugging_nextStateMap.get(currentState));
     }
     
     return (
@@ -93,7 +93,7 @@ function QRCard({
                     </div>
 
                 </div>
-                <button className="debugCtrl" style="position:absolute;bottom:8px;right:8px;padding:4px" onClick={()=>debugging_nextState(state)}>Next State</button>
+                <button className="debugCtrl" style="position:absolute;bottom:8px;right:8px;padding:4px" onClick={ () => debugging_nextState(state) }>Next State</button>
             </div>
         </Fragment>
     );

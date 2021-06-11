@@ -324,19 +324,17 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                 return onErrorCallback(res);
             };
 
-            return new ZalgoPromise(() => {
-                const connection = connectNative({
-                    props, serviceData, config, fundingSource, sessionUID,
-                    callbacks: {
-                        onApprove:        onApproveQR,
-                        onCancel:         onCancelQR,
-                        onError:          onErrorQR,
-                        onFallback:       onFallbackCallback,
-                        onShippingChange: onShippingChangeCallback
-                    }
-                });
-                clean.register(connection.cancel);
+            const connection = connectNative({
+                props, serviceData, config, fundingSource, sessionUID,
+                callbacks: {
+                    onApprove:        onApproveQR,
+                    onCancel:         onCancelQR,
+                    onError:          onErrorQR,
+                    onFallback:       onFallbackCallback,
+                    onShippingChange: onShippingChangeCallback
+                }
             });
+            clean.register(connection.cancel);
         });
 
     };
