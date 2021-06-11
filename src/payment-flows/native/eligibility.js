@@ -100,16 +100,12 @@ export function isNativeEligible({ props, config, serviceData } : IsEligibleOpti
     const isValidVenmoDesktopPaySituation = canUseQRPay(funding);
 
     if (platform !== PLATFORM.MOBILE &&
-        !isIOSSafari() &&
-        !isAndroidChrome() &&
         !isValidVenmoDesktopPaySituation
     ) {
         return false;
     }
     
-    if (onShippingChange &&
-        (!isNativeOptedIn({ props }) && !isValidVenmoDesktopPaySituation)
-    ) {
+    if (onShippingChange && !isNativeOptedIn({ props })) {
         return false;
     }
 
@@ -129,9 +125,7 @@ export function isNativeEligible({ props, config, serviceData } : IsEligibleOpti
         return true;
     }
 
-    if (!isValidVenmoDesktopPaySituation &&
-        (env === ENV.LOCAL || env === ENV.STAGE)
-    ) {
+    if (env === ENV.LOCAL || env === ENV.STAGE) {
         return false;
     }
 
