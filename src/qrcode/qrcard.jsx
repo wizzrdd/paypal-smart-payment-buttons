@@ -17,8 +17,6 @@ import { type NodeType,
     VenmoMark,
     AuthMark,
     cardStyle,
-    DemoWrapper,
-    DemoControls
 } from './components';
 
 
@@ -89,30 +87,6 @@ function QRCard({
         </Fragment>
     );
 }
-
-
-/*
-{ demo ?
-    <DemoControls
-        cspNonce={ cspNonce }
-        processState={ processState }
-        errorMessage={ errorMessage }
-        isError={ isError() }
-        setState_error={ (str) => {
-            setProcessState(QRCODE_STATE.ERROR);
-            setErrorMessage(str);
-        } }
-        setState_scanned={ () => {
-            setProcessState(QRCODE_STATE.SCANNED);
-        } }
-        setState_authorized={ () => {
-            setProcessState(QRCODE_STATE.AUTHORIZED);
-        } }
-        setState_default={ () => {
-            setProcessState(QRCODE_STATE.DEFAULT);
-        } }
-    /> : null}
-*/
 
 type RenderQRCodeOptions = {|
     cspNonce? : string,
