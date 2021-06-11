@@ -23,7 +23,7 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
         app: async ({ req, res, params, meta, logBuffer }) => {
             logger.info(req, EVENT.RENDER);
 
-            const { cspNonce, qrPath, demo, debug } = getParams(params, req, res);
+            const { cspNonce, qrPath, debug } = getParams(params, req, res);
 
             if (!qrPath) {
                 return clientErrorResponse(res, 'Please provide a qrPath query parameter');

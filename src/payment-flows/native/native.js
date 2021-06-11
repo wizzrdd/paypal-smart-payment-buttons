@@ -286,20 +286,20 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         
         QRCodeComponentInstance.renderTo(QRCodeRenderTarget, TARGET_ELEMENT.BODY);
 
-        function updateQRCodeComponentState( newState : {|
+        function updateQRCodeComponentState(newState : {|
             state : $Values<typeof QRCODE_STATE>,
             errorText? : string
         |}) {
             QRCodeComponentInstance.updateProps({
                 cspNonce: config.cspNonce,
                 qrPath:   url,
-                onClose: closeQRCode,
+                onClose:  closeQRCode,
                 ...newState
             });
         }
 
         const onApproveQR = (res) => {
-            updateQRCodeComponentState({state: QRCODE_STATE.AUTHORIZED});
+            updateQRCodeComponentState({ state: QRCODE_STATE.AUTHORIZED });
             closeQRCode('onApprove');
             return onApproveCallback(res);
         };
@@ -315,13 +315,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             });
             return onErrorCallback(res);
         };
-
-        // window.setTimeout(()=>{
-        //     console.log('setTimeoutFired');
-        //     updateQRCodeComponentState({state: QRCODE_STATE.ERROR});
-        //     // debugger;
-
-        // },13000);
 
         return new ZalgoPromise(() => {
             const connection = connectNative({
