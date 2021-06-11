@@ -312,7 +312,10 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                     ...newState
                 });
             }
-
+            const onInitializeQR  = (res) => {
+                updateQRCodeComponentState({ state: QRCODE_STATE.SCANNED });
+                return onInitCallback();
+            };
             const onApproveQR = (res) => {
                 updateQRCodeComponentState({ state: QRCODE_STATE.AUTHORIZED });
                 closeQRCode('onApprove');
@@ -334,6 +337,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             const connection = connectNative({
                 props, serviceData, config, fundingSource, sessionUID,
                 callbacks: {
+                    onInit:           onInitializeQR,
                     onApprove:        onApproveQR,
                     onCancel:         onCancelQR,
                     onError:          onErrorQR,
