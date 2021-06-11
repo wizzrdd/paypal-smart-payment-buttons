@@ -263,9 +263,9 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     };
 
     const initQRCode = ({ sessionUID, createOrderIDPromise } : {| sessionUID : string, createOrderIDPromise : ZalgoPromise<string>|}) => {
-        const { QRCode } = components; 
-        const QRCodeRenderTarget = window.xprops.getParent();
-        const pageUrl = window.xprops.getPageUrl();        
+        const { QRCode } = components;
+        const qrCodeRenderTarget = window.xprops.getParent();
+        const pageUrl = window.xprops.getPageUrl();
         const stickinessID = getStorageID();
         
 
@@ -282,23 +282,23 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             return onCloseCallback();
         };
         
-        createOrderIDPromise.then((orderID)=>{
-            const url = getNativeUrl({props, serviceData, firebaseConfig, fundingSource, sessionUID, orderID, stickinessID, pageUrl});                
+        createOrderIDPromise.then((orderID) => {
+            const url = getNativeUrl({ props, serviceData, firebaseConfig, fundingSource, sessionUID, orderID, stickinessID, pageUrl });
 
-            const QRCodeComponentInstance = QRCode({
+            const qrCodeComponentInstance = QRCode({
                 cspNonce:  config.cspNonce,
                 qrPath:    url,
                 state:     QRCODE_STATE.DEFAULT,
                 onClose:   closeQRCode
             });
             
-            QRCodeComponentInstance.renderTo(QRCodeRenderTarget, TARGET_ELEMENT.BODY);
+            qrCodeComponentInstance.renderTo(qrCodeRenderTarget, TARGET_ELEMENT.BODY);
 
             function updateQRCodeComponentState(newState : {|
                 state : $Values<typeof QRCODE_STATE>,
                 errorText? : string
             |}) {
-                QRCodeComponentInstance.updateProps({
+                qrCodeComponentInstance.updateProps({
                     cspNonce: config.cspNonce,
                     qrPath:   url,
                     onClose:  closeQRCode,
@@ -339,7 +339,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             });
         });
 
-    }
+    };
 
 
     const initPopupAppSwitch = ({ sessionUID } : {| sessionUID : string |}) => {
