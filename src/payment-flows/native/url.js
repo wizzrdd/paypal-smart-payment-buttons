@@ -133,10 +133,6 @@ function getNativeUrlQueryParams({ props, serviceData, fundingSource, sessionUID
 
 export function getNativeUrl({ props, serviceData, fundingSource, firebaseConfig, sessionUID, pageUrl, orderID, stickinessID } : GetNativeUrlOptions) : string {
     const queryParams = getNativeUrlQueryParams({ props, serviceData, fundingSource, sessionUID, firebaseConfig, pageUrl, orderID, stickinessID });
-    
-    if (fundingSource === FUNDING.VENMO) {
-        delete queryParams.sdkMeta;
-    }
 
     return extendUrl(`${ getNativeDomain({ props }) }${ NATIVE_CHECKOUT_URI[fundingSource] }`, {
         // $FlowFixMe
@@ -175,19 +171,11 @@ const getNativePopupQueryParams = ({ props, serviceData } : GetNativePopupUrlOpt
         sdkMeta,
         sessionID
     };
-
-    if (queryParams.channel === CHANNEL.DESKTOP) {
-        delete queryParams.sdkMeta;
-    }
     return queryParams;
 };
 
 export function getNativePopupUrl({ props, serviceData, fundingSource } : GetNativePopupUrlOptions) : string {
     const queryParams = getNativePopupQueryParams({ props, serviceData, fundingSource });
-    
-    if (fundingSource === FUNDING.VENMO) {
-        delete queryParams.sdkMeta;
-    }
 
     const baseURL = extendUrl(`${ getNativePopupDomain({ props }) }${ NATIVE_CHECKOUT_POPUP_URI[fundingSource] }`, {
         // $FlowFixMe
