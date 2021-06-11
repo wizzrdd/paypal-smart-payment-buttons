@@ -51,6 +51,16 @@ function QRCard({
     const isError = () => {
         return state === QRCODE_STATE.ERROR;
     };
+
+    const debugging_nextStateMap = new Map([
+        [ QRCODE_STATE.DEFAULT, QRCODE_STATE.SCANNED ],
+        [ QRCODE_STATE.ERROR, QRCODE_STATE.DEFAULT ],
+        [ QRCODE_STATE.AUTHORIZED, QRCODE_STATE.ERROR ],
+        [ QRCODE_STATE.SCANNED, QRCODE_STATE.AUTHORIZED ]
+    ]);
+    function debugging_nextState(currentState:$Values<typeof QRCODE_STATE>) {
+        setState(debugging_nextStateMap.get(currentState));        
+    }
     
     return (
         <Fragment>
@@ -83,6 +93,7 @@ function QRCard({
                     </div>
 
                 </div>
+                <button className="debugCtrl" style="position:absolute;bottom:8px;right:8px;padding:4px" onClick={()=>debugging_nextState(state)}>Next State</button>
             </div>
         </Fragment>
     );
