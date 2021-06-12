@@ -16,7 +16,8 @@ import { type NodeType,
     Logo,
     VenmoMark,
     AuthMark,
-    cardStyle
+    cardStyle,
+    debugging_nextStateMap
 } from './components';
 
 
@@ -39,29 +40,20 @@ function useXProps<T>() : T {
     };
 }
 
-
 function QRCard({
     cspNonce,
-    svgString
+    svgString,
+    debug
 } : {|
     cspNonce : ?string,
-    svgString : string
+    svgString : string,
+    debug? : boolean
 |}) : NodeType {
     const { state, errorText, setState } = useXProps();
     const isError = () => {
         return state === QRCODE_STATE.ERROR;
     };
 
-    const debugging_nextStateMap = new Map([
-        [ QRCODE_STATE.DEFAULT, QRCODE_STATE.SCANNED ],
-        [ QRCODE_STATE.ERROR, QRCODE_STATE.DEFAULT ],
-        [ QRCODE_STATE.AUTHORIZED, QRCODE_STATE.ERROR ],
-        [ QRCODE_STATE.SCANNED, QRCODE_STATE.AUTHORIZED ]
-    ]);
-    function debugging_nextState(currentState : $Values<typeof QRCODE_STATE>) {
-        setState(debugging_nextStateMap.get(currentState));
-    }
-    
     return (
         <Fragment>
             <style nonce={ cspNonce }> { cardStyle } </style>
@@ -93,7 +85,10 @@ function QRCard({
                     </div>
 
                 </div>
-                <button className="debugCtrl" style="position:absolute;bottom:8px;right:8px;padding:4px" onClick={ () => debugging_nextState(state) }>Next State</button>
+                { debug && <button
+                    style="position:absolute;bottom:8px;right:8px;padding:4px" 
+                    onClick={ () => setState(debugging_nextStateMap.get(state)) }
+                >Next State</button>}
             </div>
         </Fragment>
     );
@@ -101,17 +96,20 @@ function QRCard({
 
 type RenderQRCodeOptions = {|
     cspNonce? : string,
-    svgString : string
+    svgString : string,
+    debug : boolean
 |};
 
 export function renderQRCode({
     cspNonce = '',
-    svgString
+    svgString,
+    debug = false
 } : RenderQRCodeOptions) {
     render(
         <QRCard
             cspNonce={ cspNonce }
             svgString={ svgString }
+            debug={ debug }
         />,
         getBody()
     );

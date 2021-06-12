@@ -2,8 +2,7 @@
 /** @jsx h */
 
 import { preact } from 'jsx-pragmatic';
-import { h, Fragment, Node } from 'preact';
-import { useState } from 'preact/hooks';
+import { h, Node } from 'preact';
 import { VenmoLogo, LOGO_COLOR } from '@paypal/sdk-logos/src';
 
 import { VENMO_BLUE, QRCODE_STATE } from '../constants';
@@ -226,3 +225,12 @@ export const cardStyle : string = `
         transition-delay: 350ms;
     }
     `;
+
+export const debugging_nextStateMap : Map<string, string> = new Map([
+    [ QRCODE_STATE.DEFAULT, QRCODE_STATE.SCANNED ],
+    [ QRCODE_STATE.ERROR, QRCODE_STATE.DEFAULT ],
+    [ QRCODE_STATE.AUTHORIZED, QRCODE_STATE.ERROR ],
+    [ QRCODE_STATE.SCANNED, QRCODE_STATE.AUTHORIZED ]
+]);
+
+    
