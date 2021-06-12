@@ -28,7 +28,7 @@ function setupNative({ props, serviceData } : SetupOptions) : ZalgoPromise<void>
 
 function initNative({ props, components, config, payment, serviceData } : InitOptions) : PaymentFlowInstance {
     const { onApprove, onCancel, onError,
-        buttonSessionID, onShippingChange, createOrder, getPageUrl } = props;
+        buttonSessionID, onShippingChange, createOrder } = props;
     const { fundingSource } = payment;
     const { firebase: firebaseConfig } = config;
 
@@ -312,7 +312,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                     ...newState
                 });
             }
-            const onInitializeQR  = (res) => {
+            const onInitializeQR  = () => {
                 updateQRCodeComponentState({ state: QRCODE_STATE.SCANNED });
                 return onInitCallback();
             };

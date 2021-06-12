@@ -5,7 +5,7 @@ import { PLATFORM, ENV, FUNDING } from '@paypal/sdk-constants/src';
 import { supportsPopups, isIos, isAndroid } from 'belter/src';
 
 import { type NativeEligibility, getNativeEligibility } from '../../api';
-import { isIOSSafari, isAndroidChrome, enableAmplitude } from '../../lib';
+import { enableAmplitude } from '../../lib';
 import { LSAT_UPGRADE_EXCLUDED_MERCHANTS } from '../../constants';
 import type { FundingType } from '../../types';
 import type { ButtonProps, ServiceData } from '../../button/props';
