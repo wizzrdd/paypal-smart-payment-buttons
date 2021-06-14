@@ -289,7 +289,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             return onCloseCallback();
         };
         
-        orderIDPromise.then((orderID) => {
+        return orderIDPromise.then((orderID) => {
             const url = getNativeUrl({ props, serviceData, firebaseConfig, fundingSource, sessionUID, orderID, stickinessID, pageUrl });
 
             const qrCodeComponentInstance = QRCode({
@@ -298,14 +298,12 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                 state:     QRCODE_STATE.DEFAULT,
                 onClose:   closeQRCode
             });
-            
-            qrCodeComponentInstance.renderTo(qrCodeRenderTarget, TARGET_ELEMENT.BODY);
 
             function updateQRCodeComponentState(newState : {|
                 state : $Values<typeof QRCODE_STATE>,
                 errorText? : string
-            |}) {
-                qrCodeComponentInstance.updateProps({
+            |}) : ZalgoPromise<void> {
+                return qrCodeComponentInstance.updateProps({
                     cspNonce: config.cspNonce,
                     qrPath:   url,
                     onClose:  closeQRCode,
@@ -313,25 +311,30 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                 });
             }
             const onInitializeQR  = () => {
-                updateQRCodeComponentState({ state: QRCODE_STATE.SCANNED });
-                return onInitCallback();
+                return updateQRCodeComponentState({ state: QRCODE_STATE.SCANNED }).then(() => {
+                    return onInitCallback();
+                });
             };
             const onApproveQR = (res) => {
-                updateQRCodeComponentState({ state: QRCODE_STATE.AUTHORIZED });
-                closeQRCode('onApprove');
-                return onApproveCallback(res);
+                return updateQRCodeComponentState({ state: QRCODE_STATE.AUTHORIZED }).then(() => {
+                    return closeQRCode('onApprove').then(() => {
+                        return onApproveCallback(res);
+                    });
+                });
             };
             const onCancelQR = () => {
-                closeQRCode('onCancel');
-                return onCancelCallback();
+                return closeQRCode('onCancel').then(() => {
+                    return onCancelCallback();
+                });
             };
             const onErrorQR = (res) => {
                 const errorText = res.data.message;
-                updateQRCodeComponentState({
+                return updateQRCodeComponentState({
                     state: QRCODE_STATE.AUTHORIZED,
                     errorText
+                }).then(() => {
+                    return onErrorCallback(res);
                 });
-                return onErrorCallback(res);
             };
 
             const connection = connectNative({
@@ -346,6 +349,8 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                 }
             });
             clean.register(connection.cancel);
+
+            return qrCodeComponentInstance.renderTo(qrCodeRenderTarget, TARGET_ELEMENT.BODY);
         });
 
     };
