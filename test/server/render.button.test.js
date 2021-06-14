@@ -15,7 +15,7 @@ function getSetupButtonParams(template) : Object {
     const setupButtonParamsString = template && template.match(/<script nonce="">spb.setupButton\((.*?)\)<\/script>/);
     return  setupButtonParamsString && JSON.parse(setupButtonParamsString[1]);
 }
-// $FlowFixMe
+
 jest.setTimeout(300000);
 
 afterAll(cancelWatchers);

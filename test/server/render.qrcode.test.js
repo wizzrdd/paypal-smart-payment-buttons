@@ -5,7 +5,7 @@ import { noop } from 'belter';
 import { getQRCodeMiddleware, cancelWatchers } from '../../server';
 
 import { mockReq, mockRes } from './mock';
-// $FlowFixMe
+
 jest.setTimeout(300000);
 
 afterAll(cancelWatchers);
