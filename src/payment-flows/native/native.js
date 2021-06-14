@@ -269,7 +269,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         }).then(noop);
     };
 
-    const initQRCode = ({ sessionUID, createOrderIDPromise } : {| sessionUID : string, createOrderIDPromise : ZalgoPromise<string>|}) => {
+    const initQRCode = ({ sessionUID, orderIDPromise } : {| sessionUID : string, orderIDPromise : ZalgoPromise<string>|}) => {
         const { QRCode } = components;
         const qrCodeRenderTarget = window.xprops.getParent();
         const pageUrl = window.xprops.getPageUrl();
@@ -289,7 +289,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             return onCloseCallback();
         };
         
-        createOrderIDPromise.then((orderID) => {
+        orderIDPromise.then((orderID) => {
             const url = getNativeUrl({ props, serviceData, firebaseConfig, fundingSource, sessionUID, orderID, stickinessID, pageUrl });
 
             const qrCodeComponentInstance = QRCode({
@@ -375,7 +375,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         
         return ZalgoPromise.try(() => {
             const sessionUID = uniqueID();
-            return isQRDesktopPay ? initQRCode({ sessionUID, createOrderIDPromise }) : initPopupAppSwitch({ sessionUID });
+            return isQRDesktopPay ? initQRCode({ sessionUID, orderIDPromise: createOrderIDPromise }) : initPopupAppSwitch({ sessionUID });
         }).catch(err => {
             return destroy().then(() => {
                 getLogger().error(`native_error`, { err: stringifyError(err) }).track({

@@ -62,7 +62,8 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
                 <script nonce="${ cspNonce }">
     spbQRCode.renderQRCode(${ safeJSON({
         cspNonce,
-        svgString
+        svgString,
+        debug
     }) })
                 </script>
             </body>

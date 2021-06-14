@@ -86,7 +86,8 @@ function QRCard({
 
                 </div>
                 { debug && <button
-                    style="position:absolute;bottom:8px;right:8px;padding:4px" 
+                    type="button"
+                    style={ { position: 'absolute', bottom: '8px', padding: '4px' } }
                     onClick={ () => setState(debugging_nextStateMap.get(state)) }
                 >Next State</button>}
             </div>
