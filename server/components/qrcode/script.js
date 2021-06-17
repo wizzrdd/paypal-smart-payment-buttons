@@ -1,6 +1,7 @@
 /* @flow */
 
 import { join } from 'path';
+import { readFileSync } from 'fs';
 
 import { ENV } from '@paypal/sdk-constants';
 
@@ -28,7 +29,8 @@ export async function compileLocalSmartQRCodeClientScript() : Promise<?SmartQRCo
     const distScriptPath = resolveScript(join(SMART_BUTTONS_MODULE, QRCODE_CLIENT_JS));
 
     if (distScriptPath) {
-        const script = dynamicRequire(distScriptPath);
+        // const script = dynamicRequire(distScriptPath);
+        const script = readFileSync(distScriptPath).toString();
         return { script, version: ENV.LOCAL };
     }
 }
