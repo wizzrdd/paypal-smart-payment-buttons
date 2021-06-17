@@ -128,6 +128,9 @@ export const cardStyle : string = `
         transition: transform 1s;
         transform-style: preserve-3d;
     }
+    .card * {
+        box-sizing: content-box;
+    }
     #view-boxes {
         display: flex;
         align-items: center;
@@ -140,6 +143,7 @@ export const cardStyle : string = `
         transform: rotateY(180deg);
         position: absolute;
     }
+    #view-boxes #back-view {width: 320px;}
     #view-boxes.${ QRCODE_STATE.SCANNED } #back-view,
     #view-boxes.${ QRCODE_STATE.AUTHORIZED } #back-view {
         transform: rotateY(0deg);
@@ -182,6 +186,7 @@ export const cardStyle : string = `
         background-color: #F5F5F5;
         border-bottom-left-radius: 8px;
         border-bottom-right-radius: 8px;
+        box-sizing: border-box;
         padding: 16px;
         display: flex;
         align-items: center;

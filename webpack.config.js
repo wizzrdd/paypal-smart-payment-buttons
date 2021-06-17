@@ -92,12 +92,14 @@ export const WEBPACK_CONFIG_MENU_DEBUG : WebpackConfig = getSmartWebpackConfig({
     minify:     false,
     vars:       globals
 });
+
 export const WEBPACK_CONFIG_QRCODE : WebpackConfig = getSmartWebpackConfig({
     modulename:    'spbQRCode',
     entry:         'src/qrcode',
     filename:      'smart-qrcode',
     minify:        false,
-    vars:          globals
+    vars:          globals,
+    libraryTarget: 'umd'
 });
 
 export const WEBPACK_CONFIG_QRCODE_MIN : WebpackConfig = getSmartWebpackConfig({
@@ -106,6 +108,7 @@ export const WEBPACK_CONFIG_QRCODE_MIN : WebpackConfig = getSmartWebpackConfig({
     filename:      'smart-qrcode',
     minify:        true,
     vars:          globals,
+    libraryTarget: 'umd'
 });
 
 export const WEBPACK_CONFIG_QRCODE_DEBUG : WebpackConfig = getSmartWebpackConfig({
@@ -115,6 +118,7 @@ export const WEBPACK_CONFIG_QRCODE_DEBUG : WebpackConfig = getSmartWebpackConfig
     debug:         true,
     minify:        false,
     vars:          globals,
+    libraryTarget: 'umd'
 });
 
 export const WEBPACK_CONFIG_NATIVE_POPUP : WebpackConfig = getSmartWebpackConfig({
