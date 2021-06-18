@@ -349,8 +349,12 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                 }
             });
             clean.register(connection.cancel);
+            connection.setProps();
 
             return qrCodeComponentInstance.renderTo(qrCodeRenderTarget, TARGET_ELEMENT.BODY);
+            
+            
+            
         });
 
     };
