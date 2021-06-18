@@ -157,13 +157,13 @@ export function getNativeEligibility({ vault, shippingCallbackEnabled, merchantI
         }
 
         // -- forcing venmo eligibility to true
-        if (
-            gqlResult &&
-            gqlResult.mobileSDKEligibility &&
-            gqlResult.mobileSDKEligibility.venmo
-        ) {
-            gqlResult.mobileSDKEligibility.venmo = { eligibility: true, ineligibilityReason: '' };
-        }
+        // if (
+        //     gqlResult &&
+        //     gqlResult.mobileSDKEligibility &&
+        //     gqlResult.mobileSDKEligibility.venmo
+        // ) {
+        //     gqlResult.mobileSDKEligibility.venmo = { eligibility: true, ineligibilityReason: '' };
+        // }
 
         return gqlResult.mobileSDKEligibility;
     });
