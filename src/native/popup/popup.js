@@ -37,6 +37,10 @@ type AndroidApp = {|
     version? : string
 |};
 
+type IOSApp = {|
+    installed : boolean
+|};
+
 function isAndroidAppInstalled(appId : string) : ZalgoPromise<AndroidApp> {
     // assume true unless we can prove false
     if (window.navigator && window.navigator.getInstalledRelatedApps) {
@@ -53,10 +57,14 @@ function isAndroidAppInstalled(appId : string) : ZalgoPromise<AndroidApp> {
                 }
             }
             
-            return ZalgoPromise.resolve({ installed: true });
+            return ZalgoPromise.resolve({ installed: false });
         });
     }
 
+    return ZalgoPromise.resolve({ installed: true });
+}
+
+function isIosAppInstalled() : ZalgoPromise<IOSApp> {
     return ZalgoPromise.resolve({ installed: true });
 }
 
@@ -138,7 +146,7 @@ export function setupNativePopup({ parentDomain, env, sessionID, buttonSessionID
                         [FPTI_CUSTOM_KEY.ERR_DESC]: `Error: ${ stringifyErrorMessage(err) }`
                     }).flush();
 
-                return { installed: true };
+                return { installed: false };
             });
         } else if (fundingSource === FUNDING.VENMO) {
             appInstalledPromise = isAndroidVenmoAppInstalled().catch(err => {
@@ -148,9 +156,11 @@ export function setupNativePopup({ parentDomain, env, sessionID, buttonSessionID
                         [FPTI_CUSTOM_KEY.ERR_DESC]: `Error: ${ stringifyErrorMessage(err) }`
                     }).flush();
 
-                return { installed: true };
+                return { installed: false };
             });
         }
+    } else if (isIOSSafari()) {
+        appInstalledPromise = isIosAppInstalled();
     }
 
     const closeWindow = () => {
