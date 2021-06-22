@@ -795,7 +795,7 @@ describe('Native popup cases', () => {
         });
     });
 
-    it.only('should open the native popup and await a url to redirect to, then detect Android PayPal app installed and detect an app switch, then return with onComplete', () => {
+    it('should open the native popup and await a url to redirect to, then detect Android PayPal app installed and detect an app switch, then return with onComplete', () => {
         return wrapPromise(({ expect }) => {
             const opener = {};
             const parentDomain = 'foo.paypal.com';
@@ -916,7 +916,7 @@ describe('Native popup cases', () => {
         });
     });
 
-    it.only('should open the native popup and await a url to redirect to, then detect Android Venmo app installed and detect an app switch, then return with onComplete', () => {
+    it('should open the native popup and await a url to redirect to, then detect Android Venmo app installed and detect an app switch, then return with onComplete', () => {
         return wrapPromise(({ expect }) => {
             const opener = {};
             const parentDomain = 'foo.paypal.com';
