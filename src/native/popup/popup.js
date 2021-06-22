@@ -13,7 +13,7 @@ import { isAndroidChrome, isIOSSafari, getStorageID } from '../../lib';
 import { MESSAGE, HASH, EVENT } from './constants';
 
 const ANDROID_PAYPAL_APP_ID = 'com.paypal.android.p2pmobile';
-const ANDROID_VENMO_APP_ID  = 'com.venmo';
+const ANDROID_VENMO_APP_ID  = 'com.venmo.android.p2pmobile';
 
 export type NativePopupOptions = {|
     parentDomain : string,

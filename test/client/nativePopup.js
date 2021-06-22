@@ -819,7 +819,7 @@ describe('Native popup cases', () => {
                 return ZalgoPromise.try(() => {
                     return [
                         {
-                            id:        'com.venmo',
+                            id:        'com.paypal.android.p2pmobile',
                             version:   '1.0'
                         }
                     ];
@@ -932,7 +932,7 @@ describe('Native popup cases', () => {
             window.opener = opener;
 
             const installedApp = {
-                id:        'com.venmo',
+                id:        'com.venmo.android.p2pmobile',
                 version:   '1.0',
                 installed: true
             };
@@ -940,7 +940,7 @@ describe('Native popup cases', () => {
                 return ZalgoPromise.try(() => {
                     return [
                         {
-                            id:        'com.venmo',
+                            id:        'com.venmo.android.p2pmobile',
                             version:   '1.0'
                         }
                     ];
