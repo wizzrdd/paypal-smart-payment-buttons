@@ -26,6 +26,20 @@ function setupNative({ props, serviceData } : SetupOptions) : ZalgoPromise<void>
     return prefetchNativeEligibility({ props, serviceData }).then(noop);
 }
 
+function setNativeOptOut(data? : {| type? : string,  win? : CrossDomainWindowType |}) : boolean {
+    let optOut = false;
+    if (data && data.type === FPTI_TRANSITION.NATIVE_OPT_OUT) {
+        // Opt-out 1 week from native experience
+        const OPT_OUT_TIME = 7 * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+        getStorageState(state => {
+            state.nativeOptOutLifetime = now + OPT_OUT_TIME;
+        });
+        optOut = true;
+    }
+    return optOut;
+}
+
 function initNative({ props, components, config, payment, serviceData } : InitOptions) : PaymentFlowInstance {
     const { onApprove, onCancel, onError,
         buttonSessionID, onShippingChange, createOrder } = props;
@@ -161,13 +175,20 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         });
     };
 
-    const onFallbackCallback = () => {
+    const onFallbackCallback = ({ data } : {| data? : {| type? : string,  win? : CrossDomainWindowType |} |}) => {
+        
         return ZalgoPromise.try(() => {
+            const optOut = setNativeOptOut(data);
+
             getLogger().info(`native_message_onfallback`)
                 .track({
-                    [FPTI_KEY.TRANSITION]:  FPTI_TRANSITION.NATIVE_ON_FALLBACK
+                    [FPTI_KEY.TRANSITION]:             FPTI_TRANSITION.NATIVE_ON_FALLBACK,
+                    [FPTI_CUSTOM_KEY.TRANSITION_TYPE]:  optOut ? FPTI_TRANSITION.NATIVE_OPT_OUT :  FPTI_TRANSITION.NATIVE_FALLBACK
                 }).flush();
-            fallbackToWebCheckout();
+
+
+            const fallbackWin = data && data.win ? data.win : null;
+            fallbackToWebCheckout(fallbackWin);
             return { buttonSessionID };
         });
     };
@@ -261,10 +282,9 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         return ZalgoPromise.delay(1000).then(() => {
             
             if (!approved && !cancelled && !didFallback && !isAndroidChrome()) {
-                return ZalgoPromise.all([
-                    onCancel(),
-                    destroy()
-                ]);
+                return ZalgoPromise.try(() => {
+                    return destroy();
+                });
             }
         }).then(noop);
     };

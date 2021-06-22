@@ -5,7 +5,7 @@ import { PLATFORM, ENV, FUNDING } from '@paypal/sdk-constants/src';
 import { supportsPopups, isIos, isAndroid } from 'belter/src';
 
 import { type NativeEligibility, getNativeEligibility } from '../../api';
-import { enableAmplitude } from '../../lib';
+import { enableAmplitude, getStorageState } from '../../lib';
 import { LSAT_UPGRADE_EXCLUDED_MERCHANTS } from '../../constants';
 import type { FundingType } from '../../types';
 import type { ButtonProps, ServiceData } from '../../button/props';
@@ -59,6 +59,18 @@ export function isNativeOptedIn({ props } : {| props : ButtonProps |}) : boolean
     }
 
     return false;
+}
+
+export function isNativeOptOut() : boolean {
+    const now = Date.now();
+    let optOutLifetime = 0;
+    getStorageState(state => {
+        const { nativeOptOutLifetime } = state;
+        if (nativeOptOutLifetime && typeof nativeOptOutLifetime === 'number') {
+            optOutLifetime = nativeOptOutLifetime;
+        }
+    });
+    return optOutLifetime > now;
 }
 
 type PrefetchNativeEligibilityOptions = {|
@@ -118,6 +130,10 @@ export function isNativeEligible({ props, config, serviceData } : IsEligibleOpti
     }
 
     if (!firebaseConfig) {
+        return false;
+    }
+
+    if (isNativeOptOut()) {
         return false;
     }
 
