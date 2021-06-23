@@ -375,7 +375,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             
             
         });
-
     };
 
 
