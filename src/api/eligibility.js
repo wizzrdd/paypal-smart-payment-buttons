@@ -156,15 +156,6 @@ export function getNativeEligibility({ vault, shippingCallbackEnabled, merchantI
             throw new Error(`GraphQL GetNativeEligibility returned no mobileSDKEligibility object`);
         }
 
-        // -- forcing venmo eligibility to true
-        // if (
-        //     gqlResult &&
-        //     gqlResult.mobileSDKEligibility &&
-        //     gqlResult.mobileSDKEligibility.venmo
-        // ) {
-        //     gqlResult.mobileSDKEligibility.venmo = { eligibility: true, ineligibilityReason: '' };
-        // }
-
         return gqlResult.mobileSDKEligibility;
     });
 }

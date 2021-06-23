@@ -105,10 +105,10 @@ export function canUseQRPay(funding : ?FundingType) : boolean {
 }
 
 export function isNativeEligible({ props, config, serviceData } : IsEligibleOptions) : boolean {
-    const { clientID, platform, fundingSource, onShippingChange, createBillingAgreement, createSubscription, env, enableFunding } = props;
+    const { clientID, platform, fundingSource, onShippingChange, createBillingAgreement, createSubscription, env } = props;
     const { firebase: firebaseConfig } = config;
     const { merchantID } = serviceData;
-    const funding = fundingSource || enableFunding[0];
+    const funding = fundingSource;
     const isValidVenmoDesktopPaySituation = canUseQRPay(funding);
 
     if (platform !== PLATFORM.MOBILE &&
