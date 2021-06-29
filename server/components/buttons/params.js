@@ -5,8 +5,9 @@ import type { FundingEligibilityType } from '@paypal/sdk-constants/src/types';
 import { ENV, COUNTRY, CURRENCY, INTENT, COMMIT, VAULT, CARD, FUNDING, DEFAULT_COUNTRY,
     COUNTRY_LANGS, PLATFORM, FUNDING_PRODUCTS, SDK_QUERY_KEYS, ERROR_CODE } from '@paypal/sdk-constants';
 import { values, constHas } from 'belter';
+import fetch from 'node-fetch';
 
-import { HTTP_HEADER } from '../../config';
+import { HTTP_HEADER, SDK_CDN_REGISTRY_NAMESPACE, SDK_PRODUCTION_CDN_REGISTRY, SDK_RELEASE_MODULE } from '../../config';
 import type { ExpressRequest, ExpressResponse, LocaleType, RiskData } from '../../types';
 import { makeError, getCSPNonce } from '../../lib';
 
@@ -83,7 +84,9 @@ type ButtonParams = {|
     cookies : string,
     paymentMethodNonce : ?string,
     branded : ?boolean,
-    fundingSource : $Values<typeof FUNDING>
+    fundingSource : $Values<typeof FUNDING>,
+    cdnRegistry : ?string,
+    activeTag : ?string
 |};
 
 function getCookieString(req : ExpressRequest) : string {
@@ -282,7 +285,70 @@ function getStyle(params : ButtonInputParams) : Style {
     return { label, period, tagline };
 }
 
-export function getButtonParams(params : ButtonInputParams, req : ExpressRequest, res : ExpressResponse) : ButtonParams {
+function getCDNRegistryParam(req : ExpressRequest, { env } : ButtonInputParams) : ?string {
+    const cdnRegistry = req.query[SDK_QUERY_KEYS.CDN_REGISTRY];
+
+    if (typeof cdnRegistry !== 'string') {
+        return;
+    }
+
+    if (env !== ENV.LOCAL && env !== ENV.STAGE) {
+        return;
+    }
+
+    let isValidURL;
+    try {
+        const pathname = new URL(cdnRegistry).pathname;
+        isValidURL = pathname.endsWith(SDK_CDN_REGISTRY_NAMESPACE);
+    } catch (err) {
+        isValidURL = false;
+    }
+
+    if (!isValidURL) {
+        return;
+    }
+
+    return cdnRegistry;
+}
+
+async function getActiveTagFromVersion(req : ExpressRequest, params : ButtonInputParams) : Promise<?string> {
+    const version = req.query[SDK_QUERY_KEYS.VERSION];
+    const { env } = params;
+    const cdnRegistry = getCDNRegistryParam(req, params) || SDK_PRODUCTION_CDN_REGISTRY;
+
+    if (!version) {
+        return;
+    }
+
+    if (env !== ENV.LOCAL && env !== ENV.STAGE) {
+        return;
+    }
+
+    const path = SDK_RELEASE_MODULE.replace('@', '');
+    const url = `${ cdnRegistry }/${ path }/info.json`;
+    let activeTag;
+
+    try {
+        const res = await fetch(url);
+        const { 'dist-tags': distTags } = await res.json();
+        activeTag = Object.keys(distTags).find(tag => {
+            if (distTags[tag] === version) {
+                return true;
+            }
+            return false;
+        });
+    } catch (error) {
+        return;
+    }
+
+    if (!activeTag) {
+        return;
+    }
+
+    return activeTag;
+}
+
+export async function getButtonParams(params : ButtonInputParams, req : ExpressRequest, res : ExpressResponse) : Promise<ButtonParams> {
     const {
         env,
         clientID,
@@ -319,6 +385,8 @@ export function getButtonParams(params : ButtonInputParams, req : ExpressRequest
     const correlationID = req.correlationId || '';
 
     const cookies = getCookieString(req);
+    const cdnRegistry = getCDNRegistryParam(req, params);
+    const activeTag = await getActiveTagFromVersion(req, params);
 
     return {
         env,
@@ -350,7 +418,9 @@ export function getButtonParams(params : ButtonInputParams, req : ExpressRequest
         platform,
         cookies,
         paymentMethodNonce,
-        branded
+        branded,
+        cdnRegistry,
+        activeTag
     };
 }
 

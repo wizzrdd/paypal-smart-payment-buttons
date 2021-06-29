@@ -4,7 +4,7 @@ import { poll } from 'grabthar';
 
 import type { CacheType } from './types';
 import type { LoggerBufferType } from './lib';
-import { SDK_RELEASE_MODULE, SMART_BUTTONS_MODULE, MODULE_POLL_INTERVAL, SDK_CDN_NAMESPACE, SMART_BUTTONS_CDN_NAMESPACE,
+import { SDK_RELEASE_MODULE, SMART_BUTTONS_MODULE, MODULE_POLL_INTERVAL, SDK_PRODUCTION_CDN_REGISTRY, SMART_BUTTONS_CDN_NAMESPACE,
     CHECKOUT_COMPONENTS_MODULE, LATEST_TAG, ACTIVE_TAG } from './config';
 
 let paypalSDKWatcher;
@@ -46,15 +46,27 @@ function logInfo(logBuffer : LoggerBufferType, name : string, moduleDetails : Mo
     logBuffer.info(`${ name }_version_${ version.replace(/[^0-9]+/g, '_') }`, {});
 }
 
-export function getPayPalSDKWatcher({ logBuffer, cache } : {| logBuffer : ?LoggerBufferType, cache : ?CacheType |}) : Watcher {
+type GetSDKWatcherParams = {|
+    logBuffer : ?LoggerBufferType,
+    cache : ?CacheType,
+    cdnRegistry? : ?string,
+    activeTag? : ?string
+|};
+
+export function getPayPalSDKWatcher({
+    cdnRegistry = SDK_PRODUCTION_CDN_REGISTRY,
+    activeTag = ACTIVE_TAG,
+    logBuffer,
+    cache
+} : GetSDKWatcherParams) : Watcher {
     if (!cache || !logBuffer) {
         throw new Error(`Cache and logBuffer required`);
     }
 
     paypalSDKWatcher = paypalSDKWatcher || poll({
-        cdnRegistry:  SDK_CDN_NAMESPACE,
+        cdnRegistry,
         name:         SDK_RELEASE_MODULE,
-        tags:         [ LATEST_TAG, ACTIVE_TAG ],
+        tags:         [ LATEST_TAG, activeTag ],
         period:       MODULE_POLL_INTERVAL,
         childModules: [ CHECKOUT_COMPONENTS_MODULE ],
         flat:         true,

@@ -70,7 +70,9 @@ export function getButtonMiddleware({
 
             const { env, clientID, buttonSessionID, cspNonce, debug, buyerCountry, disableFunding, disableCard, userIDToken, amount,
                 merchantID: sdkMerchantID, currency, intent, commit, vault, clientAccessToken, basicFundingEligibility, locale,
-                clientMetadataID, pageSessionID, correlationID, cookies, enableFunding, style, paymentMethodNonce, branded, fundingSource } = getButtonParams(params, req, res);
+                clientMetadataID, pageSessionID, correlationID, cookies, enableFunding, style, paymentMethodNonce, branded, fundingSource,
+                cdnRegistry, activeTag
+            } = await getButtonParams(params, req, res);
 
             const { label, period, tagline } = style;
             logger.info(req, `button_params`, { params: JSON.stringify(params) });
@@ -86,7 +88,7 @@ export function getButtonMiddleware({
             const facilitatorAccessTokenPromise = getAccessToken(req, clientID);
             const merchantIDPromise = facilitatorAccessTokenPromise.then(facilitatorAccessToken => resolveMerchantID(req, { merchantID: sdkMerchantID, getMerchantID, facilitatorAccessToken }));
             const clientPromise = getSmartPaymentButtonsClientScript({ debug, logBuffer, cache, useLocal });
-            const renderPromise = getPayPalSmartPaymentButtonsRenderScript({ logBuffer, cache, useLocal });
+            const renderPromise = getPayPalSmartPaymentButtonsRenderScript({ logBuffer, cache, useLocal, cdnRegistry, activeTag });
 
             const isCardFieldsExperimentEnabledPromise = promiseTimeout(
                 merchantIDPromise.then(merchantID =>
@@ -191,7 +193,7 @@ export function getButtonMiddleware({
         script: async ({ req, res, params, logBuffer }) => {
             logger.info(req, 'smart_buttons_script_render');
 
-            const { debug } = getButtonParams(params, req, res);
+            const { debug } = await getButtonParams(params, req, res);
             const { script } = await getSmartPaymentButtonsClientScript({ debug, logBuffer, cache, useLocal });
 
             return javascriptResponse(res, script);

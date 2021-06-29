@@ -67,6 +67,7 @@
     "grabthar": "^4",
     "jsx-pragmatic": "^2",
     "module-alias": "^2.2.2",
+    "node-fetch": "^2.6.1",
     "preact": "^10",
     "preact-render-to-string": "^5.1.4",
     "strict-merge": "^1.0.1",

@@ -47,10 +47,12 @@ export async function getLocalSmartPaymentButtonRenderScript() : Promise<?SmartP
 type GetPayPalSmartPaymentButtonsRenderScriptOptions = {|
     logBuffer : ?LoggerBufferType,
     cache : ?CacheType,
-    useLocal? : boolean
+    useLocal? : boolean,
+    cdnRegistry : ?string,
+    activeTag : ?string
 |};
 
-export async function getPayPalSmartPaymentButtonsRenderScript({ logBuffer, cache, useLocal = isLocalOrTest() } : GetPayPalSmartPaymentButtonsRenderScriptOptions) : Promise<SmartPaymentButtonsRenderScript> {
+export async function getPayPalSmartPaymentButtonsRenderScript({ logBuffer, cache, useLocal = isLocalOrTest(), cdnRegistry, activeTag } : GetPayPalSmartPaymentButtonsRenderScriptOptions) : Promise<SmartPaymentButtonsRenderScript> {
     if (useLocal) {
         const script = await getLocalSmartPaymentButtonRenderScript();
         if (script) {
@@ -58,7 +60,7 @@ export async function getPayPalSmartPaymentButtonsRenderScript({ logBuffer, cach
         }
     }
 
-    const { getTag, getDeployTag, importDependency } = getPayPalSDKWatcher({ logBuffer, cache });
+    const { getTag, getDeployTag, importDependency } = getPayPalSDKWatcher({ logBuffer, cache, cdnRegistry, activeTag });
     const { version } = await getTag();
     const button = await importDependency(CHECKOUT_COMPONENTS_MODULE, BUTTON_RENDER_JS, ACTIVE_TAG);
 
