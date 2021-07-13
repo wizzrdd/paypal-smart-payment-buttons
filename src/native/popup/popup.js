@@ -81,6 +81,12 @@ function isAndroidVenmoAppInstalled() : ZalgoPromise<AndroidApp> {
     });
 }
 
+function isAndroidVenmoDebugAppInstalled() : ZalgoPromise<AndroidApp> {
+    return isAndroidAppInstalled(ANDROID_VENMO_DEBUG_APP_ID).then(app => {
+        return { ...app };
+    });
+}
+
 export function setupNativePopup({ parentDomain, env, sessionID, buttonSessionID, sdkCorrelationID,
     clientID, fundingSource, locale, buyerCountry } : NativePopupOptions) : NativePopup {
 
@@ -150,6 +156,18 @@ export function setupNativePopup({ parentDomain, env, sessionID, buttonSessionID
                 return { installed: false };
             });
         } else if (fundingSource === FUNDING.VENMO) {
+            if (env !== ENV.PRODUCTION) {
+                appInstalledPromise = isAndroidVenmoDebugAppInstalled().catch(err => {
+                    logger.info('native_popup_android_venmo_debug_app_installed_error')
+                        .track({
+                            [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_POPUP_ANDROID_VENMO_APP_ERROR,
+                            [FPTI_CUSTOM_KEY.ERR_DESC]: `Error: ${ stringifyErrorMessage(err) }`
+                        }).flush();
+
+                    return { installed: false };
+                });
+            }
+            
             appInstalledPromise = isAndroidVenmoAppInstalled().catch(err => {
                 logger.info('native_popup_android_venmo_app_installed_error')
                     .track({
