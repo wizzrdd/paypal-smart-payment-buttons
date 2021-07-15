@@ -915,7 +915,7 @@ describe('Native popup cases', () => {
         });
     });
 
-    it('should open the native popup and await a url to redirect to, then detect Android Venmo app installed and detect an app switch, then return with onComplete', () => {
+    it.only('should open the native popup and await a url to redirect to, then detect Android Venmo app installed and detect an app switch, then return with onComplete', () => {
         return wrapPromise(({ expect }) => {
             const opener = {};
             const parentDomain = 'foo.paypal.com';
@@ -932,7 +932,7 @@ describe('Native popup cases', () => {
             window.opener = opener;
 
             const installedApp = {
-                id:        'com.venmo.android.p2pmobile',
+                id:        'com.venmo.fifa',
                 version:   '1.0',
                 installed: true
             };
@@ -940,7 +940,7 @@ describe('Native popup cases', () => {
                 return ZalgoPromise.try(() => {
                     return [
                         {
-                            id:        'com.venmo.android.p2pmobile',
+                            id:        'com.venmo.fifa',
                             version:   '1.0'
                         }
                     ];
@@ -970,8 +970,8 @@ describe('Native popup cases', () => {
                                 throw new Error(`Expected payload.pageUrl to be ${ window.location.href }#close, got ${ payload ? payload.pageUrl : 'undefined' }`);
                             }
 
-                            if (!payload.app || !payload.app.installed || payload.app.id !== 'com.venmo.android.p2pmobile' || payload.app.version !== '1.0') {
-                                throw new Error(`Expected payload.app to be ${ JSON.stringify(installedApp) }`);
+                            if (!payload.app || !payload.app.installed || payload.app.id !== 'com.venmo.fifa' || payload.app.version !== '1.0') {
+                                throw new Error(`Expected payload.app to be ${ JSON.stringify(payload) }`);
                             }
 
                             ZalgoPromise.delay(50).then(expect('postRedirect', () => {

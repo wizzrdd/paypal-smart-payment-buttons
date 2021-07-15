@@ -167,7 +167,7 @@ export function setupNativePopup({ parentDomain, env, sessionID, buttonSessionID
                     return { installed: false };
                 });
             }
-            
+
             appInstalledPromise = isAndroidVenmoAppInstalled().catch(err => {
                 logger.info('native_popup_android_venmo_app_installed_error')
                     .track({
