@@ -46,15 +46,14 @@ function getEligibility({ fundingSource, props, serviceData, validatePromise } :
             }).then(eligibility => {
                 // ignore isUserAgentEligible and isBrowserMobileAndroid for Venmo Desktop as they don't apply
                 if (
-                    !eligibility ||
-                    !eligibility[fundingSource] ||
-                    !eligibility[fundingSource].eligibility ||
-                    (
-                        eligibility[fundingSource].ineligibilityReason &&
-                        eligibility[fundingSource].ineligibilityReason.length &&
-                        eligibility[fundingSource].ineligibilityReason.indexOf('isUserAgentEligible') === -1 &&
-                        eligibility[fundingSource].ineligibilityReason.indexOf('isBrowserMobileAndroid') === -1
-                    )
+                    !eligibility &&
+                    !eligibility[fundingSource] &&
+                    !eligibility[fundingSource].eligibility &&
+                    eligibility[fundingSource].ineligibilityReason &&
+                    eligibility[fundingSource].ineligibilityReason.length &&
+                    eligibility[fundingSource].ineligibilityReason.indexOf('isUserAgentEligible') === -1 &&
+                    eligibility[fundingSource].ineligibilityReason.indexOf('isBrowserMobileAndroid') === -1
+
                 ) {
                     getLogger().info(`native_appswitch_ineligible`, { orderID })
                         .track({
@@ -64,6 +63,7 @@ function getEligibility({ fundingSource, props, serviceData, validatePromise } :
 
                     return false;
                 }
+
                 return true;
             });
         });
