@@ -815,6 +815,7 @@ describe('Native popup cases', () => {
                 version:   '1.0',
                 installed: true
             };
+            // eslint-disable-next-line compat/compat
             window.navigator.getInstalledRelatedApps = () => {
                 return ZalgoPromise.try(() => {
                     return [
@@ -936,6 +937,8 @@ describe('Native popup cases', () => {
                 version:   '1.0',
                 installed: true
             };
+            
+            // eslint-disable-next-line compat/compat
             window.navigator.getInstalledRelatedApps = () => {
                 return ZalgoPromise.try(() => {
                     return [
@@ -971,7 +974,7 @@ describe('Native popup cases', () => {
                             }
 
                             if (!payload.app || !payload.app.installed || payload.app.id !== 'com.venmo.fifa' || payload.app.version !== '1.0') {
-                                throw new Error(`Expected payload.app to be ${ JSON.stringify(payload) }`);
+                                throw new Error(`Expected payload.app to be ${ JSON.stringify(installedApp) }`);
                             }
 
                             ZalgoPromise.delay(50).then(expect('postRedirect', () => {
