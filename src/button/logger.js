@@ -24,7 +24,7 @@ function getClientVersion() : string {
 type ButtonLoggerOptions = {|
     env : $Values<typeof ENV>,
     sessionID : string,
-    clientID : ?string,
+    clientID : string,
     partnerAttributionID : ?string,
     commit : boolean,
     sdkCorrelationID : string,
@@ -46,7 +46,7 @@ export function setupButtonLogger({ env, sessionID, buttonSessionID, clientID, p
 
     const logger = getLogger();
 
-    setupLogger({ env, sessionID, clientID, sdkCorrelationID, locale, sdkVersion, buyerCountry });
+    setupLogger({ env, sessionID, clientID, sdkCorrelationID, locale, sdkVersion, buyerCountry, fundingSource });
 
     logger.addPayloadBuilder(() => {
         return {

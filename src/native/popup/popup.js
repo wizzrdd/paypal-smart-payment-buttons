@@ -22,7 +22,7 @@ export type NativePopupOptions = {|
     sessionID : string,
     buttonSessionID : string,
     sdkCorrelationID : string,
-    clientID? : string,
+    clientID : string,
     fundingSource : $Values<typeof FUNDING>,
     locale : LocaleType,
     buyerCountry : $Values<typeof COUNTRY>
@@ -104,7 +104,7 @@ export function setupNativePopup({ parentDomain, env, sessionID, buttonSessionID
         [FPTI_CUSTOM_KEY.INFO_MSG]: base64encode(window.location.href)
     }).flush();
 
-    const sfvc = isSFVC();
+    let sfvc = isSFVC();
     const sfvcOrSafari = !sfvc ? isSFVCorSafari() : false;
     const sfvcOrSafariLog = sfvcOrSafari ? 'sfvcOrSafari' : 'browser';
     const logMessage = sfvc ? 'sfvc' : sfvcOrSafariLog;
@@ -182,9 +182,15 @@ export function setupNativePopup({ parentDomain, env, sessionID, buttonSessionID
         appInstalledPromise = isIosAppInstalled();
     }
 
+    const replaceHash = (hash) => {
+        return window.location.replace(
+            `#${ hash.replace(/^#/, '') }`
+        );
+    };
+
     const closeWindow = () => {
         window.close();
-        window.location.hash = HASH.CLOSED;
+        replaceHash(HASH.CLOSED);
     };
 
     const getRawHash = () => {
@@ -276,8 +282,8 @@ export function setupNativePopup({ parentDomain, env, sessionID, buttonSessionID
             break;
         }
         case HASH.ON_FALLBACK: {
-            const { type } = parseQuery(queryString);
-            sendToParent(MESSAGE.ON_FALLBACK, { type });
+            const { type, skip_native_duration } = parseQuery(queryString);
+            sendToParent(MESSAGE.ON_FALLBACK, { type, skip_native_duration });
             break;
         }
         case HASH.ON_ERROR: {
@@ -303,19 +309,20 @@ export function setupNativePopup({ parentDomain, env, sessionID, buttonSessionID
     window.addEventListener(EVENT.HASHCHANGE, handleHash);
     clean.register(() => window.removeEventListener(EVENT.HASHCHANGE, handleHash));
 
-    window.location.hash = HASH.LOADED;
+    replaceHash(HASH.LOADED);
     handleHash();
 
     const stickinessID = getStorageID();
     const pageUrl = `${ window.location.href.split('#')[0] }#${  HASH.CLOSE }`;
 
     appInstalledPromise.then(app => {
+        sfvc = !sfvc ? sfvcOrSafari === true : true;
         sendToParent(MESSAGE.AWAIT_REDIRECT, { app, pageUrl, sfvc, stickinessID }).then(({ redirect = true, redirectUrl, appSwitch = true }) => {
             if (!redirect) {
                 return;
             }
 
-            window.location.hash = appSwitch ? HASH.APPSWITCH : HASH.WEBSWITCH;
+            replaceHash(appSwitch ? HASH.APPSWITCH : HASH.WEBSWITCH);
             window.location.replace(redirectUrl);
 
             let didRedirect = false;

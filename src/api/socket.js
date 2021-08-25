@@ -67,9 +67,11 @@ export type MessageSocketOptions = {|
 |};
 
 export type MessageSocket = {|
-    on : <T, R>( // eslint-disable-line no-undef
+    on : (
         name : string,
-        handler : ({| data : T |}) => ZalgoPromise<R> | R, // eslint-disable-line no-undef
+        handler : ({|
+            data : Object
+        |}) => ZalgoPromise<Object> | Object,
         opts? : {|
             requireSessionUID? : boolean
         |}
@@ -96,9 +98,27 @@ export function messageSocket({ sessionUID, driver, sourceApp, sourceAppVersion,
     const activeRequests = [];
 
     let requestListeners = {};
-    let errorListeners = [];
+    let errorListeners : Array<(mixed) => void> = [];
 
-    const sendMessage = (socket, data) => {
+    const onError = (handler : (mixed) => void) : void => {
+        errorListeners.push(handler);
+    };
+
+    const triggerError = (err : mixed) => {
+        for (const errorListener of errorListeners) {
+            errorListener(err);
+        }
+    };
+
+    type SendMessageData = {|
+        request_uid : string,
+        message_name : string,
+        message_status? : $Values<typeof RESPONSE_STATUS>,
+        message_type : $Values<typeof MESSAGE_TYPE>,
+        message_data : Object
+    |};
+
+    const sendMessage = (socket, data : SendMessageData) => {
         const messageUID = uniqueID();
         receivedMessages[messageUID] = true;
 
@@ -161,11 +181,11 @@ export function messageSocket({ sessionUID, driver, sourceApp, sourceAppVersion,
         const { listenerPromise, requireSessionUID } = responseListeners[requestUID] || {};
         
         if (!listenerPromise) {
-            throw new Error(`Could not find response listener for ${ messageName } with id: ${ requestUID }`);
+            return triggerError(new Error(`Could not find response listener for ${ messageName } with id: ${ requestUID }`));
         }
 
         if (requireSessionUID && messageSessionUID !== sessionUID) {
-            throw new Error(`Incorrect sessionUID: ${ messageSessionUID || 'undefined' }`);
+            return triggerError(new Error(`Incorrect sessionUID: ${ messageSessionUID || 'undefined' }`));
         }
         
         delete responseListeners[requestUID];
@@ -175,7 +195,7 @@ export function messageSocket({ sessionUID, driver, sourceApp, sourceAppVersion,
         } else if (responseStatus === RESPONSE_STATUS.ERROR) {
             listenerPromise.reject(new Error(messageData.message));
         } else {
-            throw new Error(`Can not handle response status: ${ status || 'undefined' }`);
+            listenerPromise.reject(new Error(`Can not handle response status: ${ status || 'undefined' }`));
         }
     };
 
@@ -265,10 +285,7 @@ export function messageSocket({ sessionUID, driver, sourceApp, sourceAppVersion,
         
                 instance.onError(err => {
                     reject(err);
-
-                    for (const errorListener of errorListeners) {
-                        errorListener(err);
-                    }
+                    triggerError(err);
                 });
             });
 
@@ -363,10 +380,6 @@ export function messageSocket({ sessionUID, driver, sourceApp, sourceAppVersion,
                 noop
             );
         });
-    };
-
-    const onError = (handler) => {
-        errorListeners.push(handler);
     };
         
     return { on, send, onError, reconnect, close };
@@ -542,7 +555,7 @@ export function firebaseSocket({ sessionUID, config, sourceApp, sourceAppVersion
         });
 
         databasePromise.catch(err => {
-            getLogger().info('firebase_connection_errored', { err: stringifyError(err) }).track({
+            getLogger().warn('firebase_connection_errored', { err: stringifyError(err) }).track({
                 [FPTI_KEY.STATE]:           FPTI_STATE.BUTTON,
                 [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.FIREBASE_CONNECTION_ERRORED,
                 [FPTI_CUSTOM_KEY.ERR_DESC]: stringifyError(err)

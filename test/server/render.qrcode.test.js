@@ -4,11 +4,14 @@ import { noop } from 'belter';
 
 import { getQRCodeMiddleware, cancelWatchers } from '../../server';
 
-import { mockReq, mockRes } from './mock';
+import { mockReq, mockRes, getInstanceLocationInformation } from './mock';
 
 jest.setTimeout(300000);
 
-afterAll(cancelWatchers);
+afterAll((done) => {
+    cancelWatchers();
+    done();
+});
 
 const cache = {
     // eslint-disable-next-line no-unused-vars
@@ -26,19 +29,19 @@ const logger = {
 
 const test_qrPath = 'string_to_be_encoded';
 
-function isRenderCallCorrect ({ html, demo } : {|html : string, demo : boolean|}) : boolean {
+function isRenderCallCorrect ({ html, debug } : {|html : string, debug : boolean|}) : boolean {
     /* eslint-disable prefer-regex-literals */
-    const demoValue = demo.toString();
+    const debugValue = debug.toString();
     const startOfSVGString = RegExp(`renderQRCode.*,"svgString":".*"http://www.w3.org/2000/svg`);
     const cspNonce_isCorrect = Boolean(html.match(RegExp(`renderQRCode.{"cspNonce":".*"`)));
     const svgPath_isCorrect = Boolean(html.match(startOfSVGString));
-    const demo_isCorrect = Boolean(html.match(RegExp(`renderQRCode.*,"demo":${ demoValue }}`)));
-    return cspNonce_isCorrect && svgPath_isCorrect && demo_isCorrect;
+    const debug_isCorrect = Boolean(html.match(RegExp(`renderQRCode.*,"debug":${ debugValue }}`)));
+    return cspNonce_isCorrect && svgPath_isCorrect && debug_isCorrect;
     /* eslint-enable */
 }
 
 test('should do a basic QRCode page render', async () => {
-    const qrCodeMiddleware = getQRCodeMiddleware({ logger, cache });
+    const qrCodeMiddleware = getQRCodeMiddleware({ logger, cache, getInstanceLocationInformation });
 
     const req = mockReq({
         query: {
@@ -67,13 +70,13 @@ test('should do a basic QRCode page render', async () => {
         throw new Error(`Expected res to have a body`);
     }
 
-    if (!isRenderCallCorrect({ html, demo: false })) {
+    if (!isRenderCallCorrect({ html, debug: false })) {
         throw new Error(`Construction of the renderQRCode call is incorrect`);
     }
 });
 
 test('should fail if qrPath query param not provided', async () => {
-    const qrCodeMiddleware = getQRCodeMiddleware({ logger, cache });
+    const qrCodeMiddleware = getQRCodeMiddleware({ logger, cache, getInstanceLocationInformation });
 
     const req = mockReq({
         query: {
@@ -107,7 +110,7 @@ test('should fail if qrPath query param not provided', async () => {
 });
 
 test('should fail with a non-paypal domain', async () => {
-    const qrCodeMiddleware = getQRCodeMiddleware({ logger, cache });
+    const qrCodeMiddleware = getQRCodeMiddleware({ logger, cache, getInstanceLocationInformation });
 
     const req = mockReq({
         query: {
@@ -136,14 +139,14 @@ test('should fail with a non-paypal domain', async () => {
     }
 });
 
-test('should render & make correct init call when when "demo" param passed', async () => {
-    const qrCodeMiddleware = getQRCodeMiddleware({ logger, cache });
+test('should render & make correct init call when when "debug" param passed', async () => {
+    const qrCodeMiddleware = getQRCodeMiddleware({ logger, cache, getInstanceLocationInformation });
 
     const req = mockReq({
         query: {
             parentDomain: 'foo.paypal.com',
             qrPath:       test_qrPath,
-            demo:         'true'
+            debug:         'true'
         }
     });
     const res = mockRes();
@@ -167,7 +170,7 @@ test('should render & make correct init call when when "demo" param passed', asy
         throw new Error(`Expected res to have a body`);
     }
 
-    if (!isRenderCallCorrect({ html, demo: true })) {
+    if (!isRenderCallCorrect({ html, debug: true })) {
         throw new Error(`Construction of the renderQRCode call is incorrect`);
     }
 });

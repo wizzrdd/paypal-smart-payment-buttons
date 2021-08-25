@@ -2,12 +2,12 @@
 
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { memoize, noop, supportsPopups, stringifyError, extendUrl, PopupOpenError } from 'belter/src';
-import { FUNDING, FPTI_KEY, CURRENCY, COUNTRY, INTENT, CARD, type FundingEligibilityType } from '@paypal/sdk-constants/src';
+import { FUNDING, FPTI_KEY } from '@paypal/sdk-constants/src';
 import { getParent, getTop, type CrossDomainWindowType } from 'cross-domain-utils/src';
 
 import type { ProxyWindow, ConnectOptions } from '../types';
 import { type CreateBillingAgreement, type CreateSubscription } from '../props';
-import { enableVault, exchangeAccessTokenForAuthCode, getConnectURL, getFundingEligibility, updateButtonClientConfig, getSmartWallet  } from '../api';
+import { exchangeAccessTokenForAuthCode, getConnectURL, updateButtonClientConfig, getSmartWallet, loadFraudnet  } from '../api';
 import { CONTEXT, TARGET_ELEMENT, BUYER_INTENT, FPTI_TRANSITION, FPTI_CONTEXT_TYPE } from '../constants';
 import { unresolvedPromise, getLogger } from '../lib';
 import { openPopup } from '../ui';
@@ -89,125 +89,6 @@ function isConnectEligible({ connect, vault, fundingSource, createBillingAgreeme
     return true;
 }
 
-type IsFundingSourceVaultableOptions = {|
-    accessToken : string,
-    fundingSource : $Values<typeof FUNDING>,
-    clientID : string,
-    merchantID : ?$ReadOnlyArray<string>,
-    currency : $Values<typeof CURRENCY>,
-    buyerCountry : $Values<typeof COUNTRY>,
-    intent : $Values<typeof INTENT>,
-    commit : boolean,
-    vault : boolean,
-    disableFunding : ?$ReadOnlyArray<$Values<typeof FUNDING>>,
-    disableCard : ?$ReadOnlyArray<$Values<typeof CARD>>
-|};
-
-function isFundingSourceVaultable({ accessToken, fundingSource, clientID, merchantID, buyerCountry, currency, commit, vault, intent, disableFunding, disableCard } : IsFundingSourceVaultableOptions) : ZalgoPromise<boolean> {
-    return ZalgoPromise.try(() => {
-        if (fundingSource !== FUNDING.PAYPAL) {
-            return false;
-        }
-
-        return getFundingEligibility(`
-                ${ fundingSource } {
-                    vaultable
-                }
-            `, {
-            accessToken, clientID, merchantID, buyerCountry, currency, commit, vault,
-            intent, disableFunding, disableCard
-        }).then(newFundingEligibility => {
-            if (newFundingEligibility[fundingSource] && newFundingEligibility[fundingSource].vaultable) {
-                return true;
-            } else {
-                return false;
-            }
-        });
-    });
-}
-
-type VaultAutoSetupEligibleProps = {|
-    vault : boolean,
-    clientAccessToken : ?string,
-    createBillingAgreement : ?CreateBillingAgreement,
-    createSubscription : ?CreateSubscription,
-    fundingSource : $Values<typeof FUNDING>,
-    clientID : string,
-    merchantID : ?$ReadOnlyArray<string>,
-    currency : $Values<typeof CURRENCY>,
-    buyerCountry : $Values<typeof COUNTRY>,
-    intent : $Values<typeof INTENT>,
-    commit : boolean,
-    disableFunding : ?$ReadOnlyArray<$Values<typeof FUNDING>>,
-    disableCard : ?$ReadOnlyArray<$Values<typeof CARD>>
-|};
-
-function isVaultAutoSetupEligible({ vault, clientAccessToken, createBillingAgreement, createSubscription, fundingSource,
-    clientID, merchantID, buyerCountry, currency, commit, intent, disableFunding, disableCard } : VaultAutoSetupEligibleProps) : ZalgoPromise<boolean> {
-
-    return ZalgoPromise.try(() => {
-        if (!clientAccessToken) {
-            return false;
-        }
-
-        if (createBillingAgreement || createSubscription) {
-            return false;
-        }
-
-        if (vault) {
-            return true;
-        }
-
-        return isFundingSourceVaultable({ accessToken: clientAccessToken, fundingSource, clientID, merchantID, buyerCountry, currency,
-            commit, vault, intent, disableFunding, disableCard }).catch(err => {
-
-            getLogger().warn('funding_vaultable_error', { err: stringifyError(err) });
-            return false;
-        });
-    });
-}
-
-type EnableVaultSetupOptions = {|
-    orderID : string,
-    vault : boolean,
-    clientAccessToken : ?string,
-    fundingEligibility : FundingEligibilityType,
-    fundingSource : $Values<typeof FUNDING>,
-    createBillingAgreement : ?CreateBillingAgreement,
-    createSubscription : ?CreateSubscription,
-    clientID : string,
-    merchantID : ?$ReadOnlyArray<string>,
-    currency : $Values<typeof CURRENCY>,
-    buyerCountry : $Values<typeof COUNTRY>,
-    intent : $Values<typeof INTENT>,
-    commit : boolean,
-    disableFunding : ?$ReadOnlyArray<$Values<typeof FUNDING>>,
-    disableCard : ?$ReadOnlyArray<$Values<typeof CARD>>,
-    userIDToken : ?string
-|};
-
-function enableVaultSetup({ orderID, vault, clientAccessToken, createBillingAgreement, createSubscription, fundingSource,
-    clientID, merchantID, buyerCountry, currency, commit, intent, disableFunding, disableCard, userIDToken } : EnableVaultSetupOptions) : ZalgoPromise<void> {
-
-    return ZalgoPromise.try(() => {
-        getLogger()
-            .info(`vault_auto_setup_vault_${ vault.toString() }_id_token_${ userIDToken ? 'present' : 'not_present' }`)
-            .flush();
-
-        return isVaultAutoSetupEligible({ vault, clientAccessToken, createBillingAgreement, createSubscription, fundingSource,
-            clientID, merchantID, buyerCountry, currency, commit, intent, disableFunding, disableCard });
-
-    }).then(eligible => {
-        if (eligible && clientAccessToken) {
-            return enableVault({ orderID, clientAccessToken }).catch(err => {
-                if (vault) {
-                    throw err;
-                }
-            });
-        }
-    });
-}
-
 function getContext({ win, isClick } : {| win : ?(CrossDomainWindowType | ProxyWindow), isClick : ?boolean |}) : $Values<typeof CONTEXT> {
     if (win) {
         return CONTEXT.POPUP;
@@ -230,11 +111,11 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
         onShippingChange, locale, commit, onError, vault, clientAccessToken,
         createBillingAgreement, createSubscription, onClick, amount,
         clientID, connect, clientMetadataID: cmid, onAuth, userIDToken, env,
-        currency, intent, disableFunding, disableCard, enableFunding,
+        currency, enableFunding, stickinessID,
         standaloneFundingSource, branded } = props;
     let { button, win, fundingSource, card, isClick, buyerAccessToken = serviceData.buyerAccessToken,
         venmoPayloadID, buyerIntent } = payment;
-    const { fundingEligibility, buyerCountry, sdkMeta, merchantID } = serviceData;
+    const { buyerCountry, sdkMeta, merchantID } = serviceData;
     const { cspNonce } = config;
 
     let context = getContext({ win, isClick });
@@ -248,6 +129,7 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
             window: win,
             sessionID,
             buttonSessionID,
+            stickinessID,
             clientAccessToken,
             venmoPayloadID,
 
@@ -262,7 +144,9 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
                     } else if (clientID && userIDToken && fundingSkipLogin) {
                         const clientMetadataID = cmid || sessionID;
 
-                        return getSmartWallet({ clientID, merchantID, currency, amount, clientMetadataID, userIDToken, env, cspNonce }).then(wallet => {
+                        return loadFraudnet({ env, clientMetadataID, cspNonce }).catch(noop).then(() => {
+                            return getSmartWallet({ clientID, merchantID, currency, amount, clientMetadataID, userIDToken });
+                        }).then(wallet => {
                             // $FlowFixMe
                             const walletInstruments = wallet[fundingSkipLogin] && wallet[fundingSkipLogin].instruments;
 
@@ -314,14 +198,7 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
 
             createOrder: () => {
                 return createOrder().then(orderID => {
-                    return ZalgoPromise.try(() => {
-                        if (clientID && buyerIntent === BUYER_INTENT.PAY) {
-                            return enableVaultSetup({ orderID, vault, clientAccessToken, fundingEligibility, fundingSource, createBillingAgreement, createSubscription,
-                                clientID, merchantID, buyerCountry, currency, commit, intent, disableFunding, disableCard, userIDToken });
-                        }
-                    }).then(() => {
-                        return orderID;
-                    });
+                    return orderID;
                 });
             },
 
@@ -400,36 +277,41 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     });
 
     const restart = memoize(() : ZalgoPromise<void> => {
-        return initCheckout({ props, components, serviceData, config, payment: { button, fundingSource, card, buyerIntent, isClick: false } })
-            .start().finally(unresolvedPromise);
+        // Closing any previous checkout popup before restarting
+        return close().finally(() => {
+            return initCheckout({ props, components, serviceData, config, payment: { button, fundingSource, card, buyerIntent, isClick: false } })
+                .start().finally(unresolvedPromise);
+        });
     });
 
     const click = () => {
-        if (!win && supportsPopups()) {
-            try {
-                win = openPopup({ width: CHECKOUT_POPUP_DIMENSIONS.WIDTH, height: CHECKOUT_POPUP_DIMENSIONS.HEIGHT });
-            } catch (err) {
-                getLogger().warn('popup_open_error_iframe_fallback', { err: stringifyError(err) });
+        return ZalgoPromise.try(() => {
+            if (!win && supportsPopups()) {
+                try {
+                    win = openPopup({ width: CHECKOUT_POPUP_DIMENSIONS.WIDTH, height: CHECKOUT_POPUP_DIMENSIONS.HEIGHT });
+                } catch (err) {
+                    getLogger().warn('popup_open_error_iframe_fallback', { err: stringifyError(err) });
 
-                if (err instanceof PopupOpenError) {
-                    context = CONTEXT.IFRAME;
-                } else {
-                    throw err;
+                    if (err instanceof PopupOpenError) {
+                        context = CONTEXT.IFRAME;
+                    } else {
+                        throw err;
+                    }
                 }
             }
-        }
 
-        if (!onClick) {
-            start();
-            return;
-        }
-
-        return ZalgoPromise.try(() => {
-            return onClick ? onClick({ fundingSource }) : true;
-        }).then(valid => {
-            if (win && !valid) {
-                win.close();
+            if (!onClick) {
+                start();
+                return;
             }
+
+            return ZalgoPromise.try(() => {
+                return onClick ? onClick({ fundingSource }) : true;
+            }).then(valid => {
+                if (win && !valid) {
+                    win.close();
+                }
+            });
         });
     };
 

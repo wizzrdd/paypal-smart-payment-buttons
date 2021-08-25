@@ -30,34 +30,6 @@ describe('funding source cases', () => {
             await clickButton(fundingSource);
         });
     });
-    
-    it('should render a button, click the button, and render checkout with venmo funding source', async () => {
-        return await wrapPromise(async ({ expect }) => {
-            const fundingSource = FUNDING.VENMO;
-
-            mockFunction(window.paypal, 'Checkout', expect('Checkout', ({ args: [ props ] }) => {
-                if (props.fundingSource !== fundingSource) {
-                    throw new Error(`Expected fundingSource to be ${ fundingSource }, got ${ props.fundingSource }`);
-                }
-
-                return {
-                    renderTo: promiseNoop
-                };
-            }));
-
-            const fundingEligibility = {
-                venmo: {
-                    eligible: true
-                }
-            };
-
-            createButtonHTML({ fundingEligibility });
-
-            await mockSetupButton({ merchantID: [ 'XYZ12345' ], fundingEligibility });
-
-            await clickButton(fundingSource);
-        });
-    });
 
     it('should render a button, click the button, and render checkout with ideal funding source', async () => {
         return await wrapPromise(async ({ expect }) => {

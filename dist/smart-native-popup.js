@@ -365,8 +365,9 @@
                             }
                         }
                         if (_result2 instanceof ZalgoPromise && (_result2.resolved || _result2.rejected)) {
-                            _result2.resolved ? promise.resolve(_result2.value) : promise.reject(_result2.error);
-                            _result2.errorHandled = !0;
+                            var promiseResult = _result2;
+                            promiseResult.resolved ? promise.resolve(promiseResult.value) : promise.reject(promiseResult.error);
+                            promiseResult.errorHandled = !0;
                         } else utils_isPromise(_result2) ? _result2 instanceof ZalgoPromise && (_result2.resolved || _result2.rejected) ? _result2.resolved ? promise.resolve(_result2.value) : promise.reject(_result2.error) : chain(_result2, promise) : promise.resolve(_result2);
                     }
                     handlers.length = 0;
@@ -431,7 +432,7 @@
             ZalgoPromise.all = function(promises) {
                 var promise = new ZalgoPromise;
                 var count = promises.length;
-                var results = [];
+                var results = [].slice();
                 if (!count) {
                     promise.resolve(results);
                     return promise;
@@ -1112,10 +1113,6 @@
             } ]);
         }
         var http_headerBuilders = [];
-        function getPayPal() {
-            if (!window.paypal) throw new Error("paypal not found");
-            return window.paypal;
-        }
         var AUTO_FLUSH_LEVEL = [ "warn", "error" ];
         var LOG_LEVEL_PRIORITY = [ "error", "warn", "info", "debug" ];
         function httpTransport(_ref) {
@@ -1198,10 +1195,12 @@
             for (var key in source) source.hasOwnProperty(key) && source[key] && !target[key] && (target[key] = source[key]);
         }
         var _FUNDING_SKIP_LOGIN, _AMPLITUDE_API_KEY;
-        (_FUNDING_SKIP_LOGIN = {}).paylater = "paypal", _FUNDING_SKIP_LOGIN.credit = "paypal";
-        (_AMPLITUDE_API_KEY = {}).test = "a23fb4dfae56daf7c3212303b53a8527", _AMPLITUDE_API_KEY.local = "a23fb4dfae56daf7c3212303b53a8527", 
-        _AMPLITUDE_API_KEY.stage = "a23fb4dfae56daf7c3212303b53a8527", _AMPLITUDE_API_KEY.sandbox = "a23fb4dfae56daf7c3212303b53a8527", 
-        _AMPLITUDE_API_KEY.production = "ce423f79daba95faeb0694186170605c";
+        (_FUNDING_SKIP_LOGIN = {}).paypal = "paypal", _FUNDING_SKIP_LOGIN.paylater = "paypal", 
+        _FUNDING_SKIP_LOGIN.credit = "paypal";
+        var AMPLITUDE_API_KEY = ((_AMPLITUDE_API_KEY = {}).test = "a23fb4dfae56daf7c3212303b53a8527", 
+        _AMPLITUDE_API_KEY.local = "a23fb4dfae56daf7c3212303b53a8527", _AMPLITUDE_API_KEY.stage = "a23fb4dfae56daf7c3212303b53a8527", 
+        _AMPLITUDE_API_KEY.sandbox = "a23fb4dfae56daf7c3212303b53a8527", _AMPLITUDE_API_KEY.production = "ce423f79daba95faeb0694186170605c", 
+        _AMPLITUDE_API_KEY);
         function getLogger() {
             return inlineMemoize(getLogger, (function() {
                 return function(_ref2) {
@@ -1387,6 +1386,10 @@
                 return /Safari/.test(ua) && !isChrome(ua);
             }();
         }
+        function getPayPal() {
+            if (!window.paypal) throw new Error("paypal not found");
+            return window.paypal;
+        }
         function isAndroidAppInstalled(appId) {
             return window.navigator && window.navigator.getInstalledRelatedApps ? window.navigator.getInstalledRelatedApps().then((function(result) {
                 if (result && result.length) {
@@ -1418,7 +1421,7 @@
                 var env = _ref.env, sessionID = _ref.sessionID, buttonSessionID = _ref.buttonSessionID, sdkCorrelationID = _ref.sdkCorrelationID, clientID = _ref.clientID, fundingSource = _ref.fundingSource, sdkVersion = _ref.sdkVersion, locale = _ref.locale, buyerCountry = _ref.buyerCountry;
                 var logger = getLogger();
                 !function(_ref2) {
-                    var env = _ref2.env, sessionID = _ref2.sessionID, clientID = _ref2.clientID, sdkCorrelationID = _ref2.sdkCorrelationID, buyerCountry = _ref2.buyerCountry, locale = _ref2.locale, sdkVersion = _ref2.sdkVersion;
+                    var env = _ref2.env, sessionID = _ref2.sessionID, clientID = _ref2.clientID, sdkCorrelationID = _ref2.sdkCorrelationID, buyerCountry = _ref2.buyerCountry, locale = _ref2.locale, sdkVersion = _ref2.sdkVersion, fundingSource = _ref2.fundingSource;
                     var logger = getLogger();
                     logger.addPayloadBuilder((function() {
                         return {
@@ -1435,10 +1438,10 @@
                         return (_ref3 = {}).feed_name = "payments_sdk", _ref3.serverside_data_source = "checkout", 
                         _ref3.client_id = clientID, _ref3.page_session_id = sessionID, _ref3.referer_url = window.location.host, 
                         _ref3.buyer_cntry = buyerCountry, _ref3.locale = lang + "_" + country, _ref3.integration_identifier = clientID, 
-                        _ref3.sdk_environment = isIos() ? "ios" : isAndroid() ? "android" : null, _ref3.sdk_name = "payments_sdk", 
+                        _ref3.sdk_environment = isIos() ? "iOS" : isAndroid() ? "android" : null, _ref3.sdk_name = "payments_sdk", 
                         _ref3.sdk_version = sdkVersion, _ref3.user_agent = window.navigator && window.navigator.userAgent, 
                         _ref3.context_correlation_id = sdkCorrelationID, _ref3.t = Date.now().toString(), 
-                        _ref3;
+                        _ref3.selected_payment_method = fundingSource, _ref3;
                     }));
                     promise_ZalgoPromise.onPossiblyUnhandledException((function(err) {
                         var _logger$track;
@@ -1456,13 +1459,17 @@
                     sdkCorrelationID: sdkCorrelationID,
                     locale: locale,
                     sdkVersion: sdkVersion,
-                    buyerCountry: buyerCountry
+                    buyerCountry: buyerCountry,
+                    fundingSource: fundingSource
                 });
-                logger.addMetaBuilder((function() {
-                    return {
-                        amplitude: !0
-                    };
-                }));
+                !function(_ref) {
+                    var env = _ref.env;
+                    getLogger().configure({
+                        amplitudeApiKey: AMPLITUDE_API_KEY[env]
+                    });
+                }({
+                    env: env
+                });
                 logger.addPayloadBuilder((function() {
                     var _ref2;
                     return (_ref2 = {
@@ -1472,7 +1479,7 @@
                 logger.addTrackingBuilder((function() {
                     var _ref3;
                     return (_ref3 = {}).state_name = "smart_button", _ref3.context_type = "button_session_id", 
-                    _ref3.context_id = buttonSessionID, _ref3.button_session_id = buttonSessionID, _ref3.button_version = "5.0.37", 
+                    _ref3.context_id = buttonSessionID, _ref3.button_session_id = buttonSessionID, _ref3.button_version = "5.0.49", 
                     _ref3.user_id = buttonSessionID, _ref3;
                 }));
                 (function() {
@@ -1586,9 +1593,12 @@
                     installed: !0
                 };
             }))));
+            var replaceHash = function(hash) {
+                return window.location.replace("#" + hash.replace(/^#/, ""));
+            };
             var closeWindow = function() {
                 window.close();
-                window.location.hash = "closed";
+                replaceHash("closed");
             };
             var getRawHash = function() {
                 return (window.location.hash || "none").replace(/^#/, "").replace(/\?.+/, "");
@@ -1629,11 +1639,11 @@
                     }
                 }();
             }(window.opener, 0, 500);
-            var clean = (tasks = [], cleaned = !1, {
+            var clean = (tasks = [], cleaned = !1, cleaner = {
                 set: function(name, item) {
                     if (!cleaned) {
                         (void 0)[name] = item;
-                        this.register((function() {
+                        cleaner.register((function() {
                             delete (void 0)[name];
                         }));
                     }
@@ -1663,7 +1673,7 @@
                     return promise_ZalgoPromise.all(results).then(src_util_noop);
                 }
             });
-            var tasks, cleaned, cleanErr;
+            var tasks, cleaned, cleanErr, cleaner;
             var postRobot = function() {
                 var paypal = getPayPal();
                 if (!paypal.postRobot) throw new Error("paypal.postRobot not found");
@@ -1710,13 +1720,17 @@
                         break;
 
                       case "fallback":
-                        sendToParent("onFallback");
+                        var _parseQuery3 = parseQuery(queryString);
+                        sendToParent("onFallback", {
+                            type: _parseQuery3.type,
+                            skip_native_duration: _parseQuery3.skip_native_duration
+                        });
                         break;
 
                       case "onError":
-                        var _parseQuery3 = parseQuery(queryString);
+                        var _parseQuery4 = parseQuery(queryString);
                         sendToParent("onError", {
-                            message: _parseQuery3.message
+                            message: _parseQuery4.message
                         }).finally(closeWindow);
                         break;
 
@@ -1738,22 +1752,22 @@
             clean.register((function() {
                 return window.removeEventListener("hashchange", handleHash);
             }));
-            window.location.hash = "loaded";
+            replaceHash("loaded");
             handleHash();
             var stickinessID = getStorage({
-                name: "smart_payment_buttons"
+                name: "paypal"
             }).getID();
             var pageUrl = window.location.href.split("#")[0] + "#close";
             appInstalledPromise.then((function(app) {
                 sendToParent("awaitRedirect", {
                     app: app,
                     pageUrl: pageUrl,
-                    sfvc: sfvc,
+                    sfvc: sfvc = !!sfvc || !0 === sfvcOrSafari,
                     stickinessID: stickinessID
                 }).then((function(_ref3) {
                     var _ref3$redirect = _ref3.redirect, redirectUrl = _ref3.redirectUrl, _ref3$appSwitch = _ref3.appSwitch, appSwitch = void 0 === _ref3$appSwitch || _ref3$appSwitch;
                     if (void 0 === _ref3$redirect || _ref3$redirect) {
-                        window.location.hash = appSwitch ? "appswitch" : "webswitch";
+                        replaceHash(appSwitch ? "appswitch" : "webswitch");
                         window.location.replace(redirectUrl);
                         var didRedirect = !1;
                         var markRedirect = function() {

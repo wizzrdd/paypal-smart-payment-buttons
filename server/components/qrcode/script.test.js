@@ -4,8 +4,8 @@ import { noop } from 'belter';
 
 import { compileLocalSmartQRCodeClientScript, getSmartQRCodeClientScript } from './script';
 
-// eslint-disable-next-line no-undef
-jest.setTimeout(30000);
+// $FlowFixMe
+jest.setTimeout(30000); // eslint-disable-line no-undef
 
 const cache = {
     // eslint-disable-next-line no-unused-vars
@@ -39,7 +39,11 @@ test('getSmartQRCodeClientScript - base', async () => {
 
 test('getSmartQRCodeClientScript - debug', async () => {
     const debug = true;
-    const script = await getSmartQRCodeClientScript({ logBuffer, cache, debug });
+    const locationInformation = {
+        cdnHostName:  '',
+        paypalDomain: ''
+    };
+    const script = await getSmartQRCodeClientScript({ logBuffer, cache, debug, locationInformation });
 
     if (!script) {
         throw new Error(`Expected a script from compileLocalSmartQRCodeClientScript`);

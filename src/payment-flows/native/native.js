@@ -7,35 +7,22 @@ import { ZalgoPromise } from 'zalgo-promise/src';
 import { FPTI_KEY } from '@paypal/sdk-constants/src';
 import { type CrossDomainWindowType } from 'cross-domain-utils/src';
 
-import { updateButtonClientConfig } from '../../api';
-import { getLogger, promiseNoop, isAndroidChrome, getStorageState } from '../../lib';
+import { updateButtonClientConfig, onLsatUpgradeCalled } from '../../api';
+import { getLogger, isAndroidChrome } from '../../lib';
 import { FPTI_TRANSITION, FPTI_CUSTOM_KEY } from '../../constants';
 import { type OnShippingChangeData } from '../../props/onShippingChange';
 import { checkout } from '../checkout';
 import type { PaymentFlow, PaymentFlowInstance, SetupOptions, InitOptions } from '../types';
 
-import { isNativeEligible, isNativePaymentEligible, prefetchNativeEligibility } from './eligibility';
-import { openNativePopup } from './popup';
-import { connectNative } from './socket';
+import { isNativeEligible, isNativePaymentEligible, prefetchNativeEligibility, canUsePopupAppSwitch,
+    canUseNativeQRCode, setNativeOptOut, getDefaultNativeOptOutOptions, type NativeOptOutOptions } from './eligibility';
+import { initNativeQRCode } from './qrcode';
+import { initNativePopup } from './popup';
 
 let clean;
 
 function setupNative({ props, serviceData } : SetupOptions) : ZalgoPromise<void> {
     return prefetchNativeEligibility({ props, serviceData }).then(noop);
-}
-
-function setNativeOptOut(data? : {| type? : string,  win? : CrossDomainWindowType |}) : boolean {
-    let optOut = false;
-    if (data && data.type === FPTI_TRANSITION.NATIVE_OPT_OUT) {
-        // Opt-out 1 week from native experience
-        const OPT_OUT_TIME = 7 * 24 * 60 * 60 * 1000;
-        const now = Date.now();
-        getStorageState(state => {
-            state.nativeOptOutLifetime = now + OPT_OUT_TIME;
-        });
-        optOut = true;
-    }
-    return optOut;
 }
 
 function initNative({ props, components, config, payment, serviceData } : InitOptions) : PaymentFlowInstance {
@@ -72,6 +59,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
 
     const onInitCallback = () => {
         return ZalgoPromise.try(() => {
+            onLsatUpgradeCalled();
             return { buttonSessionID };
         });
     };
@@ -169,144 +157,68 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         });
     };
 
-    const onFallbackCallback = ({ data } : {| data? : {| type? : string,  win? : CrossDomainWindowType |} |}) => {
+    const onFallbackCallback = (opts? : {| win? : CrossDomainWindowType, optOut? : NativeOptOutOptions |}) => {
+        const { win, optOut = getDefaultNativeOptOutOptions() } = opts || {};
         
         return ZalgoPromise.try(() => {
-            const optOut = setNativeOptOut(data);
+            if (optOut) {
+                const result = setNativeOptOut(optOut);
 
-            getLogger().info(`native_message_onfallback`)
-                .track({
-                    [FPTI_KEY.TRANSITION]:             FPTI_TRANSITION.NATIVE_ON_FALLBACK,
-                    [FPTI_CUSTOM_KEY.TRANSITION_TYPE]:  optOut ? FPTI_TRANSITION.NATIVE_OPT_OUT :  FPTI_TRANSITION.NATIVE_FALLBACK
-                }).flush();
+                getLogger().info(`native_message_onfallback`)
+                    .track({
+                        [FPTI_KEY.TRANSITION]:             FPTI_TRANSITION.NATIVE_ON_FALLBACK,
+                        [FPTI_CUSTOM_KEY.TRANSITION_TYPE]:  result ? FPTI_TRANSITION.NATIVE_OPT_OUT :  FPTI_TRANSITION.NATIVE_FALLBACK
+                    }).flush();
+            }
 
-
-            const fallbackWin = data && data.win ? data.win : null;
-            fallbackToWebCheckout(fallbackWin);
+            fallbackToWebCheckout(win);
             return { buttonSessionID };
         });
     };
 
-    const detectAppSwitch = ({ sessionUID } : {| sessionUID : string |}) : ZalgoPromise<void> => {
-        getStorageState(state => {
-            const { lastAppSwitchTime = 0, lastWebSwitchTime = 0 } = state;
-
-            if (lastAppSwitchTime > lastWebSwitchTime) {
-                getLogger().info('app_switch_detect_with_previous_app_switch', {
-                    lastAppSwitchTime: lastAppSwitchTime.toString(),
-                    lastWebSwitchTime: lastWebSwitchTime.toString()
-                });
-            }
-
-            if (lastWebSwitchTime > lastAppSwitchTime) {
-                getLogger().info('app_switch_detect_with_previous_web_switch', {
-                    lastAppSwitchTime: lastAppSwitchTime.toString(),
-                    lastWebSwitchTime: lastWebSwitchTime.toString()
-                });
-            }
-
-            if (!lastAppSwitchTime && !lastWebSwitchTime) {
-                getLogger().info('app_switch_detect_with_no_previous_switch', {
-                    lastAppSwitchTime: lastAppSwitchTime.toString(),
-                    lastWebSwitchTime: lastWebSwitchTime.toString()
-                });
-            }
-
-            state.lastAppSwitchTime = Date.now();
-        });
-
-        getLogger().info(`native_detect_app_switch`).track({
-            [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.NATIVE_DETECT_APP_SWITCH
-        }).flush();
-
-        const connection = connectNative({
-            props, serviceData, config, fundingSource, sessionUID,
-            callbacks: {
-                onInit:           onInitCallback,
-                onApprove:        onApproveCallback,
-                onCancel:         onCancelCallback,
-                onError:          onErrorCallback,
-                onFallback:       onFallbackCallback,
-                onShippingChange: onShippingChangeCallback
-            }
-        });
-
-        clean.register(connection.cancel);
-
-        return connection.setProps();
-    };
-
-    const detectWebSwitch = ({ win } : {| win : CrossDomainWindowType |}) : ZalgoPromise<void> => {
-        getStorageState(state => {
-            const { lastAppSwitchTime = 0, lastWebSwitchTime = 0 } = state;
-
-            if (lastAppSwitchTime > lastWebSwitchTime) {
-                getLogger().info('web_switch_detect_with_previous_app_switch', {
-                    lastAppSwitchTime: lastAppSwitchTime.toString(),
-                    lastWebSwitchTime: lastWebSwitchTime.toString()
-                });
-            }
-
-            if (lastWebSwitchTime > lastAppSwitchTime) {
-                getLogger().info('web_switch_detect_with_previous_web_switch', {
-                    lastAppSwitchTime: lastAppSwitchTime.toString(),
-                    lastWebSwitchTime: lastWebSwitchTime.toString()
-                });
-            }
-
-            if (!lastAppSwitchTime && !lastWebSwitchTime) {
-                getLogger().info('web_switch_detect_with_no_previous_switch', {
-                    lastAppSwitchTime: lastAppSwitchTime.toString(),
-                    lastWebSwitchTime: lastWebSwitchTime.toString()
-                });
-            }
-
-            state.lastWebSwitchTime = Date.now();
-        });
-
-        getLogger().info(`native_detect_web_switch`).track({
-            [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.NATIVE_DETECT_WEB_SWITCH
-        }).flush();
-
-        return fallbackToWebCheckout(win);
-    };
-
     const onCloseCallback = () => {
         return ZalgoPromise.delay(1000).then(() => {
+            
             if (!approved && !cancelled && !didFallback && !isAndroidChrome()) {
-                return ZalgoPromise.all([
-                    onCancel(),
-                    destroy()
-                ]);
+                return ZalgoPromise.try(() => {
+                    return destroy();
+                });
             }
         }).then(noop);
     };
 
-    const initPopupAppSwitch = ({ sessionUID } : {| sessionUID : string |}) => {
-        return new ZalgoPromise((resolve, reject) => {
-            const nativePopup = openNativePopup({
-                props, serviceData, config, fundingSource, sessionUID,
-                callbacks: {
-                    onDetectWebSwitch: ({ win }) => detectWebSwitch({ win }).then(resolve, reject),
-                    onDetectAppSwitch: () => detectAppSwitch({ sessionUID }).then(resolve, reject),
-                    onApprove:         onApproveCallback,
-                    onCancel:          onCancelCallback,
-                    onError:           onErrorCallback,
-                    onFallback:        onFallbackCallback,
-                    onClose:           onCloseCallback,
-                    onDestroy:         destroy
-                }
-            });
+    const sessionUID = uniqueID();
+    let initFlow;
 
-            clean.register(nativePopup.cancel);
-        });
-    };
+    if (canUsePopupAppSwitch({ fundingSource })) {
+        initFlow = initNativePopup;
+    } else if (canUseNativeQRCode({ fundingSource })) {
+        initFlow = initNativeQRCode;
+    } else {
+        throw new Error(`No valid native payment flow found`);
+    }
+
+    const flow = initFlow({
+        props, serviceData, config, components, fundingSource, clean, sessionUID,
+        callbacks: {
+            onInit:            onInitCallback,
+            onApprove:         onApproveCallback,
+            onCancel:          onCancelCallback,
+            onError:           onErrorCallback,
+            onShippingChange:  onShippingChangeCallback,
+            onFallback:        onFallbackCallback,
+            onClose:           onCloseCallback,
+            onDestroy:         destroy
+        }
+    });
 
     const click = () => {
-        return ZalgoPromise.try(() => {
-            const sessionUID = uniqueID();
+        return flow.click();
+    };
 
-            return initPopupAppSwitch({ sessionUID });
+    const start = () => {
+        return ZalgoPromise.try(() => {
+            return flow.start();
         }).catch(err => {
             return destroy().then(() => {
                 getLogger().error(`native_error`, { err: stringifyError(err) }).track({
@@ -320,8 +232,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         });
     };
 
-    const start = promiseNoop;
-
     return {
         click,
         start,
@@ -330,6 +240,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
 }
 
 function updateNativeClientConfig({ orderID, payment, userExperienceFlow, buttonSessionID }) : ZalgoPromise<void> {
+
     return ZalgoPromise.try(() => {
         const { fundingSource } = payment;
         return updateButtonClientConfig({ fundingSource, orderID, inline: false, userExperienceFlow, buttonSessionID });

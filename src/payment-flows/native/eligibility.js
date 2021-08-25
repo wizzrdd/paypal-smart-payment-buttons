@@ -1,14 +1,14 @@
 /* @flow */
 
 import type { ZalgoPromise } from 'zalgo-promise/src';
-import { PLATFORM, ENV, FUNDING } from '@paypal/sdk-constants/src';
-import { supportsPopups } from 'belter/src';
+import { ENV, FUNDING } from '@paypal/sdk-constants/src';
+import { supportsPopups, isIos, isAndroid } from 'belter/src';
 
 import { type NativeEligibility, getNativeEligibility } from '../../api';
-import { isIOSSafari, isAndroidChrome, enableAmplitude, getStorageState } from '../../lib';
+import { enableAmplitude, getStorageState, isIOSSafari, isAndroidChrome } from '../../lib';
+import { LSAT_UPGRADE_EXCLUDED_MERCHANTS, FPTI_TRANSITION } from '../../constants';
 import type { ButtonProps, ServiceData } from '../../button/props';
 import type { IsEligibleOptions, IsPaymentEligibleOptions } from '../types';
-import { LSAT_UPGRADE_EXCLUDED_MERCHANTS } from '../../constants';
 
 import { NATIVE_CHECKOUT_URI, NATIVE_CHECKOUT_POPUP_URI, NATIVE_CHECKOUT_FALLBACK_URI, SUPPORTED_FUNDING } from './config';
 
@@ -96,17 +96,39 @@ export function prefetchNativeEligibility({ props, serviceData } : PrefetchNativ
     });
 }
 
-export function isNativeEligible({ props, config, serviceData } : IsEligibleOptions) : boolean {
-
-    const { clientID, platform, onShippingChange, createBillingAgreement, createSubscription, env } = props;
-    const { firebase: firebaseConfig } = config;
-    const { merchantID } = serviceData;
-
-
-    if (platform !== PLATFORM.MOBILE) {
+export function canUsePopupAppSwitch({ fundingSource } : {| fundingSource : ?$Values<typeof FUNDING> |}) : boolean {
+    if (!isIOSSafari() && !isAndroidChrome()) {
         return false;
     }
 
+    if (fundingSource && fundingSource !== FUNDING.PAYPAL && fundingSource !== FUNDING.VENMO) {
+        return false;
+    }
+
+    return true;
+}
+
+export function canUseNativeQRCode({ fundingSource } : {| fundingSource : ?$Values<typeof FUNDING> |}) : boolean {
+    if (isIos() || isAndroid()) {
+        return false;
+    }
+
+    if (fundingSource && fundingSource !== FUNDING.VENMO) {
+        return false;
+    }
+
+    return true;
+}
+
+export function isNativeEligible({ props, config, serviceData } : IsEligibleOptions) : boolean {
+    const { clientID, fundingSource, onShippingChange, createBillingAgreement, createSubscription, env } = props;
+    const { firebase: firebaseConfig } = config;
+    const { merchantID } = serviceData;
+
+    if (!canUsePopupAppSwitch({ fundingSource }) && !canUseNativeQRCode({ fundingSource })) {
+        return false;
+    }
+    
     if (onShippingChange && !isNativeOptedIn({ props })) {
         return false;
     }
@@ -120,10 +142,6 @@ export function isNativeEligible({ props, config, serviceData } : IsEligibleOpti
     }
 
     if (!firebaseConfig) {
-        return false;
-    }
-
-    if (!isIOSSafari() && !isAndroidChrome()) {
         return false;
     }
 
@@ -151,6 +169,7 @@ export function isNativeEligible({ props, config, serviceData } : IsEligibleOpti
 }
 
 export function isNativePaymentEligible({ payment } : IsPaymentEligibleOptions) : boolean {
+
     const { win, fundingSource } = payment;
 
     if (win) {
@@ -161,5 +180,37 @@ export function isNativePaymentEligible({ payment } : IsPaymentEligibleOptions) 
         return false;
     }
 
+    if (!canUsePopupAppSwitch({ fundingSource }) && !canUseNativeQRCode({ fundingSource })) {
+        return false;
+    }
+
     return true;
+}
+
+export type NativeOptOutOptions = {|
+    type? : string,
+    skip_native_duration? : number
+|};
+
+export function getDefaultNativeOptOutOptions() : NativeOptOutOptions {
+    // $FlowFixMe
+    return {};
+}
+
+export function setNativeOptOut(optOut : NativeOptOutOptions) : boolean {
+    if (optOut.type === FPTI_TRANSITION.NATIVE_OPT_OUT) {
+
+        // Opt-out 6 weeks from native experience as default
+        let OPT_OUT_TIME = 6 * 7 * 24 * 60 * 60 * 1000;
+        if (optOut.skip_native_duration && typeof optOut.skip_native_duration === 'number') {
+            OPT_OUT_TIME = optOut.skip_native_duration;
+        }
+
+        const now = Date.now();
+        getStorageState(state => {
+            state.nativeOptOutLifetime = now + OPT_OUT_TIME;
+        });
+        return true;
+    }
+    return false;
 }

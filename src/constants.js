@@ -130,7 +130,6 @@ export const FPTI_TRANSITION = {
     NATIVE_DETECT_WEB_SWITCH:               ('native_detect_web_switch' : 'native_detect_web_switch'),
     NATIVE_APP_SWITCH_ACK:                  ('native_app_switch_ack' : 'native_app_switch_ack'),
     NATIVE_ERROR:                           ('native_app_switch_ack' : 'native_app_switch_ack'),
-    NATIVE_SET_PROPS_ATTEMPT:               ('process_set_props_attempt' : 'process_set_props_attempt'),
     NATIVE_APP_INSTALLED:                   ('native_app_installed' : 'native_app_installed'),
     NATIVE_APP_SWITCH_INELIGIBLE:           ('app_switch_ineligible' : 'app_switch_ineligible'),
     NATIVE_ATTEMPT_APP_SWITCH:              ('app_switch_attempted' : 'app_switch_attempted'),
@@ -155,11 +154,16 @@ export const FPTI_TRANSITION = {
     NATIVE_POPUP_UNLOAD:                    ('native_popup_unload' : 'native_popup_unload'),
     NATIVE_POPUP_BEFORE_UNLOAD:             ('native_popup_beforeunload' : 'native_popup_beforeunload'),
     NATIVE_POPUP_PAGEHIDE:                  ('native_popup_pagehide' : 'native_popup_pagehide'),
-    NATIVE_POPUP_OPENER_DETECT_CLOSE:       ('native_popup_opener_detect_close', 'native_popup_opener_detect_close'),
-    NATIVE_OPT_OUT:                         ('native_opt_out', 'native_opt_out'),
-    NATIVE_FALLBACK:                        ('native_fallback', 'native_fallback'),
+    NATIVE_POPUP_OPENER_DETECT_CLOSE:       ('native_popup_opener_detect_close' : 'native_popup_opener_detect_close'),
+    NATIVE_OPT_OUT:                         ('native_opt_out' : 'native_opt_out'),
+    NATIVE_FALLBACK:                        ('native_fallback' : 'native_fallback'),
     
-    HONEY_IDENTIFY:                         ('honey_identify')
+    QR_SHOWN:                               ('qr_shown' : 'qr_shown'),
+    QR_CLOSING:                             ('qr_closing' : 'qr_closing'),
+    
+    HONEY_IDENTIFY:                         ('honey_identify' : 'honey_identify'),
+    
+    CALL_REST_API:                          ('call_rest_api' : 'call_rest_api')
 };
 
 export const FPTI_MENU_OPTION = {
@@ -211,7 +215,11 @@ export const UPGRADE_LSAT_RAMP = {
 };
 
 export const FRAME_NAME = {
-    SMART_FIELDS: 'smart-fields'
+    SMART_FIELDS:      'smart-fields',
+    CARD_FIELD:        'card-field',
+    CARD_NUMBER_FIELD: 'card-number-field',
+    CARD_CVV_FIELD:    'card-cvv-field',
+    CARD_EXPIRY_FIELD: 'card-expiry-field'
 };
 
 export const AMPLITUDE_KEY = {
@@ -219,6 +227,13 @@ export const AMPLITUDE_KEY = {
 };
 
 export const VENMO_BLUE : string = '#3D93CE';
+
+export const QRCODE_STATE = {
+    ERROR:      'qr_error',
+    SCANNED:    'qr_scanned',
+    AUTHORIZED: 'qr_authorized',
+    DEFAULT:    'qr_default'
+};
 
 export const LSAT_UPGRADE_EXCLUDED_MERCHANTS = [
     'AQipcJ1uXz50maKgYx49lKUB8MlSOXP573M6cpsFpHqDZOqnopsJpfYY7bQC_9CtQJsEhGlk8HLs2oZz',
@@ -230,4 +245,16 @@ export const LSAT_UPGRADE_EXCLUDED_MERCHANTS = [
     'AQXD7-m_2yMo-5AxJ1fQaPeEWYDE7NZ9XrLzEXeiPLTHDu9vfe_T0foF8BoX8K5cMfXuRDysUEmhw-8Z'
 ];
 
-export const LSAT_UPGRADE_FAILED = '__pp_lsat_upgrade_failure__';
+export const ITEM_CATEGORY = {
+    DIGITAL:  'DIGITAL',
+    DONATION: 'DONATION',
+    PHYSICAL: 'PHYSICAL'
+};
+
+export const BUTTON_LABEL = {
+    DONATE: 'donate'
+};
+
+export const STATUS_CODES = {
+    TOO_MANY_REQUESTS: 429
+};

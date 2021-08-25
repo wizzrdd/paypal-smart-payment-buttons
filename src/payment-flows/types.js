@@ -12,7 +12,7 @@ import { BUYER_INTENT } from '../constants';
 export const TYPES = true;
 
 export type PaymentFlowInstance = {|
-    click? : () => ?ZalgoPromise<void>,
+    click? : () => ZalgoPromise<boolean> | ZalgoPromise<void> | boolean | void,
     start : () => ZalgoPromise<void>,
     close : () => ZalgoPromise<void>
 |};
@@ -137,7 +137,7 @@ export type ApplePayMerchantCapabilities =
     'supports3DS' | 'supportsEMV' | 'supportsCredit' | 'supportsDebit';
 
 export type ApplePaySupportedNetworks =
-    'discover' | 'visa' | 'masterCard' | 'amex' | 'jcb' | 'chinaUnionPay';
+    'discover' | 'visa' | 'masterCard' | 'amex' | 'jcb' | 'chinaUnionPay' | 'cartesBancaires' | 'maestro' | 'eftpos' | 'electron' | 'vPay';
 
 export type ApplePayLineItemType = 'final' | 'pending';
 export type ApplePayLineItem = {|

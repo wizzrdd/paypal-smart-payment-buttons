@@ -1,7 +1,7 @@
 /* @flow */
 /* eslint no-restricted-globals: off, promise/no-native: off, compat/compat: off */
 
-import type { ExpressRequest } from '../../server/types';
+import type { ExpressRequest, InstanceLocationInformation, SDKLocationInformation } from '../../server/types';
 
 type MockReq = {|
     query : { [string] : string }
@@ -35,36 +35,38 @@ type MockRes = {|
 |};
 
 export function mockRes(opts : Object = {}) : MockRes {
-    return {
+    const res = {
         _status:  200,
         _headers: {},
 
         status(status : number) : MockRes {
-            this._status = status;
-            return this;
+            res._status = status;
+            return res;
         },
         header(key : string, value : string) : MockRes {
-            this._headers[key] = value;
-            return this;
+            res._headers[key] = value;
+            return res;
         },
         send(str : string) : MockRes {
-            this.body = str;
-            return this;
+            res.body = str;
+            return res;
         },
         getStatus() : number {
-            return this._status;
+            return res._status;
         },
         getHeader(name : string) : ?string {
-            return this._headers[name];
+            return res._headers[name];
         },
         removeHeader(name : string) {
-            delete this._headers[name];
+            delete res._headers[name];
         },
         getBody() : ?string {
-            return this.body;
+            return res.body;
         },
         ...opts
     };
+
+    return res;
 }
 
 export async function getWallet() : Promise<Object> {
@@ -236,6 +238,20 @@ export function getPersonalizationEnabled() : boolean {
 
 export function isFundingSourceBranded() : Promise<boolean> {
     return Promise.resolve(true);
+}
+
+export function getInstanceLocationInformation() : InstanceLocationInformation {
+    return {
+        cdnHostName:  'paypal.com',
+        paypalDomain: 'paypal.com'
+    };
+}
+
+export function getSDKLocationInformation() : Promise<SDKLocationInformation> {
+    return Promise.resolve({
+        sdkActiveTag:   'abc',
+        sdkCDNRegistry: 'paypal.com'
+    });
 }
 
 export const mockContent = {

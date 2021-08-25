@@ -4,8 +4,9 @@ import { setupMocks } from './mocks';
 
 import './happy';
 import './actions';
-import './auth';
+import './actions-fallback';
 import './contingency';
+import './contingency-fallback';
 import './funding';
 import './wallet';
 import './error';
@@ -17,6 +18,7 @@ import './clientConfig';
 import './popupBridge';
 import './card';
 import './native';
+import './native-qrcode';
 import './nativePopup';
 import './nativeFallback';
 import './payee';

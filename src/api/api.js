@@ -1,20 +1,23 @@
 /* @flow */
 
+import { FPTI_KEY } from '@paypal/sdk-constants/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { request } from 'belter/src';
 
 import { GRAPHQL_URI } from '../config';
-import { HEADERS, SMART_PAYMENT_BUTTONS } from '../constants';
+import { FPTI_CUSTOM_KEY, FPTI_TRANSITION, HEADERS, SMART_PAYMENT_BUTTONS, STATUS_CODES } from '../constants';
+import { getLogger } from '../lib';
 
 type RESTAPIParams<D> = {|
     accessToken : string,
     method? : string,
     url : string,
     data? : D,
-    headers? : { [string] : string }
+    headers? : { [string] : string },
+    eventName : string
 |};
 
-export function callRestAPI<D, T>({ accessToken, method, url, data, headers } : RESTAPIParams<D>) : ZalgoPromise<T> {
+export function callRestAPI<D, T>({ accessToken, method, url, data, headers, eventName } : RESTAPIParams<D>) : ZalgoPromise<T> {
 
     if (!accessToken) {
         throw new Error(`No access token passed to ${ url }`);
@@ -34,14 +37,20 @@ export function callRestAPI<D, T>({ accessToken, method, url, data, headers } : 
         json:    data
     }).then(({ status, body, headers: responseHeaders }) : T => {
         if (status >= 300) {
-            const hasDetails = body.details && body.details.length;
-            const issue = (hasDetails && body.details[0].issue) ? body.details[0].issue : 'Generic Error';
-            const description = (hasDetails && body.details[0].description) ? body.details[0].description : 'no description';
-            
-            const error = new Error(`${ issue }: ${ description } (Corr ID: ${ responseHeaders[HEADERS.PAYPAL_DEBUG_ID] }`);
-            // $FlowFixMe
-            error.response = { status, headers: responseHeaders };
+            const error = new Error(`${ url } returned status ${ status } (Corr ID: ${ responseHeaders[HEADERS.PAYPAL_DEBUG_ID] }).\n\n${ JSON.stringify(body) }`);
 
+            // $FlowFixMe
+            error.response = { status, headers: responseHeaders, body };
+
+            if (status === STATUS_CODES.TOO_MANY_REQUESTS) {
+                getLogger().track({
+                    [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.CALL_REST_API,
+                    [FPTI_CUSTOM_KEY.ERR_DESC]: `Error: ${ status } - ${ body }`,
+                    [FPTI_CUSTOM_KEY.INFO_MSG]: `URL: ${ url }`
+                });
+            }
+
+            getLogger().warn(`rest_api_${ eventName }_error`);
             throw error;
         }
 
@@ -49,12 +58,14 @@ export function callRestAPI<D, T>({ accessToken, method, url, data, headers } : 
     });
 }
 
-type APIRequest = {|
+type SmartAPIRequest = {|
+    authenticated? : boolean,
     accessToken? : ?string,
     url : string,
     method? : string,
     json? : $ReadOnlyArray<mixed> | Object,
-    headers? : { [string] : string }
+    headers? : { [string] : string },
+    eventName : string
 |};
 
 export type APIResponse = {|
@@ -62,9 +73,13 @@ export type APIResponse = {|
     headers : {| [$Values<typeof HEADERS>] : string |}
 |};
 
-export function callSmartAPI({ accessToken, url, method = 'get', headers: reqHeaders = {}, json } : APIRequest) : ZalgoPromise<APIResponse> {
+export function callSmartAPI({ accessToken, url, method = 'get', headers: reqHeaders = {}, json, authenticated = true, eventName } : SmartAPIRequest) : ZalgoPromise<APIResponse> {
 
     reqHeaders[HEADERS.REQUESTED_BY] = SMART_PAYMENT_BUTTONS;
+
+    if (authenticated && !accessToken) {
+        throw new Error(`Buyer access token not present - can not call smart api: ${ url }`);
+    }
 
     if (accessToken) {
         reqHeaders[HEADERS.ACCESS_TOKEN] = accessToken;
@@ -75,16 +90,30 @@ export function callSmartAPI({ accessToken, url, method = 'get', headers: reqHea
             if (body.ack === 'contingency') {
                 const err = new Error(body.contingency);
                 // $FlowFixMe
+                err.response = { url, method, headers: reqHeaders, body };
+                // $FlowFixMe
                 err.data = body.data;
+
+                getLogger().warn(`smart_api_${ eventName }_contingency_error`);
                 throw err;
             }
 
+            if (status === STATUS_CODES.TOO_MANY_REQUESTS) {
+                getLogger().track({
+                    [FPTI_KEY.TRANSITION]:      FPTI_TRANSITION.CALL_REST_API,
+                    [FPTI_CUSTOM_KEY.ERR_DESC]: `Error: ${ status } - ${ body }`,
+                    [FPTI_CUSTOM_KEY.INFO_MSG]: `URL: ${ url }`
+                });
+            }
+
             if (status > 400) {
-                throw new Error(`Api: ${ url } returned status code: ${ status } (Corr ID: ${ headers[HEADERS.PAYPAL_DEBUG_ID] })`);
+                getLogger().warn(`smart_api_${ eventName }_status_${ status }_error`);
+                throw new Error(`Api: ${ url } returned status code: ${ status } (Corr ID: ${ headers[HEADERS.PAYPAL_DEBUG_ID] })\n\n${ JSON.stringify(body) }`);
             }
 
             if (body.ack !== 'success') {
-                throw new Error(`Api: ${ url } returned ack: ${ body.ack } (Corr ID: ${ headers[HEADERS.PAYPAL_DEBUG_ID] })`);
+                getLogger().warn(`smart_api_${ eventName }_ack_error`);
+                throw new Error(`Api: ${ url } returned ack: ${ body.ack } (Corr ID: ${ headers[HEADERS.PAYPAL_DEBUG_ID] })\n\n${ JSON.stringify(body) }`);
             }
 
             return { data: body.data, headers };
@@ -108,13 +137,35 @@ export function callGraphQL<T>({ name, query, variables = {}, headers = {} } : {
 
         if (errors.length) {
             const message = errors[0].message || JSON.stringify(errors[0]);
+
+            getLogger().warn(`graphql_${ name }_error`, { err: message });
             throw new Error(message);
         }
 
         if (status !== 200) {
-            throw new Error(`${ GRAPHQL_URI } returned status ${ status }`);
+            getLogger().warn(`graphql_${ name }_status_${ status }_error`);
+            throw new Error(`${ GRAPHQL_URI } returned status ${ status }\n\n${ JSON.stringify(body) }`);
         }
 
         return body.data;
     });
+}
+
+export type Response = {|
+    data : mixed,
+    headers : {|
+        [string] : string
+    |}
+|};
+
+export function getResponseCorrelationID(res : Response) : ?string {
+    return res.headers[HEADERS.PAYPAL_DEBUG_ID];
+}
+
+export function getErrorResponseCorrelationID(err : mixed) : ?string {
+    // $FlowFixMe
+    const res : Response = err?.response;
+    if (res) {
+        return getResponseCorrelationID(res);
+    }
 }

@@ -2,7 +2,7 @@
 
 import { clientErrorResponse, htmlResponse, allowFrame, defaultLogger, safeJSON, sdkMiddleware,
     isLocalOrTest, type ExpressMiddleware } from '../../lib';
-import type { LoggerType, CacheType } from '../../types';
+import type { LoggerType, CacheType, InstanceLocationInformation } from '../../types';
 
 import { EVENT, VENMO_BLUE } from './constants';
 import { getParams } from './params';
@@ -13,17 +13,20 @@ import { QRCode } from './node-qrcode';
 type QRcodeMiddlewareOptions = {|
     logger? : LoggerType,
     cache? : CacheType,
-    cdn? : boolean
+    cdn? : boolean,
+    getInstanceLocationInformation : () => InstanceLocationInformation
 |};
 
-export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLocalOrTest() } : QRcodeMiddlewareOptions = {}) : ExpressMiddleware {
+export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLocalOrTest(), getInstanceLocationInformation } : QRcodeMiddlewareOptions = {}) : ExpressMiddleware {
     const useLocal = !cdn;
+    const locationInformation = getInstanceLocationInformation();
 
-    return sdkMiddleware({ logger, cache }, {
+
+    return sdkMiddleware({ logger, cache, locationInformation }, {
         app: async ({ req, res, params, meta, logBuffer }) => {
             logger.info(req, EVENT.RENDER);
 
-            const { cspNonce, qrPath, demo, debug } = getParams(params, req, res);
+            const { cspNonce, qrPath, debug } = getParams(params, req, res);
 
             if (!qrPath) {
                 return clientErrorResponse(res, 'Please provide a qrPath query parameter');
@@ -32,15 +35,17 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
             const svgString = await QRCode.toString(
                 qrPath,
                 {
-                    width: 160,
-                    color: {
+                    // width: 160,
+                    // width:  240,
+                    margin: 0,
+                    color:  {
                         dark:  VENMO_BLUE,
                         light: '#FFFFFF'
                     }
                 }
             );
 
-            const client = await getSmartQRCodeClientScript({ debug, logBuffer, cache, useLocal });
+            const client = await getSmartQRCodeClientScript({ debug, logBuffer, cache, useLocal, locationInformation });
 
             logger.info(req, `qrcode_client_version_${ client.version }`);
             logger.info(req, `qrcode_params`, { params: JSON.stringify(params) });
@@ -58,10 +63,10 @@ export function getQRCodeMiddleware({ logger = defaultLogger, cache, cdn = !isLo
                 ${ meta.getSDKLoader({ nonce: cspNonce }) }
                 <script nonce="${ cspNonce }">${ client.script }</script>
                 <script nonce="${ cspNonce }">
-        spbQRCode.renderQRCode(${ safeJSON({
+    spbQRCode.renderQRCode(${ safeJSON({
         cspNonce,
         svgString,
-        demo
+        debug
     }) })
                 </script>
             </body>

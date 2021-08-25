@@ -15,7 +15,7 @@ type GenerateAccessTokenOptions = {|
     targetSubject? : string
 |};
 
-export function createAccessToken(clientID : ?string, { targetSubject } : GenerateAccessTokenOptions = {}) : ZalgoPromise<string> {
+export function createAccessToken(clientID : string, { targetSubject } : GenerateAccessTokenOptions = {}) : ZalgoPromise<string> {
     return inlineMemoize(createAccessToken, () => {
 
         getLogger().info(`rest_api_create_access_token`);
@@ -30,21 +30,24 @@ export function createAccessToken(clientID : ?string, { targetSubject } : Genera
         }
 
         return request({
-
             method:  `post`,
             url:     AUTH_API_URL,
             headers: {
                 Authorization: `Basic ${ basicAuth }`
             },
             data
-
         }).then(({ body }) => {
-
             if (body && body.error === 'invalid_client') {
+                const eventName = 'v1_oauth2_token_create';
+
+                getLogger().warn(`rest_api_${ eventName }_error`, { err: 'invalid client id' });
                 throw new Error(`Auth Api invalid client id: ${ clientID || '' }:\n\n${ JSON.stringify(body, null, 4) }`);
             }
 
             if (!body || !body.access_token) {
+                const eventName = 'v1_oauth2_token_create';
+
+                getLogger().warn(`rest_api_${ eventName }_error`);
                 throw new Error(`Auth Api response error:\n\n${ JSON.stringify(body, null, 4) }`);
             }
 
@@ -71,7 +74,33 @@ export function getFirebaseSessionToken(sessionUID : string) : ZalgoPromise<stri
     });
 }
 
+let lsatUpgradeCalled : boolean = false;
+let lsatUpgradeError : ?mixed;
+
+export const onLsatUpgradeCalled = () => {
+    lsatUpgradeCalled = false;
+};
+
+export const getLsatUpgradeCalled = () : boolean => {
+    return lsatUpgradeCalled;
+};
+
+export const onLsatUpgradeError = (err : mixed) => {
+    lsatUpgradeError = err;
+};
+
+export const getLsatUpgradeError = () : ?mixed => {
+    return lsatUpgradeError;
+};
+
+export const clearLsatState = () => {
+    lsatUpgradeCalled = false;
+    lsatUpgradeError = null;
+};
+
 export function upgradeFacilitatorAccessToken(facilitatorAccessToken : string, { buyerAccessToken, orderID } : {| buyerAccessToken : string, orderID : string |}) : ZalgoPromise<void> {
+    onLsatUpgradeCalled();
+
     return callGraphQL({
         name:    'UpgradeFacilitatorAccessToken',
         headers: {
@@ -92,7 +121,10 @@ export function upgradeFacilitatorAccessToken(facilitatorAccessToken : string, {
             }
         `,
         variables: { facilitatorAccessToken, buyerAccessToken, orderID }
-    }).then(noop);
+    }).then(noop).catch(err => {
+        onLsatUpgradeError(err);
+        throw err;
+    });
 }
 
 export function exchangeAccessTokenForAuthCode(buyerAccessToken : string) : ZalgoPromise<string> {
