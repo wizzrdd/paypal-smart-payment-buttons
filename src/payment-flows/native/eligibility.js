@@ -175,11 +175,7 @@ export function isNativeEligible({ props, config, serviceData } : IsEligibleOpti
 export function isNativePaymentEligible({ props, payment } : IsPaymentEligibleOptions) : boolean {
 
     const { platform } = props;
-    const { win, fundingSource } = payment;
-
-    if (win) {
-        return false;
-    }
+    const { fundingSource } = payment;
 
     if (!NATIVE_CHECKOUT_URI[fundingSource] || !NATIVE_CHECKOUT_POPUP_URI[fundingSource] || !NATIVE_CHECKOUT_FALLBACK_URI[fundingSource]) {
         return false;

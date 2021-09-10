@@ -6,6 +6,7 @@ import { uniqueID, memoize, stringifyError,
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { FPTI_KEY } from '@paypal/sdk-constants/src';
 import { type CrossDomainWindowType } from 'cross-domain-utils/src';
+import type { ProxyWindow } from 'post-robot/src';
 
 import { updateButtonClientConfig, onLsatUpgradeCalled } from '../../api';
 import { getLogger, isAndroidChrome } from '../../lib';
@@ -48,7 +49,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         return clean.all();
     });
 
-    const fallbackToWebCheckout = (fallbackWin? : ?CrossDomainWindowType) => {
+    const fallbackToWebCheckout = (fallbackWin? : ?(CrossDomainWindowType | ProxyWindow)) => {
         didFallback = true;
         const checkoutPayment = { ...payment, win: fallbackWin, isClick: false, isNativeFallback: true };
         const instance = checkout.init({ props, components, payment: checkoutPayment, config, serviceData });
@@ -156,7 +157,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         });
     };
 
-    const onFallbackCallback = (opts? : {| win? : CrossDomainWindowType, optOut? : NativeOptOutOptions |}) => {
+    const onFallbackCallback = (opts? : {| win? : CrossDomainWindowType | ProxyWindow, optOut? : NativeOptOutOptions |}) => {
         const { win, optOut = getDefaultNativeOptOutOptions() } = opts || {};
         
         return ZalgoPromise.try(() => {
@@ -199,7 +200,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     }
 
     const flow = initFlow({
-        props, serviceData, config, components, fundingSource, clean, sessionUID,
+        payment, props, serviceData, config, components, fundingSource, clean, sessionUID,
         callbacks: {
             onInit:            onInitCallback,
             onApprove:         onApproveCallback,

@@ -8,6 +8,7 @@ import { values, destroyElement, noop, uniqueID, parseQuery, once } from 'belter
 import { FUNDING } from '@paypal/sdk-constants';
 import { INTENT, CURRENCY, CARD, PLATFORM, COUNTRY, type FundingEligibilityType } from '@paypal/sdk-constants/src';
 import { isWindowClosed, type CrossDomainWindowType } from 'cross-domain-utils/src';
+import { ProxyWindow } from 'post-robot/src/serialize/window';
 
 import type { ZoidComponentInstance, MenuFlowProps } from '../../src/types';
 import { setupButton } from '../../src';
@@ -161,9 +162,15 @@ export function setupMocks() {
             };
         },
         postRobot: {
-            on:   () => ({ cancel: noop }),
-            once: () => cancelablePromise(ZalgoPromise.resolve()),
-            send: () => cancelablePromise(ZalgoPromise.resolve())
+            on:                () => ({ cancel: noop }),
+            once:              () => cancelablePromise(ZalgoPromise.resolve()),
+            send:              () => cancelablePromise(ZalgoPromise.resolve()),
+            toProxyWindow: (win : CrossDomainWindowType) =>
+                ProxyWindow.toProxyWindow(win, {
+                    send: () => {
+                        throw new Error(`Can not send post message for proxy window in test`);
+                    }
+                })
         }
     };
 
@@ -1533,6 +1540,13 @@ export function getPostRobotMock() : PostRobotMock {
         },
         send: () => {
             throw new Error(`postRobot.send: not implemented`);
+        },
+        toProxyWindow: (win : CrossDomainWindowType) => {
+            return ProxyWindow.toProxyWindow(win, {
+                send: () => {
+                    throw new Error(`Can not send post message for proxy window in test`);
+                }
+            });
         }
     };
 
@@ -1729,7 +1743,7 @@ export function getMockWindowOpen({ expectedUrl, times = 1, appSwitch = false, e
                 newWin.closed = true;
             }
 
-            if (url) {
+            if (url && url !== 'about:blank') {
                 newWin.location = url;
             }
         });
