@@ -306,6 +306,15 @@ describe('native ios/safari cases', () => {
                 }
             });
 
+            mockFunction(window.paypal, 'Checkout', expect('Checkout', ({ original: CheckoutOriginal, args: [ checkoutProps ] }) => {
+                if (checkoutProps.window.getWindow() !== mockWindow.getWindow()) {
+                    throw new Error(`Expected win passed to checkout to match win sent in prerender`);
+                }
+
+                mockWindow.expectClose();
+                return CheckoutOriginal(checkoutProps);
+            }));
+
             createButtonHTML();
 
             await mockSetupButton({
@@ -802,6 +811,15 @@ describe('native ios/safari cases', () => {
                     }));
                 }
             });
+
+            mockFunction(window.paypal, 'Checkout', expect('Checkout', ({ original: CheckoutOriginal, args: [ checkoutProps ] }) => {
+                if (checkoutProps.window.getWindow() !== mockWindow.getWindow()) {
+                    throw new Error(`Expected win passed to checkout to match win sent in prerender`);
+                }
+
+                mockWindow.expectClose();
+                return CheckoutOriginal(checkoutProps);
+            }));
 
             createButtonHTML();
 
@@ -1538,7 +1556,8 @@ describe('native ios/safari cases', () => {
                 throw new Error(`Expected button click to trigger an error`);
             }
 
-            mockWindow.done();        });
+            mockWindow.done();
+        });
     });
 
     it('should render a button with createOrder and onClick resolving, click the button, and render checkout via popup to web path in iOS', async () => {
@@ -1648,6 +1667,7 @@ describe('native ios/safari cases', () => {
                         if (id !== orderID) {
                             throw new Error(`Expected orderID to be ${ orderID }, got ${ id }`);
                         }
+                        mockWindow.expectClose();
                         return renderToOriginal(...args);
                     });
                 }));
@@ -1667,7 +1687,8 @@ describe('native ios/safari cases', () => {
             await clickButton(FUNDING.PAYPAL);
             await window.xprops.onApprove.await();
 
-            mockWindow.done();        });
+            mockWindow.done();
+        });
     });
 
     it('should render a button with eligibility rejecting, click the button, and render checkout via popup to web path in iOS', async () => {
@@ -1781,6 +1802,7 @@ describe('native ios/safari cases', () => {
                         if (id !== orderID) {
                             throw new Error(`Expected orderID to be ${ orderID }, got ${ id }`);
                         }
+                        mockWindow.expectClose();
                         return renderToOriginal(...args);
                     });
                 }));
@@ -1874,7 +1896,8 @@ describe('native ios/safari cases', () => {
 
             await clickButton(FUNDING.PAYPAL);
 
-            mockWindow.done();        });
+            mockWindow.done();
+        });
     });
 
     it('should render a button with createOrder, click the venmo button, and render checkout via popup to native path in iOS', async () => {
@@ -3032,6 +3055,15 @@ describe('native android/chrome cases', () => {
                 }
             });
 
+            mockFunction(window.paypal, 'Checkout', expect('Checkout', ({ original: CheckoutOriginal, args: [ checkoutProps ] }) => {
+                if (checkoutProps.window.getWindow() !== mockWindow.getWindow()) {
+                    throw new Error(`Expected win passed to checkout to match win sent in prerender`);
+                }
+
+                mockWindow.expectClose();
+                return CheckoutOriginal(checkoutProps);
+            }));
+
             createButtonHTML();
 
             await mockSetupButton({
@@ -3513,6 +3545,15 @@ describe('native android/chrome cases', () => {
                     }));
                 }
             });
+
+            mockFunction(window.paypal, 'Checkout', expect('Checkout', ({ original: CheckoutOriginal, args: [ checkoutProps ] }) => {
+                if (checkoutProps.window.getWindow() !== mockWindow.getWindow()) {
+                    throw new Error(`Expected win passed to checkout to match win sent in prerender`);
+                }
+
+                mockWindow.expectClose();
+                return CheckoutOriginal(checkoutProps);
+            }));
 
             createButtonHTML();
 
@@ -4196,6 +4237,7 @@ describe('native android/chrome cases', () => {
                         if (id !== orderID) {
                             throw new Error(`Expected orderID to be ${ orderID }, got ${ id }`);
                         }
+                        mockWindow.expectClose();
                         return renderToOriginal(...args);
                     });
                 }));
@@ -4215,7 +4257,8 @@ describe('native android/chrome cases', () => {
             await clickButton(FUNDING.PAYPAL);
             await window.xprops.onApprove.await();
 
-            mockWindow.done();        });
+            mockWindow.done();
+        });
     });
 
     it('should render a button with eligibility rejecting, click the button, and render checkout via popup to web path in Android', async () => {
@@ -4329,6 +4372,7 @@ describe('native android/chrome cases', () => {
                         if (id !== orderID) {
                             throw new Error(`Expected orderID to be ${ orderID }, got ${ id }`);
                         }
+                        mockWindow.expectClose();
                         return renderToOriginal(...args);
                     });
                 }));
@@ -4422,7 +4466,8 @@ describe('native android/chrome cases', () => {
 
             await clickButton(FUNDING.PAYPAL);
 
-            mockWindow.done();        });
+            mockWindow.done();
+        });
     });
 
     it('should render a button with createOrder, click the venmo button, and render checkout via popup to native path in Android', async () => {

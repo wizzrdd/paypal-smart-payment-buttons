@@ -15,7 +15,7 @@ import type { Payment } from '../types';
 
 import { getNativeUrl } from './url';
 import { connectNative } from './socket';
-import { isNativeOptedIn, type NativeOptOutOptions } from './eligibility';
+import { isNativeOptedIn, type NativeFallbackOptions } from './eligibility';
 
 type EligibilityOptions = {|
     props : ButtonProps,
@@ -113,7 +113,7 @@ type NativeQRCodeOptions = {|
         |}>,
         onFallback : (opts? : {|
             win? : CrossDomainWindowType | ProxyWindow,
-            optOut? : NativeOptOutOptions
+            fallbackOptions? : NativeFallbackOptions
         |}) => ZalgoPromise<{|
             buttonSessionID : string
         |}>,
@@ -240,7 +240,7 @@ export function initNativeQRCode({ props, serviceData, config, components, fundi
                             state:     QRCODE_STATE.ERROR,
                             errorText: 'The authorization was canceled'
                         }).then(() => {
-                            return onFallback({ optOut: data });
+                            return onFallback({ fallbackOptions: data });
                         });
                     };
 

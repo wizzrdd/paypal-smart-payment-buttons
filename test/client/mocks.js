@@ -102,6 +102,10 @@ export function setupMocks() {
                     });
                 },
                 close: () => {
+                    if (props.window) {
+                        props.window.close();
+                    }
+
                     return ZalgoPromise.delay(50).then(() => {
                         if (props.onClose) {
                             return props.onClose();

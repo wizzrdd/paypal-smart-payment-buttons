@@ -14,7 +14,7 @@ import { type OnShippingChangeData } from '../../props/onShippingChange';
 import type { Payment } from '../types';
 
 
-import { isNativeOptedIn, type NativeOptOutOptions } from './eligibility';
+import { isNativeOptedIn, type NativeFallbackOptions } from './eligibility';
 import { getNativeUrl, getNativePopupUrl, getNativeDomain, getNativePopupDomain, getNativeFallbackUrl } from './url';
 import { connectNative } from './socket';
 
@@ -143,7 +143,7 @@ type NativePopupOptions = {|
         |}>,
         onFallback : (opts? : {|
             win? : CrossDomainWindowType | ProxyWindow,
-            optOut? : NativeOptOutOptions
+            fallbackOptions? : NativeFallbackOptions
         |}) => ZalgoPromise<{|
             buttonSessionID : string
         |}>,
@@ -187,6 +187,10 @@ export function initNativePopup({ payment, props, serviceData, config, fundingSo
                     nativePopupWinProxy = paypal.postRobot.toProxyWindow(popup);
                 }
 
+                const cleanupPopupWin = clean.register(() => {
+                    return nativePopupWinProxy.close();
+                });
+
                 const nativePopupDomain = getNativePopupDomain({ props });
 
                 getLogger().info(`native_attempt_appswitch_popup_shown`)
@@ -219,6 +223,14 @@ export function initNativePopup({ payment, props, serviceData, config, fundingSo
 
                     return unresolvedPromise();
                 });
+
+                const fallback = (fallbackOptions? : NativeFallbackOptions) : ZalgoPromise<{| buttonSessionID : string |}> => {
+                    cleanupPopupWin.cancel();
+                    return onFallback({
+                        win: nativePopupWinProxy,
+                        fallbackOptions
+                    });
+                };
 
                 const detectAppSwitch = once(() : ZalgoPromise<void> => {
                     return ZalgoPromise.try(() => {
@@ -293,12 +305,9 @@ export function initNativePopup({ payment, props, serviceData, config, fundingSo
                                     appSwitchError(new Error(data.message));
                                     return onError({ data });
                                 },
-                                onFallback: ({ data }) => {
+                                onFallback: ({ data: fallbackOptions }) => {
                                     detectAppSwitch();
-                                    return onFallback({
-                                        win:    nativePopupWinProxy,
-                                        optOut: data
-                                    });
+                                    return fallback(fallbackOptions);
                                 }
                             }
                         });
@@ -340,9 +349,7 @@ export function initNativePopup({ payment, props, serviceData, config, fundingSo
                             [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.NATIVE_DETECT_WEB_SWITCH
                         }).flush();
 
-                        return onFallback({
-                            win: nativePopupWinProxy
-                        }).then(noop);
+                        return fallback().then(noop);
                     }).then(resolve, reject);
                 });
 
@@ -480,12 +487,12 @@ export function initNativePopup({ payment, props, serviceData, config, fundingSo
                     closePopup('onCancel');
                 });
 
-                const onFallbackListener = postRobotOnceProxy(POST_MESSAGE.ON_FALLBACK, { proxyWin: nativePopupWinProxy, domain: nativePopupDomain }, ({ data }) => {
+                const onFallbackListener = postRobotOnceProxy(POST_MESSAGE.ON_FALLBACK, { proxyWin: nativePopupWinProxy, domain: nativePopupDomain }, ({ data: fallbackOptions }) => {
                     getLogger().info(`native_message_onfallback`)
                         .track({
                             [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.NATIVE_ON_FALLBACK
                         }).flush();
-                    onFallback({ win: nativePopupWinProxy, optOut: data });
+                    fallback(fallbackOptions);
                 });
 
                 const onCompleteListener = postRobotOnceProxy(POST_MESSAGE.ON_COMPLETE, { proxyWin: nativePopupWinProxy, domain: nativePopupDomain }, () => {

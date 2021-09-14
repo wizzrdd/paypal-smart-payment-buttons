@@ -16,7 +16,7 @@ import { checkout } from '../checkout';
 import type { PaymentFlow, PaymentFlowInstance, SetupOptions, InitOptions } from '../types';
 
 import { isNativeEligible, isNativePaymentEligible, prefetchNativeEligibility, canUsePopupAppSwitch,
-    canUseNativeQRCode, setNativeOptOut, getDefaultNativeOptOutOptions, type NativeOptOutOptions } from './eligibility';
+    canUseNativeQRCode, setNativeOptOut, getDefaultNativeFallbackOptions, type NativeFallbackOptions } from './eligibility';
 import { initNativeQRCode } from './qrcode';
 import { initNativePopup } from './popup';
 
@@ -53,8 +53,11 @@ function initNative({ props, components, config, payment, serviceData, restart }
         didFallback = true;
         const checkoutPayment = { ...payment, win: fallbackWin, isClick: false, isNativeFallback: true };
         const instance = checkout.init({ props, components, payment: checkoutPayment, config, serviceData, restart });
-        clean.register(() => instance.close());
-        return instance.start();
+
+        return ZalgoPromise.all([
+            destroy(),
+            instance.start()
+        ]).then(noop);
     };
 
     const onInitCallback = () => {
@@ -157,13 +160,13 @@ function initNative({ props, components, config, payment, serviceData, restart }
         });
     };
 
-    const onFallbackCallback = (opts? : {| win? : CrossDomainWindowType | ProxyWindow, optOut? : NativeOptOutOptions |}) => {
-        const { win, optOut = getDefaultNativeOptOutOptions() } = opts || {};
+    const onFallbackCallback = (opts? : {| win? : CrossDomainWindowType | ProxyWindow, fallbackOptions? : NativeFallbackOptions |}) => {
+        const { win, fallbackOptions = getDefaultNativeFallbackOptions() } = opts || {};
         
         return ZalgoPromise.try(() => {
 
-            const result = setNativeOptOut(optOut);
-            const { fallback_reason } = optOut;
+            const result = setNativeOptOut(fallbackOptions);
+            const { fallback_reason } = fallbackOptions;
 
             getLogger().info(`native_message_onfallback`)
                 .track({
