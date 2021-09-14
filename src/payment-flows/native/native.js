@@ -26,7 +26,7 @@ function setupNative({ props, serviceData } : SetupOptions) : ZalgoPromise<void>
     return prefetchNativeEligibility({ props, serviceData }).then(noop);
 }
 
-function initNative({ props, components, config, payment, serviceData } : InitOptions) : PaymentFlowInstance {
+function initNative({ props, components, config, payment, serviceData, restart } : InitOptions) : PaymentFlowInstance {
     const { onApprove, onCancel, onError, buttonSessionID, onShippingChange } = props;
     const { fundingSource } = payment;
     const { firebase: firebaseConfig } = config;
@@ -52,7 +52,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     const fallbackToWebCheckout = (fallbackWin? : ?(CrossDomainWindowType | ProxyWindow)) => {
         didFallback = true;
         const checkoutPayment = { ...payment, win: fallbackWin, isClick: false, isNativeFallback: true };
-        const instance = checkout.init({ props, components, payment: checkoutPayment, config, serviceData });
+        const instance = checkout.init({ props, components, payment: checkoutPayment, config, serviceData, restart });
         clean.register(() => instance.close());
         return instance.start();
     };

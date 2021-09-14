@@ -101,7 +101,7 @@ function getContext({ win, isClick } : {| win : ?(CrossDomainWindowType | ProxyW
     return CONTEXT.IFRAME;
 }
 
-function initCheckout({ props, components, serviceData, payment, config } : InitOptions) : PaymentFlowInstance {
+function initCheckout({ props, components, serviceData, payment, config, restart: fullRestart } : InitOptions) : PaymentFlowInstance {
     if (checkoutOpen) {
         throw new Error(`Checkout already rendered`);
     }
@@ -251,7 +251,10 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
             clientMetadataID: cmid,
             enableFunding,
             standaloneFundingSource,
-            branded
+            branded,
+            restart:          () => {
+                return fullRestart({ payment: { ...payment, win } });
+            }
         });
     };
 
@@ -279,7 +282,7 @@ function initCheckout({ props, components, serviceData, payment, config } : Init
     const restart = memoize(() : ZalgoPromise<void> => {
         // Closing any previous checkout popup before restarting
         return close().finally(() => {
-            return initCheckout({ props, components, serviceData, config, payment: { button, fundingSource, card, buyerIntent, isClick: false } })
+            return initCheckout({ props, components, serviceData, config, payment: { button, fundingSource, card, buyerIntent, isClick: false }, restart })
                 .start().finally(unresolvedPromise);
         });
     });

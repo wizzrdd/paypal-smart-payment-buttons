@@ -78,8 +78,11 @@ export function initiatePaymentFlow({ payment, serviceData, config, components, 
         
         sendPersonalizationBeacons(personalization);
 
+        const restart = ({ payment: restartPayment }) =>
+            initiatePaymentFlow({ payment: restartPayment, serviceData, config, components, props });
+
         const { name, init, inline, spinner, updateFlowClientConfig } = getPaymentFlow({ props, payment, config, components, serviceData });
-        const { click, start, close } = init({ props, config, serviceData, components, payment });
+        const { click, start, close } = init({ props, config, serviceData, components, payment, restart });
 
         const clickPromise = click ? ZalgoPromise.try(click) : ZalgoPromise.resolve();
         clickPromise.catch(noop);
@@ -141,6 +144,7 @@ export function initiatePaymentFlow({ payment, serviceData, config, components, 
                 return validateOrder(orderID, { env, clientID, merchantID, intent, currency, vault, buttonLabel });
             });
 
+            startPromise.catch(noop);
             validateOrderPromise.catch(noop);
             
             const confirmOrder = ({ orderID, payload }) => getConfirmOrder({ orderID, payload, partnerAttributionID }, { facilitatorAccessToken: serviceData.facilitatorAccessToken });
@@ -208,7 +212,10 @@ export function initiateMenuFlow({ payment, serviceData, config, components, pro
             [FPTI_KEY.PAYMENT_FLOW]:   name
         }).flush();
 
-        const choices = setupMenu({ props, payment, serviceData, components, config }).map(choice => {
+        const restart = ({ payment: restartPayment }) =>
+            initiatePaymentFlow({ payment: restartPayment, serviceData, config, components, props });
+
+        const choices = setupMenu({ props, payment, serviceData, components, config, restart }).map(choice => {
             return {
                 ...choice,
                 onSelect: (...args) => {
