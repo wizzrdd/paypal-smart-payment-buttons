@@ -56,13 +56,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         return instance.start();
     };
 
-    const qrEscapePath = (selectedFundingSource : $Values<typeof FUNDING>) => {
-        const paymentInfo = { ...payment, fundingSource: selectedFundingSource };
-        const instance = checkout.init({ props, components, payment: paymentInfo, config, serviceData });
-        clean.register(() => instance.close());
-        return instance.start();
-    };
-
     const onInitCallback = () => {
         return ZalgoPromise.try(() => {
             onLsatUpgradeCalled();
@@ -183,9 +176,15 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         });
     };
 
-    const onQrEscapePathCallback = (selectedFundingSource : $Values<typeof FUNDING>) => {
+    const onQrEscapePathCallback = (qrInstance, selectedFundingSource : $Values<typeof FUNDING>) => {
         return ZalgoPromise.try(() => {
-            return qrEscapePath(selectedFundingSource);
+            const paymentInfo = { ...payment, fundingSource: selectedFundingSource };
+            const instance = checkout.init({ props, components, payment: paymentInfo, config, serviceData });
+            clean.register(() => instance.close());
+            
+            return instance.start().then(() => {
+                return true;
+            });
         });
     };
 

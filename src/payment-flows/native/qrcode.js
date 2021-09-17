@@ -160,6 +160,7 @@ export function initNativeQRCode({ props, serviceData, config, components, fundi
                     [FPTI_KEY.STATE]:       FPTI_STATE.BUTTON,
                     [FPTI_KEY.TRANSITION]:  `${ FPTI_TRANSITION.QR_PROCESS_PAY_WITH }_${ selectedFundingSource }`
                 }).flush();
+
                 return onQrEscapePath(selectedFundingSource);
             };
 
