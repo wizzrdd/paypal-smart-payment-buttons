@@ -4,7 +4,7 @@
 import { uniqueID, memoize, stringifyError,
     stringifyErrorMessage, cleanup, noop } from 'belter/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
-import { FPTI_KEY, FUNDING } from '@paypal/sdk-constants/src';
+import { FPTI_KEY } from '@paypal/sdk-constants/src';
 import { type CrossDomainWindowType } from 'cross-domain-utils/src';
 
 import { updateButtonClientConfig, onLsatUpgradeCalled } from '../../api';
@@ -176,18 +176,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
         });
     };
 
-    const onQrEscapePathCallback = (qrInstance, selectedFundingSource : $Values<typeof FUNDING>) => {
-        return ZalgoPromise.try(() => {
-            const paymentInfo = { ...payment, fundingSource: selectedFundingSource };
-            const instance = checkout.init({ props, components, payment: paymentInfo, config, serviceData });
-            clean.register(() => instance.close());
-            
-            return instance.start().then(() => {
-                return true;
-            });
-        });
-    };
-
     const onCloseCallback = () => {
         return ZalgoPromise.delay(1000).then(() => {
             
@@ -211,7 +199,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     }
 
     const flow = initFlow({
-        props, serviceData, config, components, fundingSource, clean, sessionUID,
+        props, serviceData, config, components, payment, clean, sessionUID,
         callbacks: {
             onInit:            onInitCallback,
             onApprove:         onApproveCallback,
@@ -220,7 +208,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
             onShippingChange:  onShippingChangeCallback,
             onFallback:        onFallbackCallback,
             onClose:           onCloseCallback,
-            onQrEscapePath:    onQrEscapePathCallback,
             onDestroy:         destroy
         }
     });
