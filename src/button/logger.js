@@ -71,7 +71,6 @@ export function setupButtonLogger({ env, sessionID, buttonSessionID, clientID, p
             [FPTI_KEY.USER_ACTION]:                  commit ? FPTI_USER_ACTION.COMMIT : FPTI_USER_ACTION.CONTINUE,
             [FPTI_KEY.SELLER_ID]:                    merchantID[0],
             [FPTI_KEY.MERCHANT_DOMAIN]:              merchantDomain,
-            [FPTI_KEY.TIMESTAMP]:                    Date.now().toString(),
             [AMPLITUDE_KEY.USER_ID]:                 buttonSessionID
         };
     });
