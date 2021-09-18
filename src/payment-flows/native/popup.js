@@ -376,8 +376,9 @@ export function initNativePopup({ props, serviceData, config, payment, sessionUI
                             nativePopupWin.close();
                             return onDestroy().then(() => {
                                 return {
-                                    redirect:  false,
-                                    appSwitch: false
+                                    appSwitch: false,
+                                    orderID:   null,
+                                    redirect:  false
                                 };
                             });
                         }
@@ -387,6 +388,7 @@ export function initNativePopup({ props, serviceData, config, payment, sessionUI
                                 return {
                                     redirect:    true,
                                     appSwitch:   false,
+                                    orderID,
                                     redirectUrl: getNativeFallbackUrl({
                                         props, serviceData, config, fundingSource, sessionUID, pageUrl, orderID, stickinessID
                                     })
@@ -411,8 +413,9 @@ export function initNativePopup({ props, serviceData, config, payment, sessionUI
                             }
 
                             return {
-                                redirect:    true,
                                 appSwitch:   true,
+                                orderID,
+                                redirect:    true,
                                 redirectUrl: nativeUrl
                             };
                         });
@@ -427,8 +430,9 @@ export function initNativePopup({ props, serviceData, config, payment, sessionUI
 
                         return orderPromise.then(orderID => {
                             return {
-                                redirect:    true,
                                 appSwitch:   false,
+                                orderID,
+                                redirect:    true,
                                 redirectUrl: getNativeFallbackUrl({
                                     props, serviceData, config, fundingSource, sessionUID, pageUrl, orderID, stickinessID
                                 })
