@@ -71,6 +71,7 @@ export function setupButtonLogger({ env, sessionID, buttonSessionID, clientID, p
             [FPTI_KEY.USER_ACTION]:                  commit ? FPTI_USER_ACTION.COMMIT : FPTI_USER_ACTION.CONTINUE,
             [FPTI_KEY.SELLER_ID]:                    merchantID[0],
             [FPTI_KEY.MERCHANT_DOMAIN]:              merchantDomain,
+            [FPTI_KEY.TIMESTAMP]:                    Date.now().toString(),
             [AMPLITUDE_KEY.USER_ID]:                 buttonSessionID
         };
     });
@@ -123,6 +124,8 @@ export function setupButtonLogger({ env, sessionID, buttonSessionID, clientID, p
 
         logger.track({
             [FPTI_KEY.TRANSITION]:                      FPTI_TRANSITION.BUTTON_LOAD,
+            [FPTI_KEY.CONTEXT_TYPE]:                    FPTI_CONTEXT_TYPE.BUTTON_SESSION_ID,
+            [FPTI_KEY.CONTEXT_ID]:                      buttonSessionID,
             [FPTI_KEY.FUNDING_LIST]:                    fundingSources.join(':'),
             [FPTI_KEY.FI_LIST]:                         walletInstruments.join(':'),
             [FPTI_KEY.SELECTED_FI]:                     fundingSource,

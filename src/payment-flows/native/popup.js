@@ -7,7 +7,7 @@ import { type CrossDomainWindowType, onCloseWindow } from 'cross-domain-utils/sr
 
 import { getNativeEligibility, onLsatUpgradeCalled } from '../../api';
 import { getLogger, isAndroidChrome, unresolvedPromise, getStorageState } from '../../lib';
-import { FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY } from '../../constants';
+import { FPTI_CONTEXT_TYPE, FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY } from '../../constants';
 import type { ButtonProps, ServiceData, Config, Components } from '../../button/props';
 import { type OnShippingChangeData } from '../../props/onShippingChange';
 import type { Payment } from '../types';
@@ -157,7 +157,7 @@ type NativePopup = {|
 |};
 
 export function initNativePopup({ props, serviceData, config, payment, sessionUID, callbacks, clean } : NativePopupOptions) : NativePopup {
-    const { onClick, createOrder } = props;
+    const { onClick, createOrder, buttonSessionID } = props;
     const { firebase: firebaseConfig } = config;
     const { fundingSource } = payment;
     const { onInit, onApprove, onCancel, onError, onFallback, onClose, onDestroy, onShippingChange } = callbacks;
@@ -181,9 +181,8 @@ export function initNativePopup({ props, serviceData, config, payment, sessionUI
 
                 getLogger().info(`native_attempt_appswitch_popup_shown`)
                     .track({
-                        [FPTI_KEY.STATE]:      FPTI_STATE.BUTTON,
-                        [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.NATIVE_POPUP_SHOWN,
-                        [FPTI_KEY.TOKEN]:      '-'
+                        [FPTI_KEY.STATE]:        FPTI_STATE.BUTTON,
+                        [FPTI_KEY.TRANSITION]:   FPTI_TRANSITION.NATIVE_POPUP_SHOWN
                     }).flush();
 
                 const redirectListenerTimeout = setTimeout(() => {

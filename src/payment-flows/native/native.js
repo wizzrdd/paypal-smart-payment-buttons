@@ -9,7 +9,7 @@ import { type CrossDomainWindowType } from 'cross-domain-utils/src';
 
 import { updateButtonClientConfig, onLsatUpgradeCalled } from '../../api';
 import { getLogger, isAndroidChrome } from '../../lib';
-import { FPTI_TRANSITION, FPTI_CUSTOM_KEY } from '../../constants';
+import { FPTI_CONTEXT_TYPE, FPTI_TRANSITION, FPTI_CUSTOM_KEY } from '../../constants';
 import { type OnShippingChangeData } from '../../props/onShippingChange';
 import { checkout } from '../checkout';
 import type { PaymentFlow, PaymentFlowInstance, SetupOptions, InitOptions } from '../types';
@@ -215,7 +215,10 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     const click = () => {
         getLogger().addTrackingBuilder(() => {
             return {
-                [FPTI_KEY.CHOSEN_FUNDING]: fundingSource
+                [FPTI_KEY.CONTEXT_TYPE]:   FPTI_CONTEXT_TYPE.BUTTON_SESSION_ID,
+                [FPTI_KEY.CONTEXT_ID]:     buttonSessionID,
+                [FPTI_KEY.CHOSEN_FUNDING]: fundingSource,
+                [FPTI_KEY.TOKEN]:          '-'
             };
         });
         
