@@ -93,7 +93,7 @@ export function initiatePaymentFlow({ payment, serviceData, config, components, 
                 return {
                     [FPTI_KEY.CONTEXT_TYPE]: FPTI_CONTEXT_TYPE.BUTTON_SESSION_ID,
                     [FPTI_KEY.CONTEXT_ID]:   buttonSessionID,
-                    [FPTI_KEY.TOKEN]:        ''
+                    [FPTI_KEY.TOKEN]:        '-'
                 };
             })
             .track({

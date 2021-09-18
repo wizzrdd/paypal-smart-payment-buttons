@@ -182,7 +182,8 @@ export function initNativePopup({ props, serviceData, config, payment, sessionUI
                 getLogger().info(`native_attempt_appswitch_popup_shown`)
                     .track({
                         [FPTI_KEY.STATE]:      FPTI_STATE.BUTTON,
-                        [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.NATIVE_POPUP_SHOWN
+                        [FPTI_KEY.TRANSITION]: FPTI_TRANSITION.NATIVE_POPUP_SHOWN,
+                        [FPTI_KEY.TOKEN]:      '-'
                     }).flush();
 
                 const redirectListenerTimeout = setTimeout(() => {
