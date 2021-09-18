@@ -297,7 +297,8 @@ export function setupNativePopup({ parentDomain, env, sessionID, buttonSessionID
                 logger.addTrackingBuilder(() => {
                     return {
                         [FPTI_KEY.CONTEXT_TYPE]: FPTI_CONTEXT_TYPE.ORDER_ID,
-                        [FPTI_KEY.CONTEXT_ID]:   orderID
+                        [FPTI_KEY.CONTEXT_ID]:   orderID,
+                        [FPTI_KEY.TOKEN]:        orderID
                     };
                 });
             }
