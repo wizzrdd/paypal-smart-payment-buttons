@@ -218,7 +218,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
                 [FPTI_KEY.CONTEXT_TYPE]:   FPTI_CONTEXT_TYPE.BUTTON_SESSION_ID,
                 [FPTI_KEY.CONTEXT_ID]:     buttonSessionID,
                 [FPTI_KEY.CHOSEN_FUNDING]: fundingSource,
-                [FPTI_KEY.TOKEN]:          '-'
+                [FPTI_KEY.TOKEN]:          null
             };
         });
         

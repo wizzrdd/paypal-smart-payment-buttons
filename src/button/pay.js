@@ -87,7 +87,7 @@ export function initiatePaymentFlow({ payment, serviceData, config, components, 
         getLogger()
             .addPayloadBuilder(() => {
                 return {
-                    token: '-'
+                    token: null
                 };
             })
             .info(`button_click`)
@@ -98,7 +98,7 @@ export function initiatePaymentFlow({ payment, serviceData, config, components, 
                 return {
                     [FPTI_KEY.CONTEXT_TYPE]: FPTI_CONTEXT_TYPE.BUTTON_SESSION_ID,
                     [FPTI_KEY.CONTEXT_ID]:   buttonSessionID,
-                    [FPTI_KEY.TOKEN]:        '-'
+                    [FPTI_KEY.TOKEN]:        null
                 };
             })
             .track({
