@@ -81,9 +81,6 @@ export function initiatePaymentFlow({ payment, serviceData, config, components, 
         const { name, init, inline, spinner, updateFlowClientConfig } = getPaymentFlow({ props, payment, config, components, serviceData });
         const { click, start, close } = init({ props, config, serviceData, components, payment });
 
-        const clickPromise = click ? ZalgoPromise.try(click) : ZalgoPromise.resolve();
-        clickPromise.catch(noop);
-
         getLogger()
             .addPayloadBuilder(() => {
                 return {
@@ -108,6 +105,9 @@ export function initiatePaymentFlow({ payment, serviceData, config, components, 
                 [FPTI_KEY.PAYMENT_FLOW]:   name,
                 [FPTI_KEY.IS_VAULT]:       instrumentType ? '1' : '0'
             }).flush();
+
+        const clickPromise = click ? ZalgoPromise.try(click) : ZalgoPromise.resolve();
+        clickPromise.catch(noop);
 
         return ZalgoPromise.try(() => {
             return onClick ? onClick({ fundingSource }) : true;

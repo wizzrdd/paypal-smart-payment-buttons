@@ -213,15 +213,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     });
 
     const click = () => {
-        getLogger().addTrackingBuilder(() => {
-            return {
-                [FPTI_KEY.CONTEXT_TYPE]:   FPTI_CONTEXT_TYPE.BUTTON_SESSION_ID,
-                [FPTI_KEY.CONTEXT_ID]:     buttonSessionID,
-                [FPTI_KEY.CHOSEN_FUNDING]: fundingSource,
-                [FPTI_KEY.TOKEN]:          null
-            };
-        });
-        
         return flow.click();
     };
 
