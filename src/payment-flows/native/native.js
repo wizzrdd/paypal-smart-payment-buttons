@@ -9,7 +9,7 @@ import { type CrossDomainWindowType } from 'cross-domain-utils/src';
 
 import { updateButtonClientConfig, onLsatUpgradeCalled } from '../../api';
 import { getLogger, isAndroidChrome } from '../../lib';
-import { FPTI_CONTEXT_TYPE, FPTI_TRANSITION, FPTI_CUSTOM_KEY } from '../../constants';
+import { FPTI_TRANSITION, FPTI_CUSTOM_KEY } from '../../constants';
 import { type OnShippingChangeData } from '../../props/onShippingChange';
 import { checkout } from '../checkout';
 import type { PaymentFlow, PaymentFlowInstance, SetupOptions, InitOptions } from '../types';
