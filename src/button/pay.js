@@ -82,11 +82,7 @@ export function initiatePaymentFlow({ payment, serviceData, config, components, 
         const { click, start, close } = init({ props, config, serviceData, components, payment });
 
         getLogger()
-            .addPayloadBuilder(() => {
-                return {
-                    token: null
-                };
-            })
+            .addPayloadBuilder(() => { token: null })
             .info(`button_click`)
             .info(`button_click_pay_flow_${ name }`)
             .info(`button_click_fundingsource_${ fundingSource }`)
