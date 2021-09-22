@@ -64,6 +64,8 @@ const getElements = () : {| buttonsContainer : HTMLElement, cardButtonsContainer
     const buttonsContainer = document.querySelector('#buttons-container');
     const cardButtonsContainer = document.querySelector(`[${ DATA_ATTRIBUTES.FUNDING_SOURCE }="${ FUNDING.CARD }"]`);
     const cardFieldsContainer = document.querySelector('#card-fields-container');
+    cardFieldsContainer.querySelector('iframe').style.minWidth = "100%";
+    cardFieldsContainer.querySelector('iframe').style.width = "1px";
 
     if (!buttonsContainer || !cardButtonsContainer || !cardFieldsContainer) {
         throw new Error(`Did not find card fields elements`);
