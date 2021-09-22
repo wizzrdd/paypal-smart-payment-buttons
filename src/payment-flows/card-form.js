@@ -10,13 +10,13 @@ import { unresolvedPromise, promiseNoop } from '../lib';
 import type { PaymentFlow, PaymentFlowInstance, IsEligibleOptions, IsPaymentEligibleOptions, InitOptions } from './types';
 import { checkout } from './checkout';
 
-function setupCardFields() {
+function setupCardForm() {
     // pass
 }
 
-let cardFieldsOpen = false;
+let cardFormOpen = false;
 
-function isCardFieldsEligible({ props, serviceData } : IsEligibleOptions) : boolean {
+function isCardFormEligible({ props, serviceData } : IsEligibleOptions) : boolean {
     const { vault, onShippingChange } = props;
     const { eligibility } = serviceData;
 
@@ -28,10 +28,10 @@ function isCardFieldsEligible({ props, serviceData } : IsEligibleOptions) : bool
         return false;
     }
 
-    return eligibility.cardFields;
+    return eligibility.cardForm;
 }
 
-function isCardFieldsPaymentEligible({ payment } : IsPaymentEligibleOptions) : boolean {
+function isCardFormPaymentEligible({ payment } : IsPaymentEligibleOptions) : boolean {
     const { win, fundingSource } = payment || {};
 
     if (win) {
@@ -60,31 +60,36 @@ function unhighlightCards() {
     });
 }
 
-const getElements = () : {| buttonsContainer : HTMLElement, cardButtonsContainer : HTMLElement, cardFieldsContainer : HTMLElement |} => {
+const getElements = () : {| buttonsContainer : HTMLElement, cardButtonsContainer : HTMLElement, cardFormContainer : HTMLElement |} => {
     const buttonsContainer = document.querySelector('#buttons-container');
     const cardButtonsContainer = document.querySelector(`[${ DATA_ATTRIBUTES.FUNDING_SOURCE }="${ FUNDING.CARD }"]`);
-    const cardFieldsContainer = document.querySelector('#card-fields-container');
-    cardFieldsContainer.querySelector('iframe').style.minWidth = "100%";
-    cardFieldsContainer.querySelector('iframe').style.width = "1px";
+    const cardFormContainer = document.querySelector('#card-fields-container');
+    
+    if (cardFormContainer) {
+        //  This is a hack to prevent the iframe elemen to get cut off in certain ipad devices 
+        //  These changes should not affect the way the app looked originally in any device
+        cardFormContainer.querySelector('iframe').style.minWidth = "100%";
+        cardFormContainer.querySelector('iframe').style.width = "1px";
+    }
 
-    if (!buttonsContainer || !cardButtonsContainer || !cardFieldsContainer) {
+    if (!buttonsContainer || !cardButtonsContainer || !cardFormContainer) {
         throw new Error(`Did not find card fields elements`);
     }
 
-    return { buttonsContainer, cardButtonsContainer, cardFieldsContainer };
+    return { buttonsContainer, cardButtonsContainer, cardFormContainer };
 };
 
 let resizeListener;
 
 const slideUpButtons = () => {
-    const { buttonsContainer, cardButtonsContainer, cardFieldsContainer } = getElements();
+    const { buttonsContainer, cardButtonsContainer, cardFormContainer } = getElements();
 
-    if (!buttonsContainer || !cardButtonsContainer || !cardFieldsContainer) {
+    if (!buttonsContainer || !cardButtonsContainer || !cardFormContainer) {
         throw new Error(`Required elements not found`);
     }
 
-    cardFieldsContainer.style.minHeight = '0px';
-    cardFieldsContainer.style.display = 'block';
+    cardFormContainer.style.minHeight = '0px';
+    cardFormContainer.style.display = 'block';
 
     const recalculateMargin = () => {
         buttonsContainer.style.marginTop = `${ buttonsContainer.offsetTop - cardButtonsContainer.offsetTop }px`;
@@ -108,15 +113,15 @@ const slideDownButtons = () => {
     buttonsContainer.style.removeProperty('margin-top');
 };
 
-function initCardFields({ props, components, payment, serviceData, config } : InitOptions) : PaymentFlowInstance {
+function initCardForm({ props, components, payment, serviceData, config } : InitOptions) : PaymentFlowInstance {
     const { createOrder, onApprove, onCancel,
         locale, commit, onError, sessionID, buttonSessionID, onAuth } = props;
-    const { CardFields } = components;
+    const { CardForm } = components;
     const { fundingSource, card } = payment;
     const { cspNonce } = config;
     const { buyerCountry } = serviceData;
 
-    if (cardFieldsOpen) {
+    if (cardFormOpen) {
         highlightCard(card);
         return {
             start: promiseNoop,
@@ -129,7 +134,7 @@ function initCardFields({ props, components, payment, serviceData, config } : In
             .start().finally(unresolvedPromise));
 
     const onClose = () => {
-        cardFieldsOpen = false;
+        cardFormOpen = false;
     };
 
     const onCardTypeChange = ({ card: cardType }) => {
@@ -138,7 +143,7 @@ function initCardFields({ props, components, payment, serviceData, config } : In
 
     let buyerAccessToken;
 
-    const { render, close: closeCardFields } = CardFields({
+    const { render, close: closeCardForm } = CardForm({
         createOrder,
 
         fundingSource,
@@ -179,7 +184,7 @@ function initCardFields({ props, components, payment, serviceData, config } : In
     });
 
     const start = () => {
-        cardFieldsOpen = true;
+        cardFormOpen = true;
         const renderPromise = render('#card-fields-container');
         slideUpButtons();
         highlightCard(card);
@@ -188,19 +193,19 @@ function initCardFields({ props, components, payment, serviceData, config } : In
 
     const close = () => {
         slideDownButtons();
-        return closeCardFields().then(() => {
-            cardFieldsOpen = false;
+        return closeCardForm().then(() => {
+            cardFormOpen = false;
         });
     };
 
     return { start, close };
 }
 
-export const cardFields : PaymentFlow = {
-    name:              'card_fields',
-    setup:             setupCardFields,
-    isEligible:        isCardFieldsEligible,
-    isPaymentEligible: isCardFieldsPaymentEligible,
-    init:              initCardFields,
+export const cardForm : PaymentFlow = {
+    name:              'card_form',
+    setup:             setupCardForm,
+    isEligible:        isCardFormEligible,
+    isPaymentEligible: isCardFormPaymentEligible,
+    init:              initCardForm,
     inline:            true
 };

@@ -67,7 +67,7 @@ export type CheckoutProps = {|
 
 export type CheckoutFlowType = ZoidComponent<CheckoutProps>;
 
-export type CardFieldsProps = {|
+export type CardFormProps = {|
     window? : ?(ProxyWindow | CrossDomainWindowType),
     sessionID : string,
     buttonSessionID : string,
@@ -87,7 +87,7 @@ export type CardFieldsProps = {|
     cspNonce : ?string
 |};
 
-export type CardFieldsFlowType = ZoidComponent<CardFieldsProps>;
+export type CardFormFlowType = ZoidComponent<CardFormProps>;
 
 type ThreeDomainSecureProps = {|
     createOrder : () => ZalgoPromise<string>,
@@ -127,7 +127,8 @@ export type QRCodeProps = {|
     cspNonce : ?string,
     state? : $Values<typeof QRCODE_STATE>,
     errorText? : string,
-    onClose? : () => ZalgoPromise<void>
+    onClose? : () => ZalgoPromise<void>,
+    onEscapePath? : (win : CrossDomainWindowType, selectedFundingSource : $Values<typeof FUNDING>) => ZalgoPromise<void>
 |};
 export type QRCodeType = ZoidComponent<QRCodeProps>;
 
@@ -151,7 +152,7 @@ export type PostRobot = {|
 export type PayPal = {|
     version : string,
     Checkout : CheckoutFlowType,
-    CardFields : CardFieldsFlowType,
+    CardForm : CardFormFlowType,
     ThreeDomainSecure : ThreeDomainSecureFlowType,
     Menu : MenuFlowType,
     postRobot : PostRobot

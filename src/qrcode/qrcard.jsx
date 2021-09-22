@@ -3,11 +3,12 @@
 
 import { h, render, Fragment } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
+import { FUNDING } from '@paypal/sdk-constants/src';
 
-import {
-    getBody
-} from '../lib';
+import { getBody } from '../lib';
+import { openPopup } from '../ui';
 import { QRCODE_STATE } from '../constants';
+import { CHECKOUT_POPUP_DIMENSIONS } from '../payment-flows/checkout';
 
 import {
     ErrorMessage,
@@ -52,6 +53,14 @@ function QRCard({
     const { state, errorText, setState } = useXProps();
     const isError = () => {
         return state === QRCODE_STATE.ERROR;
+    };
+
+    const handleClick = (selectedFundingSource : $Values<typeof FUNDING>) => {
+        window.xprops.hide();
+        const win = openPopup({ width: CHECKOUT_POPUP_DIMENSIONS.WIDTH, height: CHECKOUT_POPUP_DIMENSIONS.HEIGHT });
+        window.xprops.onEscapePath(win, selectedFundingSource).then(() => {
+            window.xprops.close();
+        });
     };
 
     const errorMessage = (
@@ -99,6 +108,7 @@ function QRCard({
                     onClick={ () => setState(debugging_nextStateMap.get(state)) }
                 >Next State</button>}
             </div>
+            <p className="escape-path">Don&apos;t have the app? Pay with <span className="escape-path__link" onClick={ () => handleClick(FUNDING.PAYPAL) }>PayPal</span> or <span className="escape-path__link" onClick={ () => handleClick(FUNDING.CARD) }>Credit/Debit card</span></p>
         </Fragment>
     );
 }

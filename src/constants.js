@@ -23,7 +23,8 @@ export const HEADERS = {
 
     PARTNER_ATTRIBUTION_ID: 'paypal-partner-attribution-id',
     CLIENT_METADATA_ID:     'paypal-client-metadata-id',
-    PAYPAL_DEBUG_ID:        'paypal-debug-id'
+    PAYPAL_DEBUG_ID:        'paypal-debug-id',
+    PAYPAL_REQUEST_ID:      'paypal-request-id'
 };
 
 export const DATA_ATTRIBUTES = {
@@ -112,6 +113,8 @@ export const FPTI_TRANSITION = {
     CHECKOUT_APPROVE:         ('process_checkout_approve' : 'process_checkout_approve'),
     CHECKOUT_CANCEL:          ('process_checkout_cancel' : 'process_checkout_cancel'),
 
+    TOKENIZE_APPROVE:         ('process_tokenize_approve' : 'process_tokenize_approve'),
+
     CONNECT_REDIRECT:         ('process_connect_redirect' : 'process_connect_redirect'),
 
     FIREBASE_CONNECTION_OPENED:     ('firebase_connection_opened' : 'firebase_connection_opened'),
@@ -161,6 +164,8 @@ export const FPTI_TRANSITION = {
     
     QR_SHOWN:                               ('qr_shown' : 'qr_shown'),
     QR_CLOSING:                             ('qr_closing' : 'qr_closing'),
+    QR_PREPARE_PAY:                         ('qr_prepare_pay' : 'qr_prepare_pay'),
+    QR_PROCESS_PAY_WITH:                    ('qr_process_pay_with' : 'qr_process_pay_with'),
     
     HONEY_IDENTIFY:                         ('honey_identify' : 'honey_identify'),
     

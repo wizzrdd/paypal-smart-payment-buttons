@@ -4,9 +4,9 @@ import { noop, stringifyError } from 'belter/src';
 import { ZalgoPromise } from 'zalgo-promise/src';
 import { FPTI_KEY } from '@paypal/sdk-constants/src';
 
-import { applepay, checkout, cardField, cardFields, native, brandedVaultCard, vaultCapture, walletCapture, popupBridge, type Payment, type PaymentFlow } from '../payment-flows';
+import { applepay, checkout, cardField, cardForm, native, brandedVaultCard, vaultCapture, walletCapture, popupBridge, type Payment, type PaymentFlow } from '../payment-flows';
 import { getLogger, sendBeacon } from '../lib';
-import { FPTI_TRANSITION, BUYER_INTENT } from '../constants';
+import { FPTI_TRANSITION, BUYER_INTENT, FPTI_CONTEXT_TYPE } from '../constants';
 import { updateButtonClientConfig } from '../api';
 import { getConfirmOrder } from '../props/confirmOrder';
 import { enableVaultSetup } from '../middleware';
@@ -21,7 +21,7 @@ const PAYMENT_FLOWS : $ReadOnlyArray<PaymentFlow> = [
     vaultCapture,
     walletCapture,
     cardField,
-    cardFields,
+    cardForm,
     popupBridge,
     applepay,
     native,
@@ -81,21 +81,31 @@ export function initiatePaymentFlow({ payment, serviceData, config, components, 
         const { name, init, inline, spinner, updateFlowClientConfig } = getPaymentFlow({ props, payment, config, components, serviceData });
         const { click, start, close } = init({ props, config, serviceData, components, payment });
 
-        const clickPromise = click ? ZalgoPromise.try(click) : ZalgoPromise.resolve();
-        clickPromise.catch(noop);
-
         getLogger()
+            .addPayloadBuilder(() => {
+                return { token: null };
+            })
             .info(`button_click`)
             .info(`button_click_pay_flow_${ name }`)
             .info(`button_click_fundingsource_${ fundingSource }`)
             .info(`button_click_instrument_${ instrumentType || 'default' }`)
+            .addTrackingBuilder(() => {
+                return {
+                    [FPTI_KEY.CHOSEN_FUNDING]: fundingSource,
+                    [FPTI_KEY.CONTEXT_TYPE]:   FPTI_CONTEXT_TYPE.BUTTON_SESSION_ID,
+                    [FPTI_KEY.CONTEXT_ID]:     buttonSessionID,
+                    [FPTI_KEY.TOKEN]:          null
+                };
+            })
             .track({
                 [FPTI_KEY.TRANSITION]:     FPTI_TRANSITION.BUTTON_CLICK,
-                [FPTI_KEY.CHOSEN_FUNDING]: fundingSource,
                 [FPTI_KEY.CHOSEN_FI_TYPE]: instrumentType,
                 [FPTI_KEY.PAYMENT_FLOW]:   name,
                 [FPTI_KEY.IS_VAULT]:       instrumentType ? '1' : '0'
             }).flush();
+
+        const clickPromise = click ? ZalgoPromise.try(click) : ZalgoPromise.resolve();
+        clickPromise.catch(noop);
 
         return ZalgoPromise.try(() => {
             return onClick ? onClick({ fundingSource }) : true;

@@ -10,6 +10,7 @@ import { getLogger, isAndroidChrome, unresolvedPromise, getStorageState } from '
 import { FPTI_STATE, FPTI_TRANSITION, FPTI_CUSTOM_KEY } from '../../constants';
 import type { ButtonProps, ServiceData, Config, Components } from '../../button/props';
 import { type OnShippingChangeData } from '../../props/onShippingChange';
+import type { Payment } from '../types';
 
 
 import { isNativeOptedIn, type NativeOptOutOptions } from './eligibility';
@@ -108,7 +109,7 @@ type NativePopupOptions = {|
     serviceData : ServiceData,
     config : Config,
     components : Components,
-    fundingSource : $Values<typeof FUNDING>,
+    payment : Payment,
     sessionUID : string,
     clean : CleanupType,
     callbacks : {|
@@ -155,9 +156,10 @@ type NativePopup = {|
     start : () => ZalgoPromise<void>
 |};
 
-export function initNativePopup({ props, serviceData, config, fundingSource, sessionUID, callbacks, clean } : NativePopupOptions) : NativePopup {
+export function initNativePopup({ props, serviceData, config, payment, sessionUID, callbacks, clean } : NativePopupOptions) : NativePopup {
     const { onClick, createOrder } = props;
     const { firebase: firebaseConfig } = config;
+    const { fundingSource } = payment;
     const { onInit, onApprove, onCancel, onError, onFallback, onClose, onDestroy, onShippingChange } = callbacks;
 
     if (!firebaseConfig) {
@@ -373,8 +375,9 @@ export function initNativePopup({ props, serviceData, config, fundingSource, ses
                             nativePopupWin.close();
                             return onDestroy().then(() => {
                                 return {
-                                    redirect:  false,
-                                    appSwitch: false
+                                    appSwitch: false,
+                                    orderID:   null,
+                                    redirect:  false
                                 };
                             });
                         }
@@ -384,6 +387,7 @@ export function initNativePopup({ props, serviceData, config, fundingSource, ses
                                 return {
                                     redirect:    true,
                                     appSwitch:   false,
+                                    orderID,
                                     redirectUrl: getNativeFallbackUrl({
                                         props, serviceData, config, fundingSource, sessionUID, pageUrl, orderID, stickinessID
                                     })
@@ -408,8 +412,9 @@ export function initNativePopup({ props, serviceData, config, fundingSource, ses
                             }
 
                             return {
-                                redirect:    true,
                                 appSwitch:   true,
+                                orderID,
+                                redirect:    true,
                                 redirectUrl: nativeUrl
                             };
                         });
@@ -424,8 +429,9 @@ export function initNativePopup({ props, serviceData, config, fundingSource, ses
 
                         return orderPromise.then(orderID => {
                             return {
-                                redirect:    true,
                                 appSwitch:   false,
+                                orderID,
+                                redirect:    true,
                                 redirectUrl: getNativeFallbackUrl({
                                     props, serviceData, config, fundingSource, sessionUID, pageUrl, orderID, stickinessID
                                 })

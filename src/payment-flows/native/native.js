@@ -199,7 +199,7 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     }
 
     const flow = initFlow({
-        props, serviceData, config, components, fundingSource, clean, sessionUID,
+        props, serviceData, config, components, payment, clean, sessionUID,
         callbacks: {
             onInit:            onInitCallback,
             onApprove:         onApproveCallback,
@@ -213,12 +213,6 @@ function initNative({ props, components, config, payment, serviceData } : InitOp
     });
 
     const click = () => {
-        getLogger().addTrackingBuilder(() => {
-            return {
-                [FPTI_KEY.CHOSEN_FUNDING]: fundingSource
-            };
-        });
-        
         return flow.click();
     };
 
